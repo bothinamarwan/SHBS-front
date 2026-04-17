@@ -1,0 +1,270 @@
+<div class="auth-page">
+
+  <!-- Left Brand Panel -->
+  <div class="auth-brand-panel">
+    <div class="brand-overlay"></div>
+    <div class="brand-content">
+      <div class="brand-logo">
+        <span class="material-symbols-outlined logo-icon">home_work</span>
+        <span class="logo-text">AcademicAbode</span>
+      </div>
+      <div class="brand-tagline">
+        <h2>Join the <br/><span class="accent">Trusted Community</span></h2>
+        <p>Create your free account and connect with verified landlords or find students for your property today.</p>
+      </div>
+      <!-- Benefit cards -->
+      <div class="benefit-list">
+        <div class="benefit-item">
+          <span class="material-symbols-outlined">verified</span>
+          <div>
+            <strong>Verified Listings Only</strong>
+            <p>Every property is reviewed and verified before going live.</p>
+          </div>
+        </div>
+        <div class="benefit-item">
+          <span class="material-symbols-outlined">lock</span>
+          <div>
+            <strong>Secure Payments</strong>
+            <p>Book and pay safely through our escrow-protected system.</p>
+          </div>
+        </div>
+        <div class="benefit-item">
+          <span class="material-symbols-outlined">support_agent</span>
+          <div>
+            <strong>24/7 Support</strong>
+            <p>Our team is always ready to resolve disputes and help you.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Form Panel -->
+  <div class="auth-form-panel">
+    <div class="form-container">
+
+      <!-- Mobile Logo -->
+      <div class="mobile-logo">
+        <span class="material-symbols-outlined">home_work</span>
+        <span>AcademicAbode</span>
+      </div>
+
+      <div class="form-header">
+        <h1>Create your account</h1>
+        <p>Sign up to get started — it's completely free</p>
+      </div>
+
+      <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="auth-form" novalidate>
+
+        <!-- Role Selector -->
+        <div class="field-group">
+          <label>I am a...</label>
+          <div class="role-selector">
+            <button
+              type="button"
+              id="role-student"
+              class="role-card"
+              [class.selected]="selectedRole() === 'student'"
+              (click)="selectRole('student')">
+              <span class="material-symbols-outlined">school</span>
+              <span class="role-name">Student</span>
+              <span class="role-desc">Looking for housing</span>
+            </button>
+            <button
+              type="button"
+              id="role-landlord"
+              class="role-card"
+              [class.selected]="selectedRole() === 'landlord'"
+              (click)="selectRole('landlord')">
+              <span class="material-symbols-outlined">apartment</span>
+              <span class="role-name">Landlord</span>
+              <span class="role-desc">Listing a property</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Full Name -->
+        <div class="field-group">
+          <label for="reg-name">Full name</label>
+          <div class="input-wrapper"
+            [class.input-error]="fullName?.invalid && fullName?.touched"
+            [class.input-success]="fullName?.valid && fullName?.touched">
+            <span class="material-symbols-outlined input-icon">person</span>
+            <input id="reg-name" type="text" formControlName="fullName"
+              placeholder="Ahmed Mohamed" autocomplete="name" />
+            @if (fullName?.valid && fullName?.touched) {
+              <span class="material-symbols-outlined valid-icon">check_circle</span>
+            }
+          </div>
+          @if (fullName?.invalid && fullName?.touched) {
+            <span class="field-error">
+              <span class="material-symbols-outlined">error</span>
+              @if (fullName?.errors?.['required']) { Full name is required. }
+              @if (fullName?.errors?.['minlength']) { Name must be at least 3 characters. }
+            </span>
+          }
+        </div>
+
+        <!-- Email -->
+        <div class="field-group">
+          <label for="reg-email">Email address</label>
+          <div class="input-wrapper"
+            [class.input-error]="email?.invalid && email?.touched"
+            [class.input-success]="email?.valid && email?.touched">
+            <span class="material-symbols-outlined input-icon">mail</span>
+            <input id="reg-email" type="email" formControlName="email"
+              placeholder="you@university.edu" autocomplete="email" />
+            @if (email?.valid && email?.touched) {
+              <span class="material-symbols-outlined valid-icon">check_circle</span>
+            }
+          </div>
+          @if (email?.invalid && email?.touched) {
+            <span class="field-error">
+              <span class="material-symbols-outlined">error</span>
+              @if (email?.errors?.['required']) { Email is required. }
+              @if (email?.errors?.['email']) { Enter a valid email address. }
+            </span>
+          }
+        </div>
+
+        <!-- Phone -->
+        <div class="field-group">
+          <label for="reg-phone">Phone number</label>
+          <div class="input-wrapper"
+            [class.input-error]="phone?.invalid && phone?.touched"
+            [class.input-success]="phone?.valid && phone?.touched">
+            <span class="material-symbols-outlined input-icon">phone</span>
+            <input id="reg-phone" type="tel" formControlName="phone"
+              placeholder="01012345678" autocomplete="tel" />
+            @if (phone?.valid && phone?.touched) {
+              <span class="material-symbols-outlined valid-icon">check_circle</span>
+            }
+          </div>
+          @if (phone?.invalid && phone?.touched) {
+            <span class="field-error">
+              <span class="material-symbols-outlined">error</span>
+              @if (phone?.errors?.['required']) { Phone number is required. }
+              @if (phone?.errors?.['pattern']) { Enter a valid phone number (10–15 digits). }
+            </span>
+          }
+        </div>
+
+        <!-- Password -->
+        <div class="field-group">
+          <label for="reg-password">Password</label>
+          <div class="input-wrapper"
+            [class.input-error]="password?.invalid && password?.touched">
+            <span class="material-symbols-outlined input-icon">lock</span>
+            <input id="reg-password" [type]="showPassword() ? 'text' : 'password'"
+              formControlName="password" placeholder="Min. 8 characters" autocomplete="new-password" />
+            <button type="button" class="toggle-password" (click)="togglePassword()">
+              <span class="material-symbols-outlined">{{ showPassword() ? 'visibility_off' : 'visibility' }}</span>
+            </button>
+          </div>
+          <!-- Password strength bar -->
+          @if (password?.value) {
+            <div class="strength-bar-wrapper">
+              @for (i of [1,2,3,4]; track i) {
+                <div class="strength-segment"
+                  [style.background]="i <= getPasswordStrength().level ? getPasswordStrength().color : '#e6e6ff'">
+                </div>
+              }
+              <span class="strength-label" [style.color]="getPasswordStrength().color">
+                {{ getPasswordStrength().label }}
+              </span>
+            </div>
+          }
+          @if (password?.invalid && password?.touched) {
+            <span class="field-error">
+              <span class="material-symbols-outlined">error</span>
+              @if (password?.errors?.['required']) { Password is required. }
+              @if (password?.errors?.['minlength']) { Password must be at least 8 characters. }
+            </span>
+          }
+        </div>
+
+        <!-- Confirm Password -->
+        <div class="field-group">
+          <label for="reg-confirm">Confirm password</label>
+          <div class="input-wrapper"
+            [class.input-error]="confirmPassword?.invalid && confirmPassword?.touched"
+            [class.input-success]="confirmPassword?.valid && confirmPassword?.touched && !confirmPassword?.errors?.['mismatch']">
+            <span class="material-symbols-outlined input-icon">lock_reset</span>
+            <input id="reg-confirm" [type]="showConfirm() ? 'text' : 'password'"
+              formControlName="confirmPassword" placeholder="Repeat your password" autocomplete="new-password" />
+            <button type="button" class="toggle-password" (click)="toggleConfirm()">
+              <span class="material-symbols-outlined">{{ showConfirm() ? 'visibility_off' : 'visibility' }}</span>
+            </button>
+          </div>
+          @if (confirmPassword?.invalid && confirmPassword?.touched) {
+            <span class="field-error">
+              <span class="material-symbols-outlined">error</span>
+              @if (confirmPassword?.errors?.['required']) { Please confirm your password. }
+              @if (confirmPassword?.errors?.['mismatch']) { Passwords do not match. }
+            </span>
+          }
+        </div>
+
+        <!-- Terms -->
+        <div class="field-group">
+          <label class="checkbox-label">
+            <input type="checkbox" formControlName="agreeTerms" id="agree-terms" />
+            <span class="checkbox-custom"></span>
+            <span class="terms-inline">
+              I agree to the <a href="#" tabindex="-1">Terms of Service</a> and
+              <a href="#" tabindex="-1">Privacy Policy</a>
+            </span>
+          </label>
+          @if (agreeTerms?.invalid && agreeTerms?.touched) {
+            <span class="field-error">
+              <span class="material-symbols-outlined">error</span>
+              You must accept the terms to continue.
+            </span>
+          }
+        </div>
+
+        <!-- Submit -->
+        <button type="submit" id="register-submit" class="btn-primary"
+          [class.loading]="isLoading()" [disabled]="isLoading()">
+          @if (isLoading()) {
+            <span class="spinner"></span>
+            <span>Creating account...</span>
+          } @else {
+            <span>Create Account</span>
+            <span class="material-symbols-outlined">arrow_forward</span>
+          }
+        </button>
+
+        <!-- Divider -->
+        <div class="divider"><span>or sign up with</span></div>
+
+        <!-- Social Buttons -->
+        <div class="social-buttons">
+          <button type="button" class="btn-social" id="google-register">
+            <svg width="20" height="20" viewBox="0 0 24 24">
+              <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+              <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+            </svg>
+            Google
+          </button>
+          <button type="button" class="btn-social" id="facebook-register">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="#1877F2">
+              <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+            </svg>
+            Facebook
+          </button>
+        </div>
+
+      </form>
+
+      <p class="switch-auth">
+        Already have an account?
+        <a routerLink="/auth/login" id="goto-login">Sign in here</a>
+      </p>
+
+    </div>
+  </div>
+
+</div>
