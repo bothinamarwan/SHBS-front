@@ -1,0 +1,7 @@
+{
+  "/api": {
+    "target": "http://unistay.tryasp.net",
+    "secure": false,
+    "changeOrigin": true
+  }
+}

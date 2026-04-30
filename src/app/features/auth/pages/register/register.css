@@ -150,7 +150,7 @@
 /* ===== RIGHT FORM PANEL ===== */
 .auth-form-panel {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   background: #f7f5ff;
   padding: 2rem;
@@ -164,6 +164,7 @@
   flex-direction: column;
   gap: 1.25rem;
   padding: 1rem 0;
+  margin: auto 0;
 }
 
 /* Mobile logo */
@@ -215,6 +216,7 @@
   font-size: 0.875rem;
   font-weight: 600;
   color: #262c51;
+  padding-left: 0.25rem;
 }
 
 .input-wrapper {
@@ -360,7 +362,8 @@
 /* ===== CHECKBOX ===== */
 .checkbox-label {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
+  justify-content: flex-start;
   gap: 0.6rem;
   cursor: pointer;
   font-family: 'Inter', sans-serif;
@@ -474,7 +477,7 @@
 
 .social-buttons {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   gap: 0.75rem;
 }
 
@@ -517,7 +520,96 @@
 }
 .switch-auth a:hover { color: #0a3d7a; text-decoration: underline; }
 
-/* ===== RESPONSIVE ===== */
+/* ===== STUDENT DETAILS SECTION ===== */
+.student-details-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  margin-top: 0.5rem;
+  padding: 1.5rem;
+  background: rgba(108, 163, 253, 0.05);
+  border-radius: 1rem;
+  border: 1px dashed #d7daff;
+}
+
+.section-divider {
+  position: relative;
+  text-align: center;
+  margin-bottom: 0.5rem;
+}
+.section-divider::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: #d7daff;
+}
+.section-divider span {
+  position: relative;
+  background: #fdfcff;
+  padding: 0 1rem;
+  font-family: 'Manrope', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: #105aaf;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.grid-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.gender-selector {
+  display: flex;
+  gap: 1rem;
+}
+
+.gender-option {
+  flex: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background: white;
+  border: 1.5px solid #d7daff;
+  border-radius: 0.75rem;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #535981;
+  transition: all 0.2s;
+}
+
+.gender-option input { display: none; }
+
+.gender-option:has(input:checked) {
+  border-color: #105aaf;
+  background: #eef3ff;
+  color: #105aaf;
+  box-shadow: 0 0 0 3px rgba(16, 90, 175, 0.1);
+}
+
+@media (max-width: 480px) {
+  .grid-fields { grid-template-columns: 1fr; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-in {
+  animation: fadeIn 0.4s ease-out forwards;
+}
+
+/* Existing responsive... */
 @media (max-width: 900px) {
   .auth-page { grid-template-columns: 1fr; }
   .auth-brand-panel { display: none; }

@@ -1,7 +1,8 @@
 import { Component, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { RouterLink, Router } from '@angular/router';
+import { AuthService } from '../../../../core/services/auth.service';
 
 @Component({
   selector: 'app-login',
@@ -14,8 +15,13 @@ export class Login {
   loginForm: FormGroup;
   showPassword = signal(false);
   isLoading = signal(false);
+  errorMessage = signal<string | null>(null);
 
-  constructor(private fb: FormBuilder) {
+  constructor(
+    private fb: FormBuilder,
+    private authService: AuthService,
+    private router: Router
+  ) {
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(8)]],
@@ -30,8 +36,30 @@ export class Login {
   onSubmit() {
     if (this.loginForm.valid) {
       this.isLoading.set(true);
-      // TODO: connect to auth service
-      setTimeout(() => this.isLoading.set(false), 2000);
+      this.errorMessage.set(null);
+      const payload = {
+        email: this.loginForm.value.email,
+        password: this.loginForm.value.password
+      };
+
+      console.log('Sending Login Payload:', payload);
+
+      this.authService.login(payload).subscribe({
+        next: () => {
+          this.isLoading.set(false);
+          this.router.navigate(['/student']);
+        },
+        error: (err) => {
+          this.isLoading.set(false);
+          this.errorMessage.set('Invalid email or password');
+          console.error('Login Error:', err);
+          if (err.error && err.error.errors) {
+            console.error('Validation Errors from Backend:', err.error.errors);
+          } else if (err.error) {
+             console.error('Backend Error Message:', err.error);
+          }
+        }
+      });
     } else {
       this.loginForm.markAllAsTouched();
     }

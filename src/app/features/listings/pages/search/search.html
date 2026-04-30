@@ -1,0 +1,252 @@
+<!-- ── Hero Banner ────────────────────────────────────────────────────────── -->
+<section class="relative overflow-hidden bg-gradient-to-br from-indigo-600 via-indigo-500 to-violet-600 py-20 px-6 mb-12">
+  <div class="absolute inset-0 opacity-10"
+    style="background-image: url('https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=1600'); background-size: cover; background-position: center;">
+  </div>
+  <div class="relative max-w-4xl mx-auto text-center">
+    <span class="inline-block px-4 py-1.5 bg-white/20 backdrop-blur-sm rounded-full text-white text-xs font-bold uppercase tracking-widest mb-6">
+      🏠 Verified Student Housing
+    </span>
+    <h1 class="text-4xl md:text-5xl font-black text-white leading-tight mb-4">
+      Find Your Perfect<br>Student Home
+    </h1>
+    <p class="text-indigo-100 text-lg mb-8 max-w-xl mx-auto">
+      Browse hundreds of verified, affordable rooms across Egypt's top university cities.
+    </p>
+    <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+      <a routerLink="/auth/register"
+        class="px-8 py-3 bg-white text-indigo-600 font-extrabold rounded-2xl shadow-xl hover:shadow-2xl hover:-translate-y-0.5 transition-all duration-200">
+        Get Started Free
+      </a>
+      <a routerLink="/auth/login"
+        class="px-8 py-3 border-2 border-white/50 text-white font-bold rounded-2xl hover:bg-white/10 transition-all duration-200">
+        Sign In
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ── Main Content ────────────────────────────────────────────────────────── -->
+<div class="max-w-7xl mx-auto px-6 pb-20">
+  <div class="flex flex-col lg:flex-row gap-8">
+
+    <!-- Filter Sidebar -->
+    <aside class="w-full lg:w-72 shrink-0">
+      <div class="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-neutral-100 dark:border-slate-800 shadow-sm sticky top-24">
+        <div class="flex items-center justify-between mb-6">
+          <h2 class="font-bold text-neutral-800 dark:text-slate-200 text-lg">Filters</h2>
+          <button (click)="resetFilters()" class="text-xs font-bold text-indigo-600 hover:text-indigo-700">Reset All</button>
+        </div>
+
+        <form [formGroup]="filterForm" class="space-y-6">
+          <!-- Search -->
+          <div>
+            <label class="block text-xs font-bold text-neutral-400 uppercase tracking-wider mb-2">Search</label>
+            <div class="relative">
+              <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 text-sm"></i>
+              <input formControlName="search" type="text" placeholder="City, area or name..."
+                class="w-full pl-10 pr-4 py-2 bg-neutral-50 dark:bg-slate-800 border border-transparent dark:border-slate-700 rounded-xl focus:bg-white dark:focus:bg-slate-700 focus:border-indigo-500 transition-all text-sm text-neutral-800 dark:text-slate-200">
+            </div>
+          </div>
+
+          <!-- Price Range -->
+          <div>
+            <label class="block text-xs font-bold text-neutral-400 uppercase tracking-wider mb-2">Price Range (EGP)</label>
+            <div class="grid grid-cols-2 gap-2">
+              <input formControlName="minPrice" type="number" placeholder="Min"
+                class="w-full px-3 py-2 bg-neutral-50 dark:bg-slate-800 border border-transparent dark:border-slate-700 rounded-xl text-sm focus:bg-white dark:focus:bg-slate-700 focus:border-indigo-500 text-neutral-800 dark:text-slate-200">
+              <input formControlName="maxPrice" type="number" placeholder="Max"
+                class="w-full px-3 py-2 bg-neutral-50 dark:bg-slate-800 border border-transparent dark:border-slate-700 rounded-xl text-sm focus:bg-white dark:focus:bg-slate-700 focus:border-indigo-500 text-neutral-800 dark:text-slate-200">
+            </div>
+          </div>
+
+          <!-- Room Type -->
+          <div>
+            <label class="block text-xs font-bold text-neutral-400 uppercase tracking-wider mb-2">Room Type</label>
+            <select formControlName="type"
+              class="w-full px-3 py-2 bg-neutral-50 dark:bg-slate-800 border border-transparent dark:border-slate-700 rounded-xl text-sm focus:bg-white dark:focus:bg-slate-700 focus:border-indigo-500 text-neutral-800 dark:text-slate-200">
+              <option value="">All Types</option>
+              <option value="single">Single Room</option>
+              <option value="shared">Shared Room</option>
+            </select>
+          </div>
+
+          <!-- Gender -->
+          <div>
+            <label class="block text-xs font-bold text-neutral-400 uppercase tracking-wider mb-3">Gender</label>
+            <div class="flex gap-2 p-1 bg-neutral-50 dark:bg-slate-800 rounded-xl">
+              <button type="button" (click)="setGender('')"
+                [class.bg-white]="!filterForm.get('gender')?.value"
+                [class.shadow-sm]="!filterForm.get('gender')?.value"
+                class="flex-1 py-1.5 text-xs font-bold rounded-lg transition-all dark:text-slate-300">All</button>
+              <button type="button" (click)="setGender('male')"
+                [class.bg-white]="filterForm.get('gender')?.value === 'male'"
+                [class.shadow-sm]="filterForm.get('gender')?.value === 'male'"
+                class="flex-1 py-1.5 text-xs font-bold rounded-lg transition-all dark:text-slate-300">Male</button>
+              <button type="button" (click)="setGender('female')"
+                [class.bg-white]="filterForm.get('gender')?.value === 'female'"
+                [class.shadow-sm]="filterForm.get('gender')?.value === 'female'"
+                class="flex-1 py-1.5 text-xs font-bold rounded-lg transition-all dark:text-slate-300">Female</button>
+            </div>
+          </div>
+
+          <!-- Facilities -->
+          <div>
+            <label class="block text-xs font-bold text-neutral-400 uppercase tracking-wider mb-3">Facilities</label>
+            <div class="space-y-2">
+              <label *ngFor="let f of ['WiFi', 'AC', 'Kitchen', 'Laundry', 'Gym']"
+                class="flex items-center gap-3 cursor-pointer group">
+                <div class="w-5 h-5 rounded border-2 border-neutral-200 dark:border-slate-700 flex items-center justify-center transition-all group-hover:border-indigo-500"
+                  [class.bg-indigo-600]="isFacilitySelected(f)" [class.border-indigo-600]="isFacilitySelected(f)">
+                  <i class="fas fa-check text-[10px] text-white" *ngIf="isFacilitySelected(f)"></i>
+                </div>
+                <input type="checkbox" class="hidden" (change)="toggleFacility(f)">
+                <span class="text-sm font-medium text-neutral-600 dark:text-slate-400 group-hover:text-neutral-900 transition-colors">{{ f }}</span>
+              </label>
+            </div>
+          </div>
+        </form>
+
+        <!-- Sign-up CTA inside sidebar -->
+        <div class="mt-8 p-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-2xl text-center">
+          <p class="text-xs text-indigo-700 dark:text-indigo-300 font-semibold mb-3">Sign up to book & save to wishlist</p>
+          <a routerLink="/auth/register"
+            class="block w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-extrabold rounded-xl transition-colors">
+            Create Free Account
+          </a>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Results Area -->
+    <div class="flex-1 min-w-0">
+      <!-- Header row -->
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+        <div>
+          <p class="text-neutral-500 text-sm" *ngIf="!isLoading()">
+            Found <span class="font-bold text-neutral-800">{{ housings().length }}</span> properties
+            &mdash; page {{ currentPage() }} of {{ totalPages() }}
+          </p>
+          <p class="text-neutral-500 text-sm animate-pulse" *ngIf="isLoading()">Searching…</p>
+        </div>
+
+        <!-- Sort by -->
+        <div class="flex items-center gap-3" [formGroup]="filterForm">
+          <span class="text-xs font-bold text-neutral-400 uppercase">Sort by:</span>
+          <select formControlName="sortBy"
+            class="bg-white dark:bg-slate-900 border border-neutral-200 dark:border-slate-700 shadow-sm rounded-xl px-4 py-2 text-sm font-semibold text-neutral-700 dark:text-slate-300 focus:ring-2 focus:ring-indigo-500 transition-all cursor-pointer">
+            <option value="recommended">Recommended</option>
+            <option value="price-asc">Price: Low to High</option>
+            <option value="price-desc">Price: High to Low</option>
+            <option value="top-rated">Top Rated</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Skeleton loader -->
+      <div *ngIf="isLoading()" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+        <div *ngFor="let i of [1,2,3,4,5,6]" class="animate-pulse">
+          <div class="bg-neutral-200 dark:bg-slate-800 h-52 rounded-3xl mb-4"></div>
+          <div class="h-4 bg-neutral-200 dark:bg-slate-800 rounded w-3/4 mb-2"></div>
+          <div class="h-4 bg-neutral-200 dark:bg-slate-800 rounded w-1/2"></div>
+        </div>
+      </div>
+
+      <!-- Housing Grid -->
+      <div *ngIf="!isLoading()" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+        <div *ngFor="let item of paginatedHousings()"
+          class="bg-white dark:bg-slate-900 rounded-[2rem] overflow-hidden border border-neutral-100 dark:border-slate-800 shadow-sm hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 group">
+
+          <!-- Image -->
+          <div class="relative h-52 overflow-hidden">
+            <img [src]="item.images[0]" [alt]="item.title"
+              class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
+            <div class="absolute top-4 left-4 flex flex-col gap-1.5">
+              <span class="px-2.5 py-1 bg-white/90 backdrop-blur-md rounded-full text-indigo-600 text-[10px] font-extrabold shadow-sm uppercase tracking-wider">
+                {{ item.type }} room
+              </span>
+              <span *ngIf="item.gender !== 'mixed'"
+                [class.bg-rose-500]="item.gender === 'female'" [class.bg-indigo-500]="item.gender === 'male'"
+                class="px-2.5 py-1 text-white text-[10px] font-extrabold rounded-full shadow-sm uppercase tracking-wider">
+                {{ item.gender }} only
+              </span>
+            </div>
+            <!-- Rating badge -->
+            <div class="absolute top-4 right-4 flex items-center gap-1 bg-white/90 backdrop-blur-md px-2.5 py-1 rounded-full shadow-sm">
+              <i class="fas fa-star text-amber-500 text-xs"></i>
+              <span class="text-amber-700 text-xs font-bold">{{ item.rating }}</span>
+            </div>
+          </div>
+
+          <!-- Body -->
+          <div class="p-6">
+            <h3 class="font-extrabold text-lg text-neutral-800 dark:text-slate-100 group-hover:text-indigo-600 transition-colors leading-tight mb-1">
+              {{ item.title }}
+            </h3>
+            <p class="text-neutral-500 text-sm flex items-center gap-1.5 mb-4">
+              <i class="fas fa-map-marker-alt text-indigo-400 text-xs"></i> {{ item.area }}, {{ item.city }}
+            </p>
+
+            <div class="flex flex-wrap gap-1.5 mb-5">
+              <span *ngFor="let f of item.facilities.slice(0,3)"
+                class="px-2 py-0.5 bg-neutral-50 dark:bg-slate-800 text-neutral-500 dark:text-slate-400 text-[10px] font-bold rounded-md uppercase tracking-tight">
+                {{ f }}
+              </span>
+              <span *ngIf="item.facilities.length > 3"
+                class="px-2 py-0.5 bg-neutral-50 dark:bg-slate-800 text-neutral-400 text-[10px] font-bold rounded-md">
+                +{{ item.facilities.length - 3 }}
+              </span>
+            </div>
+
+            <div class="flex items-center justify-between pt-4 border-t border-neutral-50 dark:border-slate-800">
+              <div>
+                <span class="text-neutral-400 text-[9px] font-bold uppercase tracking-wider block">Starting from</span>
+                <div class="flex items-baseline gap-1">
+                  <span class="text-xl font-black text-neutral-900 dark:text-slate-100">{{ item.price | number }}</span>
+                  <span class="text-neutral-400 font-bold text-[10px] uppercase">EGP/mo</span>
+                </div>
+              </div>
+              <!-- Login-to-book CTA -->
+              <a routerLink="/auth/login"
+                class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-extrabold rounded-xl transition-colors shadow-md shadow-indigo-100">
+                Book Now
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty state -->
+      <div *ngIf="!isLoading() && housings().length === 0"
+        class="flex flex-col items-center justify-center py-24 bg-white dark:bg-slate-900 rounded-[2rem] border border-dashed border-neutral-200">
+        <div class="w-16 h-16 bg-neutral-50 rounded-full flex items-center justify-center mb-5">
+          <i class="fas fa-search-minus text-2xl text-neutral-300"></i>
+        </div>
+        <h3 class="text-xl font-bold text-neutral-800 dark:text-slate-100">No properties found</h3>
+        <p class="text-neutral-500 mt-2 text-sm">Try adjusting your filters.</p>
+        <button (click)="resetFilters()" class="mt-6 text-indigo-600 font-bold hover:underline text-sm">Clear all filters</button>
+      </div>
+
+      <!-- Pagination -->
+      <div *ngIf="!isLoading() && housings().length > 0" class="flex items-center justify-center gap-2 mt-12">
+        <button (click)="prevPage()" [disabled]="currentPage() === 1"
+          class="w-10 h-10 rounded-2xl flex items-center justify-center border border-neutral-100 dark:border-slate-700 bg-white dark:bg-slate-900 text-neutral-500 font-bold transition-all hover:border-indigo-500 hover:text-indigo-600 disabled:opacity-30 disabled:cursor-not-allowed shadow-sm">
+          <i class="fas fa-chevron-left text-xs"></i>
+        </button>
+
+        <button *ngFor="let p of pageNumbers()" (click)="goToPage(p)"
+          [class.bg-indigo-600]="p === currentPage()"
+          [class.text-white]="p === currentPage()"
+          [class.border-indigo-600]="p === currentPage()"
+          class="w-10 h-10 rounded-2xl flex items-center justify-center border border-neutral-100 dark:border-slate-700 bg-white dark:bg-slate-900 text-neutral-600 text-sm font-bold transition-all hover:border-indigo-500 hover:text-indigo-600 shadow-sm">
+          {{ p }}
+        </button>
+
+        <button (click)="nextPage()" [disabled]="currentPage() === totalPages()"
+          class="w-10 h-10 rounded-2xl flex items-center justify-center border border-neutral-100 dark:border-slate-700 bg-white dark:bg-slate-900 text-neutral-500 font-bold transition-all hover:border-indigo-500 hover:text-indigo-600 disabled:opacity-30 disabled:cursor-not-allowed shadow-sm">
+          <i class="fas fa-chevron-right text-xs"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,61 @@
+<div class="max-w-2xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700 mt-12">
+  <div class="bg-white p-8 sm:p-12 rounded-[2.5rem] border border-neutral-100 shadow-2xl shadow-neutral-200">
+    
+    <div *ngIf="!isSuccess(); else successTpl">
+      <div class="mb-10">
+        <h1 class="text-3xl font-black text-neutral-800">Submit a Complaint</h1>
+        <p class="text-neutral-500 mt-2">Let us know if you're facing any issues with your stay or a landlord.</p>
+      </div>
+
+      <form [formGroup]="complaintForm" (ngSubmit)="onSubmit()" class="space-y-6">
+        <div class="space-y-2">
+          <label class="block text-[10px] font-bold text-neutral-400 uppercase tracking-widest px-2">Issue Category</label>
+          <select formControlName="category"
+            class="w-full px-6 py-4 bg-neutral-50 border border-transparent rounded-2xl font-bold text-neutral-800 focus:bg-white focus:border-indigo-500 transition-all">
+            <option value="housing">Housing Condition</option>
+            <option value="landlord">Landlord Behavior</option>
+            <option value="payment">Payment Issue</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+
+        <div class="space-y-2">
+          <label class="block text-[10px] font-bold text-neutral-400 uppercase tracking-widest px-2">Subject</label>
+          <input type="text" formControlName="subject" placeholder="Brief summary of the issue"
+            class="w-full px-6 py-4 bg-neutral-50 border border-transparent rounded-2xl font-bold text-neutral-800 focus:bg-white focus:border-indigo-500 transition-all">
+        </div>
+
+        <div class="space-y-2">
+          <label class="block text-[10px] font-bold text-neutral-400 uppercase tracking-widest px-2">Detailed Description</label>
+          <textarea formControlName="description" placeholder="Please provide as much detail as possible..."
+            class="w-full px-6 py-4 bg-neutral-50 border border-transparent rounded-2xl font-bold text-neutral-800 focus:bg-white focus:border-indigo-500 transition-all min-h-[150px] outline-none"></textarea>
+        </div>
+
+        <div class="pt-6 flex gap-4">
+          <a routerLink="/student" class="flex-1 px-8 py-4 bg-neutral-100 text-neutral-600 text-center rounded-2xl font-bold hover:bg-neutral-200 transition-all">
+            Cancel
+          </a>
+          <button type="submit" [disabled]="complaintForm.invalid || isLoading()"
+            class="flex-[2] px-8 py-4 bg-rose-500 text-white rounded-2xl font-bold hover:bg-rose-600 transition-all shadow-xl shadow-rose-100 flex items-center justify-center gap-2">
+            <span *ngIf="isLoading()" class="animate-spin"><i class="fas fa-circle-notch"></i></span>
+            {{ isLoading() ? 'Submitting...' : 'Submit Complaint' }}
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <ng-template #successTpl>
+      <div class="py-12 text-center space-y-6 animate-in zoom-in duration-500">
+        <div class="w-24 h-24 bg-rose-50 rounded-full flex items-center justify-center text-rose-500 mx-auto text-4xl shadow-sm">
+          <i class="fas fa-check-circle"></i>
+        </div>
+        <div>
+          <h2 class="text-2xl font-black text-neutral-800">Complaint Submitted</h2>
+          <p class="text-neutral-500 mt-2">We've received your report. Our team will investigate and get back to you within 24–48 hours.</p>
+        </div>
+        <p class="text-xs text-neutral-400 italic">Redirecting you to dashboard...</p>
+      </div>
+    </ng-template>
+
+  </div>
+</div>

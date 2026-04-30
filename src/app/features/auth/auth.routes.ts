@@ -1,9 +1,28 @@
 import { Routes } from '@angular/router';
-import { Login } from './pages/login/login';
-import { Register } from './pages/register/register';
+import { guestGuard } from '../../core/guards/auth.guard';
 
 export const authRoutes: Routes = [
-  { path: 'login',    component: Login },
-  { path: 'register', component: Register },
-  { path: '', redirectTo: 'login', pathMatch: 'full' }
+  {
+    path: '',
+    canActivate: [guestGuard],
+    children: [
+      {
+        path: 'login',
+        loadComponent: () => import('./pages/login/login').then(m => m.Login)
+      },
+      {
+        path: 'register',
+        loadComponent: () => import('./pages/register/register').then(m => m.Register)
+      },
+      {
+        path: 'forgot-password',
+        loadComponent: () => import('./pages/forgot-password/forgot-password').then(m => m.ForgotPassword)
+      },
+      {
+        path: 'reset-password',
+        loadComponent: () => import('./pages/reset-password/reset-password').then(m => m.ResetPassword)
+      },
+      { path: '', redirectTo: 'login', pathMatch: 'full' }
+    ]
+  }
 ];
