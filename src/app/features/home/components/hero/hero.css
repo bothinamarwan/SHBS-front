@@ -1,0 +1,187 @@
+/* ===========================
+   Hero Badge
+   =========================== */
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 9999px;
+  background: rgba(108, 163, 253, 0.18);
+  border: 1px solid rgba(108, 163, 253, 0.35);
+  color: #b3d4ff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  backdrop-filter: blur(8px);
+  text-transform: uppercase;
+}
+
+/* Gradient headline */
+.hero-gradient-text {
+  background: linear-gradient(90deg, #6ca3fd 0%, #81f3e5 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ===========================
+   Pill Search Bar
+   =========================== */
+.search-pill {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  max-width: 720px;
+  background: rgba(255, 255, 255, 0.96);
+  border-radius: 9999px;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.28), 0 2px 10px rgba(16, 90, 175, 0.12);
+  padding: 6px 6px 6px 20px;
+  gap: 0;
+  transition: box-shadow 0.3s;
+}
+.search-pill:focus-within {
+  box-shadow: 0 8px 48px rgba(16, 90, 175, 0.25), 0 0 0 3px rgba(108, 163, 253, 0.3);
+}
+
+.search-field {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  padding: 6px 12px;
+  min-width: 0;
+}
+
+.search-icon {
+  color: #105aaf;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.search-field-inner {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  width: 100%;
+}
+
+.search-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #105aaf;
+  margin-bottom: 1px;
+}
+
+.search-input {
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: #1e293b;
+  width: 100%;
+  padding: 0;
+  box-shadow: none !important;
+}
+.search-input::placeholder { color: #94a3b8; }
+.search-select { cursor: pointer; }
+
+.search-sep {
+  width: 1px;
+  height: 32px;
+  background: #e2e8f0;
+  flex-shrink: 0;
+}
+
+/* Search button */
+.search-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 22px;
+  border-radius: 9999px;
+  background: linear-gradient(135deg, #105aaf 0%, #6ca3fd 100%);
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-decoration: none;
+  box-shadow: 0 4px 16px rgba(16, 90, 175, 0.4);
+  transition: all 0.25s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.search-btn:hover {
+  box-shadow: 0 6px 24px rgba(16, 90, 175, 0.5);
+  transform: translateY(-1px);
+  color: #fff;
+}
+.search-btn:active { transform: scale(0.97); }
+
+/* Responsive: stack on mobile */
+@media (max-width: 767px) {
+  .search-pill {
+    flex-direction: column;
+    border-radius: 20px;
+    padding: 16px;
+    gap: 8px;
+    background: rgba(255,255,255,0.96);
+  }
+  .search-field {
+    width: 100%;
+    border-bottom: 1px solid #f1f5f9;
+    padding: 8px 4px;
+  }
+  .search-field:last-of-type { border: none; }
+  .search-sep { display: none; }
+  .search-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 14px;
+    border-radius: 14px;
+    margin-top: 4px;
+  }
+  .search-btn-text { display: block; }
+}
+@media (min-width: 768px) {
+  .search-btn-text { display: block; }
+}
+
+/* ===========================
+   Hero Stats
+   =========================== */
+.hero-stats {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.hero-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.hero-stat-num {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1;
+}
+
+.hero-stat-lbl {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.6);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.hero-stat-divider {
+  width: 1px;
+  height: 28px;
+  background: rgba(255,255,255,0.2);
+}

@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, computed } from '@angular/core';
 import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/auth.service';
@@ -13,12 +13,15 @@ import { ThemeService } from '../../services/theme.service';
 export class DashboardLayout {
   private authService = inject(AuthService);
   private themeService = inject(ThemeService);
-  
+
   user = this.authService.currentUser$;
   isSidebarOpen = signal(true);
   isProfileMenuOpen = signal(false);
   isNotificationsOpen = signal(false);
   isDark = this.themeService.isDark;
+
+  // Derived role signal for template switching
+  userRole = computed(() => this.authService.currentUserValue?.role ?? 'student');
 
   toggleTheme() {
     this.themeService.toggleTheme();
@@ -32,3 +35,4 @@ export class DashboardLayout {
     this.authService.logout();
   }
 }
+

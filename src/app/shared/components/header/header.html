@@ -1,113 +1,105 @@
-<!-- TopNavBar -->
-<nav class="fixed top-0 w-full z-50 glass-header shadow-[0_8px_40px_rgba(38,44,81,0.06)] h-20">
-  <div class="flex items-center justify-between px-8 h-full max-w-[1440px] mx-auto font-['Manrope'] antialiased">
+<!-- Floating Pill NavBar -->
+<div class="fixed top-5 left-0 w-full z-50 px-4 flex justify-center pointer-events-none">
+  <nav class="nav-pill pointer-events-auto">
+    <div class="nav-inner">
 
-    <!-- Logo + Nav Links -->
-    <div class="flex items-center gap-12">
-      <a routerLink="/" id="nav-logo" class="flex items-center gap-2 no-underline">
-        <span class="material-symbols-outlined text-primary text-3xl">home_work</span>
-        <span class="text-2xl font-extrabold tracking-tight text-blue-800">UniStay</span>
+      <!-- Logo -->
+      <a routerLink="/" id="nav-logo" class="nav-logo">
+        <div class="logo-icon">
+          <span class="material-symbols-outlined">home_work</span>
+        </div>
+        <span class="logo-text">UniStay</span>
       </a>
-      <div class="hidden md:flex items-center gap-8">
-        <a routerLink="/" routerLinkActive="text-blue-700 font-bold border-b-2 border-blue-700"
+
+      <!-- Divider -->
+      <div class="nav-divider"></div>
+
+      <!-- Nav Links (desktop) -->
+      <div class="nav-links">
+        <a routerLink="/" routerLinkActive="nav-link--active"
            [routerLinkActiveOptions]="{exact: true}"
-           id="nav-home"
-           class="text-slate-500 font-medium hover:text-blue-600 transition-all duration-300 pb-1">
-          Home
+           id="nav-home" class="nav-link">
+          <span class="material-symbols-outlined nav-link-icon">cottage</span>
+          <span class="nav-link-label">Home</span>
         </a>
-        <a routerLink="/listings" routerLinkActive="text-blue-700 font-bold border-b-2 border-blue-700"
-           id="nav-listings"
-           class="text-slate-500 font-medium hover:text-blue-600 transition-all duration-300 pb-1">
-          Browse Listings
+        <a routerLink="/listings" routerLinkActive="nav-link--active"
+           id="nav-listings" class="nav-link">
+          <span class="material-symbols-outlined nav-link-icon">apartment</span>
+          <span class="nav-link-label">Listings</span>
         </a>
-        <a href="#universities"
-           id="nav-universities"
-           class="text-slate-500 font-medium hover:text-blue-600 transition-all duration-300 pb-1">
-          Universities
+        <a href="#universities" id="nav-universities" class="nav-link">
+          <span class="material-symbols-outlined nav-link-icon">school</span>
+          <span class="nav-link-label">Universities</span>
         </a>
       </div>
-    </div>
 
-    <!-- Auth Buttons -->
-    <div class="flex items-center gap-3">
-      @if (!isAuthenticated()) {
-        <a routerLink="/auth/login"
-           id="nav-signin"
-           class="hidden md:inline-flex items-center gap-1.5 px-5 py-2.5 text-sm font-semibold text-blue-800
-                  border-2 border-blue-200 rounded-full hover:border-blue-500 hover:bg-blue-50
-                  transition-all duration-300 no-underline">
-          <span class="material-symbols-outlined text-base leading-none">login</span>
-          Sign In
-        </a>
-        <a routerLink="/auth/register"
-           id="nav-signup"
-           class="hidden md:inline-flex items-center gap-1.5 px-5 py-2.5 text-sm font-semibold text-white
-                  signature-gradient rounded-full hover:shadow-lg hover:shadow-blue-200
-                  active:scale-95 transition-all duration-300 no-underline">
-          <span class="material-symbols-outlined text-base leading-none">person_add</span>
-          Get Started
-        </a>
-      } @else {
-        <a routerLink="/student"
-           class="hidden md:inline-flex items-center gap-1.5 px-5 py-2.5 text-sm font-semibold text-blue-800
-                  border-2 border-blue-200 rounded-full hover:border-blue-500 hover:bg-blue-50
-                  transition-all duration-300 no-underline">
-          Dashboard
-        </a>
-        <button (click)="logout()"
-           class="hidden md:inline-flex items-center gap-1.5 px-5 py-2.5 text-sm font-semibold text-slate-600
-                  hover:text-rose-600 transition-all duration-300">
-          Logout
+      <!-- Right Side Actions -->
+      <div class="nav-actions">
+        <!-- Theme Toggle -->
+        <button (click)="toggleTheme()" class="nav-icon-btn" aria-label="Toggle theme">
+          <span class="material-symbols-outlined">{{ isDark() ? 'light_mode' : 'dark_mode' }}</span>
         </button>
-      }
 
-      <!-- Theme Toggle -->
-      <button (click)="toggleTheme()" 
-              class="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all duration-300 outline-none"
-              aria-label="Toggle dark mode">
-        <span class="material-symbols-outlined text-xl">
-          {{ isDark() ? 'light_mode' : 'dark_mode' }}
-        </span>
-      </button>
+        @if (!isAuthenticated()) {
+          <!-- Sign In -->
+          <a routerLink="/auth/login" id="nav-signin" class="nav-ghost-btn">
+            Sign In
+          </a>
+          <!-- Get Started -->
+          <a routerLink="/auth/register" id="nav-signup" class="nav-cta-btn">
+            Get Started
+          </a>
+        } @else {
+          <a routerLink="/student" class="nav-ghost-btn">Dashboard</a>
+          <button (click)="logout()" class="nav-logout-btn">
+            <span class="material-symbols-outlined">logout</span>
+          </button>
+        }
 
-      <!-- Mobile hamburger -->
-      <button (click)="toggleMenu()" id="nav-mobile-menu"
-              class="lg:hidden p-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
-        <span class="material-symbols-outlined">{{ menuOpen() ? 'close' : 'menu' }}</span>
-      </button>
-    </div>
-
-  </div>
-
-  <!-- Mobile Menu Drawer -->
-  <div *ngIf="menuOpen()" class="lg:hidden fixed inset-0 top-20 bg-white dark:bg-slate-900 z-40 animate-in fade-in slide-in-from-top-4 duration-300">
-    <div class="flex flex-col p-8 gap-6">
-      <div class="flex justify-between items-center pb-4 border-b border-slate-100 dark:border-slate-800">
-        <span class="text-sm font-bold text-slate-400 uppercase tracking-widest">Appearance</span>
-        <button (click)="toggleTheme()" 
-                class="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-slate-800 rounded-xl text-slate-600 dark:text-slate-300 font-bold transition-all">
-          <span class="material-symbols-outlined text-base">
-            {{ isDark() ? 'light_mode' : 'dark_mode' }}
-          </span>
-          {{ isDark() ? 'Light Mode' : 'Dark Mode' }}
+        <!-- Mobile Hamburger -->
+        <button (click)="toggleMenu()" id="nav-mobile-menu" class="nav-icon-btn lg:hidden">
+          <span class="material-symbols-outlined">{{ menuOpen() ? 'close' : 'menu' }}</span>
         </button>
       </div>
 
-      <a routerLink="/" (click)="toggleMenu()" class="text-lg font-bold text-slate-800 dark:text-slate-200">Home</a>
-      <a routerLink="/listings" (click)="toggleMenu()" class="text-lg font-bold text-slate-800 dark:text-slate-200">Browse Listings</a>
-      <hr class="border-slate-100 dark:border-slate-800">
-      
+    </div>
+  </nav>
+
+  <!-- Mobile Dropdown -->
+  @if (menuOpen()) {
+    <div class="mobile-menu">
+      <div class="mobile-menu-header">
+        <span class="mobile-section-label">Navigation</span>
+        <button (click)="toggleTheme()" class="mobile-theme-btn">
+          <span class="material-symbols-outlined">{{ isDark() ? 'light_mode' : 'dark_mode' }}</span>
+          {{ isDark() ? 'Light' : 'Dark' }}
+        </button>
+      </div>
+
+      <a routerLink="/" (click)="toggleMenu()" class="mobile-link">
+        <span class="material-symbols-outlined">cottage</span> Home
+      </a>
+      <a routerLink="/listings" (click)="toggleMenu()" class="mobile-link">
+        <span class="material-symbols-outlined">apartment</span> Browse Listings
+      </a>
+
+      <div class="mobile-divider"></div>
+
       @if (!isAuthenticated()) {
-        <a routerLink="/auth/login" (click)="toggleMenu()" class="flex items-center gap-3 text-lg font-bold text-blue-800 dark:text-blue-400">
+        <a routerLink="/auth/login" (click)="toggleMenu()" class="mobile-link">
           <span class="material-symbols-outlined">login</span> Sign In
         </a>
-        <a routerLink="/auth/register" (click)="toggleMenu()" class="signature-gradient text-white text-center py-4 rounded-2xl font-bold shadow-lg shadow-blue-100 dark:shadow-none">
-          Get Started
+        <a routerLink="/auth/register" (click)="toggleMenu()" class="mobile-cta">
+          Get Started →
         </a>
       } @else {
-        <a routerLink="/student" (click)="toggleMenu()" class="text-lg font-bold text-blue-800 dark:text-blue-400">Dashboard</a>
-        <button (click)="logout()" class="text-left text-lg font-bold text-rose-600">Logout</button>
+        <a routerLink="/student" (click)="toggleMenu()" class="mobile-link">
+          <span class="material-symbols-outlined">dashboard</span> Dashboard
+        </a>
+        <button (click)="logout()" class="mobile-link mobile-link--danger">
+          <span class="material-symbols-outlined">logout</span> Sign Out
+        </button>
       }
     </div>
-  </div>
-</nav>
+  }
+</div>

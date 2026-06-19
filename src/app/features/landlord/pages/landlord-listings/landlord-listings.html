@@ -1,0 +1,447 @@
+<!-- Page Header -->
+<div class="flex items-center justify-between mb-8">
+  <div>
+    <h1 class="text-2xl font-extrabold text-neutral-900 dark:text-slate-100">My Listings</h1>
+    <p class="text-sm text-neutral-500 dark:text-slate-400 mt-1">Manage your housing properties</p>
+  </div>
+  <button (click)="openAddModal()" class="btn-primary">
+    <i class="fas fa-plus text-xs"></i> Add Property
+  </button>
+</div>
+
+<!-- Loading -->
+<div *ngIf="isLoading()" class="flex flex-col items-center justify-center py-24 gap-4">
+  <div class="w-10 h-10 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+  <p class="text-sm text-neutral-400">Loading your properties...</p>
+</div>
+
+<!-- Empty State -->
+<div *ngIf="!isLoading() && listings().length === 0"
+  class="flex flex-col items-center justify-center py-24 gap-4 text-center">
+  <div class="w-20 h-20 rounded-2xl bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center">
+    <i class="fas fa-building text-4xl text-indigo-300 dark:text-indigo-600"></i>
+  </div>
+  <h3 class="text-lg font-bold text-neutral-800 dark:text-slate-100">No properties yet</h3>
+  <p class="text-sm text-neutral-400 max-w-xs">Start listing your housing units to attract student tenants.</p>
+  <button (click)="openAddModal()" class="btn-primary mt-2">
+    <i class="fas fa-plus text-xs"></i> Add Your First Property
+  </button>
+</div>
+
+<!-- Listings Grid -->
+<div *ngIf="!isLoading() && listings().length > 0"
+  class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+  <div *ngFor="let housing of listings()"
+    class="bg-white dark:bg-slate-900 rounded-2xl border border-neutral-100 dark:border-slate-800 shadow-sm overflow-hidden hover:shadow-lg hover:-translate-y-1 transition-all duration-200 flex flex-col">
+
+    <!-- Image -->
+    <div class="relative h-48 bg-neutral-100 dark:bg-slate-800 overflow-hidden">
+      <img [src]="housing.images[0]" [alt]="housing.title"
+        class="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+        onerror="this.src='https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800'" />
+      <!-- Availability badge -->
+      <span [class]="housing.isAvailable ? 'bg-emerald-500' : 'bg-neutral-400'"
+        class="absolute top-3 left-3 text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-sm">
+        {{ housing.isAvailable ? 'Available' : 'Unavailable' }}
+      </span>
+      <!-- Type badge -->
+      <span class="absolute top-3 right-3 bg-black/50 backdrop-blur-sm text-white text-[10px] font-semibold px-2.5 py-1 rounded-full capitalize">
+        {{ housing.type }}
+      </span>
+    </div>
+
+    <!-- Body -->
+    <div class="p-5 flex flex-col flex-1">
+      <h3 class="font-bold text-neutral-900 dark:text-slate-100 leading-tight line-clamp-1">{{ housing.title }}</h3>
+      <p class="text-xs text-neutral-400 dark:text-slate-500 mt-1 flex items-center gap-1">
+        <i class="fas fa-map-marker-alt"></i> {{ housing.area }}, {{ housing.city }}
+      </p>
+
+      <!-- Stats row -->
+      <div class="flex items-center gap-4 mt-3">
+        <div class="text-center">
+          <p class="text-lg font-extrabold text-indigo-600 dark:text-indigo-400">{{ housing.price | number }}</p>
+          <p class="text-[10px] text-neutral-400">EGP/mo</p>
+        </div>
+        <div class="text-center">
+          <p class="text-lg font-extrabold text-neutral-800 dark:text-slate-100">{{ housing.rooms.length }}</p>
+          <p class="text-[10px] text-neutral-400">Rooms</p>
+        </div>
+        <div class="text-center">
+          <p class="text-lg font-extrabold text-emerald-600">{{ getAvailableBeds(housing) }}</p>
+          <p class="text-[10px] text-neutral-400">Avail. Beds</p>
+        </div>
+        <div class="text-center ml-auto">
+          <div class="flex items-center gap-1">
+            <i class="fas fa-star text-amber-400 text-xs"></i>
+            <p class="text-sm font-bold text-neutral-800 dark:text-slate-100">{{ housing.rating }}</p>
+          </div>
+          <p class="text-[10px] text-neutral-400">{{ housing.reviewsCount }} reviews</p>
+        </div>
+      </div>
+
+      <!-- Facilities -->
+      <div class="flex flex-wrap gap-1 mt-3">
+        <span *ngFor="let facility of housing.facilities.slice(0, 4)"
+          class="text-[10px] bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-300 px-2 py-0.5 rounded-full font-medium">
+          {{ facility }}
+        </span>
+        <span *ngIf="housing.facilities.length > 4"
+          class="text-[10px] bg-neutral-100 dark:bg-slate-700 text-neutral-500 dark:text-slate-400 px-2 py-0.5 rounded-full font-medium">
+          +{{ housing.facilities.length - 4 }} more
+        </span>
+      </div>
+
+      <!-- Actions -->
+      <div class="flex items-center gap-2 mt-auto pt-4 border-t border-neutral-50 dark:border-slate-800">
+        <button (click)="openEditModal(housing)"
+          class="flex-1 text-xs font-semibold py-2 rounded-lg bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-colors">
+          <i class="fas fa-edit mr-1"></i> Edit
+        </button>
+        <button (click)="toggleAvailability(housing)"
+          [class]="housing.isAvailable ? 'bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 hover:bg-amber-100' : 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100'"
+          class="flex-1 text-xs font-semibold py-2 rounded-lg transition-colors">
+          <i [class]="housing.isAvailable ? 'fas fa-eye-slash mr-1' : 'fas fa-eye mr-1'"></i>
+          {{ housing.isAvailable ? 'Deactivate' : 'Activate' }}
+        </button>
+        <button (click)="confirmDelete(housing.id)"
+          class="w-8 h-8 rounded-lg bg-rose-50 dark:bg-rose-900/20 text-rose-500 hover:bg-rose-100 transition-colors flex items-center justify-center flex-shrink-0">
+          <i class="fas fa-trash text-xs"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Delete Confirmation Modal ── -->
+<div *ngIf="deleteConfirmId()" class="modal-overlay" (click)="cancelDelete()">
+  <div class="bg-white dark:bg-slate-900 rounded-2xl p-7 max-w-sm w-full shadow-2xl" (click)="$event.stopPropagation()">
+    <div class="w-14 h-14 rounded-full bg-rose-100 dark:bg-rose-900/30 flex items-center justify-center mx-auto mb-4">
+      <i class="fas fa-trash text-rose-500 text-xl"></i>
+    </div>
+    <h3 class="text-lg font-bold text-center text-neutral-900 dark:text-slate-100">Delete Property?</h3>
+    <p class="text-sm text-neutral-500 dark:text-slate-400 text-center mt-2">
+      This action cannot be undone. All rooms and booking data associated with this property will be removed.
+    </p>
+    <div class="flex gap-3 mt-6">
+      <button (click)="cancelDelete()" class="btn-ghost flex-1 justify-center">Cancel</button>
+      <button (click)="deleteHousing(deleteConfirmId()!)" class="btn-danger flex-1 justify-center">
+        <i class="fas fa-trash text-xs"></i> Delete
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     Add / Edit Housing Modal
+══════════════════════════════════════ -->
+<div *ngIf="isModalOpen()" class="modal-overlay" (click)="closeModal()">
+  <div class="modal-panel" (click)="$event.stopPropagation()">
+
+    <!-- Modal Header -->
+    <div class="sticky top-0 bg-white dark:bg-slate-900 px-6 pt-6 pb-4 border-b border-neutral-100 dark:border-slate-800 z-10 rounded-t-2xl">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-bold text-neutral-900 dark:text-slate-100">
+          {{ editingHousing() ? 'Edit Property' : 'Add New Property' }}
+        </h2>
+        <button (click)="closeModal()" class="w-8 h-8 rounded-lg flex items-center justify-center text-neutral-400 hover:bg-neutral-100 dark:hover:bg-slate-800 transition-colors">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <!-- Tabs -->
+      <div class="tab-nav">
+        <button *ngFor="let tab of tabs; let i = index"
+          (click)="activeTab.set(i)"
+          [class.active]="activeTab() === i"
+          class="tab-btn">
+          <i [class]="i === 0 ? 'fas fa-home mr-1' : i === 1 ? 'fas fa-door-open mr-1' : i === 2 ? 'fas fa-list mr-1' : 'fas fa-camera mr-1'"></i>
+          {{ tab }}
+        </button>
+      </div>
+    </div>
+
+    <form [formGroup]="housingForm" class="p-6">
+
+      <!-- ── Tab 0: General Info ── -->
+      <div *ngIf="activeTab() === 0" class="space-y-4">
+        <div>
+          <label class="lc-label">Property Title *</label>
+          <input formControlName="title" class="lc-input" placeholder="e.g. Premium Student Studio in New Cairo" />
+          <p *ngIf="housingForm.get('title')?.invalid && housingForm.get('title')?.touched" class="text-xs text-rose-500 mt-1">
+            Title must be at least 5 characters.
+          </p>
+        </div>
+        <div>
+          <label class="lc-label">Description *</label>
+          <textarea formControlName="description" rows="3" class="lc-input resize-none"
+            placeholder="Describe your property, unique features, nearby landmarks..."></textarea>
+          <p *ngIf="housingForm.get('description')?.invalid && housingForm.get('description')?.touched" class="text-xs text-rose-500 mt-1">
+            Description must be at least 20 characters.
+          </p>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="lc-label">Base Price (EGP/mo) *</label>
+            <input formControlName="price" type="number" class="lc-input" placeholder="3000" />
+          </div>
+          <div>
+            <label class="lc-label">Housing Type *</label>
+            <select formControlName="type" class="lc-select">
+              <option value="single">Single</option>
+              <option value="shared">Shared</option>
+            </select>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="lc-label">Gender Allowed *</label>
+            <select formControlName="gender" class="lc-select">
+              <option value="mixed">Mixed</option>
+              <option value="male">Male Only</option>
+              <option value="female">Female Only</option>
+            </select>
+          </div>
+          <div>
+            <label class="lc-label">City *</label>
+            <input formControlName="city" class="lc-input" placeholder="e.g. Cairo" />
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="lc-label">Area / District *</label>
+            <input formControlName="area" class="lc-input" placeholder="e.g. Zamalek" />
+          </div>
+          <div>
+            <label class="lc-label">Street Address</label>
+            <input formControlName="address" class="lc-input" placeholder="e.g. 22 Brazil St" />
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Tab 1: Rooms ── -->
+      <div *ngIf="activeTab() === 1" class="space-y-4" formArrayName="rooms">
+        <div *ngFor="let room of roomsArray.controls; let i = index" [formGroupName]="i"
+          class="p-4 border border-neutral-100 dark:border-slate-700 rounded-xl bg-neutral-50/50 dark:bg-slate-800/30 relative">
+          <div class="flex items-center justify-between mb-3">
+            <p class="text-sm font-bold text-neutral-700 dark:text-slate-200">Room {{ i + 1 }}</p>
+            <button type="button" *ngIf="roomsArray.length > 1" (click)="removeRoom(i)"
+              class="text-xs text-rose-500 hover:text-rose-700 font-semibold">
+              <i class="fas fa-times mr-1"></i>Remove
+            </button>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div class="col-span-2">
+              <label class="lc-label">Room Name *</label>
+              <input formControlName="name" class="lc-input" placeholder="e.g. Master Suite" />
+            </div>
+            <div>
+              <label class="lc-label">Room Type</label>
+              <select formControlName="roomType" class="lc-select">
+                <option value="single">Single</option>
+                <option value="shared">Shared</option>
+              </select>
+            </div>
+            <div>
+              <label class="lc-label">Number of Beds *</label>
+              <input formControlName="numberOfBeds" type="number" min="1" class="lc-input" />
+            </div>
+            <div>
+              <label class="lc-label">Capacity</label>
+              <input formControlName="capacity" type="number" min="1" class="lc-input" />
+            </div>
+            <div>
+              <label class="lc-label">Room Price (EGP/mo) *</label>
+              <input formControlName="price" type="number" min="50" class="lc-input" />
+            </div>
+            <div class="col-span-2">
+              <label class="lc-label">Availability Status</label>
+              <select formControlName="availabilityStatus" class="lc-select">
+                <option value="available">Available</option>
+                <option value="full">Full</option>
+                <option value="maintenance">Under Maintenance</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <button type="button" (click)="addRoom()"
+          class="w-full py-3 border-2 border-dashed border-indigo-200 dark:border-indigo-700/50 rounded-xl text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:border-indigo-400 hover:bg-indigo-50/50 dark:hover:bg-indigo-900/10 transition-all">
+          <i class="fas fa-plus mr-2"></i>Add Another Room
+        </button>
+      </div>
+
+      <!-- ── Tab 2: Rules & Facilities ── -->
+      <div *ngIf="activeTab() === 2" class="space-y-5">
+        <div>
+          <label class="lc-label">Facilities</label>
+          <div class="flex flex-wrap gap-2 mt-1">
+            <button type="button" *ngFor="let fac of facilityOptions"
+              (click)="toggleFacility(fac)"
+              [class.bg-indigo-600]="isFacilitySelected(fac)"
+              [class.text-white]="isFacilitySelected(fac)"
+              [class.border-indigo-600]="isFacilitySelected(fac)"
+              class="px-3 py-1.5 rounded-full text-xs font-semibold border border-neutral-200 dark:border-slate-700 text-neutral-600 dark:text-slate-300 bg-white dark:bg-slate-800 transition-all hover:border-indigo-400">
+              {{ fac }}
+            </button>
+          </div>
+        </div>
+        <div>
+          <label class="lc-label">House Rules (comma separated)</label>
+          <textarea formControlName="rules" rows="4" class="lc-input resize-none"
+            placeholder="No smoking, No pets, Quiet hours after 11 PM..."></textarea>
+        </div>
+      </div>
+
+      <!-- ── Tab 3: Media ── -->
+      <div *ngIf="activeTab() === 3" class="space-y-5">
+
+        <!-- Error message -->
+        <div *ngIf="mediaError()" class="flex items-center gap-2 bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 text-xs font-semibold px-4 py-2.5 rounded-xl border border-rose-200 dark:border-rose-700/50">
+          <i class="fas fa-exclamation-circle"></i>
+          {{ mediaError() }}
+          <button type="button" (click)="mediaError.set(null)" class="ml-auto text-rose-400 hover:text-rose-600">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+
+        <!-- ── Images Section ── -->
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <label class="lc-label mb-0">Property Images</label>
+            <span class="text-xs text-neutral-400">{{ uploadedImages().length }}/{{ MAX_IMAGES }} uploaded</span>
+          </div>
+
+          <!-- Drag & Drop Zone -->
+          <div *ngIf="uploadedImages().length < MAX_IMAGES"
+            class="upload-slot mb-3 transition-all duration-200"
+            [class.uploaded]="isDragOver()"
+            (dragover)="onDragOver($event)"
+            (dragleave)="onDragLeave()"
+            (drop)="onDrop($event)">
+            <input type="file" id="imageUpload" multiple accept=".jpg,.jpeg,.png,.webp"
+              class="hidden" (change)="onImageFilesSelected($event)" />
+            <label for="imageUpload" class="cursor-pointer flex flex-col items-center gap-2 py-2">
+              <div class="w-12 h-12 rounded-full bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center">
+                <i class="fas fa-images text-indigo-400 text-xl"></i>
+              </div>
+              <p class="text-sm font-semibold text-neutral-700 dark:text-slate-200">
+                {{ isDragOver() ? 'Drop images here!' : 'Drag & drop or click to upload' }}
+              </p>
+              <p class="text-xs text-neutral-400">JPG, PNG, WebP — up to {{ MAX_FILE_SIZE_MB }}MB each · Max {{ MAX_IMAGES }} photos</p>
+            </label>
+          </div>
+
+          <!-- Image Preview Grid -->
+          <div *ngIf="uploadedImages().length > 0"
+            class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            <div *ngFor="let img of uploadedImages(); let i = index"
+              class="relative group rounded-xl overflow-hidden aspect-video bg-neutral-100 dark:bg-slate-800 border border-neutral-100 dark:border-slate-700 shadow-sm">
+
+              <!-- Image -->
+              <img [src]="img.url" [alt]="img.name"
+                class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
+
+              <!-- First image badge -->
+              <span *ngIf="i === 0"
+                class="absolute top-2 left-2 text-[10px] font-bold bg-indigo-600 text-white px-2 py-0.5 rounded-full">
+                Cover
+              </span>
+
+              <!-- File info overlay -->
+              <div class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/70 to-transparent px-2 py-1.5">
+                <p class="text-white text-[10px] font-medium truncate">{{ img.name }}</p>
+                <p class="text-white/60 text-[9px]">{{ img.size }}</p>
+              </div>
+
+              <!-- Action bar (shown on hover) -->
+              <div class="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button type="button" (click)="moveImage(i, i - 1)" *ngIf="i > 0"
+                  title="Move left"
+                  class="w-6 h-6 rounded-full bg-black/50 backdrop-blur-sm text-white flex items-center justify-center hover:bg-black/70 transition-colors">
+                  <i class="fas fa-arrow-left text-[9px]"></i>
+                </button>
+                <button type="button" (click)="moveImage(i, i + 1)" *ngIf="i < uploadedImages().length - 1"
+                  title="Move right"
+                  class="w-6 h-6 rounded-full bg-black/50 backdrop-blur-sm text-white flex items-center justify-center hover:bg-black/70 transition-colors">
+                  <i class="fas fa-arrow-right text-[9px]"></i>
+                </button>
+                <button type="button" (click)="removeImage(i)"
+                  title="Remove image"
+                  class="w-6 h-6 rounded-full bg-rose-500/80 backdrop-blur-sm text-white flex items-center justify-center hover:bg-rose-600 transition-colors">
+                  <i class="fas fa-times text-[9px]"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Add more slot -->
+            <label *ngIf="uploadedImages().length < MAX_IMAGES" for="imageUpload"
+              class="rounded-xl border-2 border-dashed border-indigo-200 dark:border-indigo-700/50 flex flex-col items-center justify-center gap-1 cursor-pointer aspect-video hover:border-indigo-400 hover:bg-indigo-50/30 dark:hover:bg-indigo-900/10 transition-all">
+              <i class="fas fa-plus text-indigo-400 text-lg"></i>
+              <span class="text-[10px] font-semibold text-indigo-400">Add More</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Divider -->
+        <div class="border-t border-neutral-100 dark:border-slate-700 pt-5">
+          <div class="flex items-center justify-between mb-2">
+            <label class="lc-label mb-0">
+              Property Video <span class="text-neutral-400 font-normal">(Optional)</span>
+            </label>
+            <span *ngIf="uploadedVideo()" class="text-xs text-emerald-500 font-semibold">✓ Video added</span>
+          </div>
+
+          <!-- Video preview -->
+          <div *ngIf="uploadedVideo() as vid" class="relative rounded-xl overflow-hidden bg-black">
+            <video [src]="vid.url" controls class="w-full max-h-52 object-contain"></video>
+            <div class="flex items-center gap-3 px-4 py-2.5 bg-neutral-900/90">
+              <i class="fas fa-film text-indigo-400 text-xs"></i>
+              <div class="flex-1 min-w-0">
+                <p class="text-white text-xs font-semibold truncate">{{ vid.name }}</p>
+                <p class="text-white/50 text-[10px]">{{ vid.size }}</p>
+              </div>
+              <button type="button" (click)="removeVideo()"
+                class="text-rose-400 hover:text-rose-300 transition-colors flex-shrink-0">
+                <i class="fas fa-trash text-xs"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Video upload zone -->
+          <div *ngIf="!uploadedVideo()" class="upload-slot">
+            <input type="file" id="videoUpload" accept="video/mp4,video/webm,video/ogg"
+              class="hidden" (change)="onVideoFileSelected($event)" />
+            <label for="videoUpload" class="cursor-pointer flex flex-col items-center gap-2 py-2">
+              <div class="w-12 h-12 rounded-full bg-violet-50 dark:bg-violet-900/20 flex items-center justify-center">
+                <i class="fas fa-video text-violet-400 text-xl"></i>
+              </div>
+              <p class="text-sm font-semibold text-neutral-700 dark:text-slate-200">Upload a tour video</p>
+              <p class="text-xs text-neutral-400">MP4, WebM, OGG — up to 60MB · Helps students get a better feel</p>
+            </label>
+          </div>
+        </div>
+
+      </div>
+
+    </form>
+
+    <!-- Modal Footer -->
+    <div class="sticky bottom-0 bg-white dark:bg-slate-900 px-6 py-4 border-t border-neutral-100 dark:border-slate-800 rounded-b-2xl flex items-center justify-between">
+      <div class="flex gap-2">
+        <button *ngIf="activeTab() > 0" (click)="activeTab.set(activeTab() - 1)" class="btn-ghost">
+          <i class="fas fa-arrow-left text-xs"></i> Back
+        </button>
+      </div>
+      <div class="flex gap-2">
+        <button (click)="closeModal()" class="btn-ghost">Cancel</button>
+        <button *ngIf="activeTab() < tabs.length - 1" (click)="activeTab.set(activeTab() + 1)" class="btn-primary">
+          Next <i class="fas fa-arrow-right text-xs"></i>
+        </button>
+        <button *ngIf="activeTab() === tabs.length - 1" (click)="saveHousing()" [disabled]="isSaving()" class="btn-primary">
+          <i *ngIf="isSaving()" class="fas fa-spinner fa-spin text-xs"></i>
+          <i *ngIf="!isSaving()" class="fas fa-save text-xs"></i>
+          {{ isSaving() ? 'Saving...' : (editingHousing() ? 'Save Changes' : 'Add Property') }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

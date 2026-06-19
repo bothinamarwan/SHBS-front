@@ -1,0 +1,212 @@
+<!-- Page Header -->
+<div class="mb-8">
+  <h1 class="text-2xl font-extrabold text-neutral-900 dark:text-slate-100">Account Verification</h1>
+  <p class="text-sm text-neutral-500 dark:text-slate-400 mt-1">
+    Complete your identity and property verification to start listing properties on UniStay.
+  </p>
+</div>
+
+<!-- ── Step Progress Tracker ── -->
+<div class="bg-white dark:bg-slate-900 rounded-2xl border border-neutral-100 dark:border-slate-800 p-6 shadow-sm mb-6">
+  <div class="flex items-center">
+    <ng-container *ngFor="let step of steps; let i = index; let last = last">
+
+      <!-- Step Circle -->
+      <div class="flex flex-col items-center">
+        <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all duration-500"
+          [class.bg-indigo-600]="i <= currentStep()"
+          [class.text-white]="i <= currentStep()"
+          [class.shadow-lg]="i <= currentStep()"
+          [class.shadow-indigo-300]="i <= currentStep()"
+          [class.bg-neutral-100]="i > currentStep()"
+          [class.dark:bg-slate-700]="i > currentStep()"
+          [class.text-neutral-400]="i > currentStep()">
+          <i *ngIf="i < currentStep()" class="fas fa-check text-xs"></i>
+          <i *ngIf="i >= currentStep()" [class]="step.icon + ' text-xs'"></i>
+        </div>
+        <p class="text-xs font-semibold mt-2 text-center max-w-[80px]"
+          [class.text-indigo-600]="i <= currentStep()"
+          [class.dark:text-indigo-400]="i <= currentStep()"
+          [class.text-neutral-400]="i > currentStep()">
+          {{ step.label }}
+        </p>
+      </div>
+
+      <!-- Connector -->
+      <div *ngIf="!last" class="flex-1 h-0.5 mx-3 mb-5 rounded-full transition-all duration-500"
+        [class.bg-indigo-600]="i < currentStep()"
+        [class.bg-neutral-200]="i >= currentStep()"
+        [class.dark:bg-slate-700]="i >= currentStep()">
+      </div>
+    </ng-container>
+  </div>
+</div>
+
+<!-- ── Under Review Banner ── -->
+<div *ngIf="verificationStatus() === 'under_review'"
+  class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700/50 rounded-2xl p-5 mb-6 flex items-start gap-4">
+  <div class="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-800/40 flex items-center justify-center flex-shrink-0">
+    <i class="fas fa-search text-blue-500"></i>
+  </div>
+  <div>
+    <p class="font-bold text-blue-800 dark:text-blue-300">Documents Submitted for Review</p>
+    <p class="text-sm text-blue-600 dark:text-blue-400 mt-1">
+      Your documents have been submitted and are currently being reviewed by our team.
+      This process typically takes <strong>1–3 business days</strong>. We'll notify you once the review is complete.
+    </p>
+  </div>
+</div>
+
+<!-- ── Verified Banner ── -->
+<div *ngIf="verificationStatus() === 'verified'"
+  class="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-700/50 rounded-2xl p-5 mb-6 flex items-start gap-4">
+  <div class="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-800/40 flex items-center justify-center flex-shrink-0">
+    <i class="fas fa-shield-alt text-emerald-500"></i>
+  </div>
+  <div>
+    <p class="font-bold text-emerald-800 dark:text-emerald-300">Account Verified ✓</p>
+    <p class="text-sm text-emerald-600 dark:text-emerald-400 mt-1">
+      Your account has been fully verified. You can now list properties and accept student bookings.
+    </p>
+  </div>
+</div>
+
+<!-- ── Upload Progress Bar ── -->
+<div class="bg-white dark:bg-slate-900 rounded-2xl border border-neutral-100 dark:border-slate-800 p-5 shadow-sm mb-6">
+  <div class="flex items-center justify-between mb-3">
+    <div>
+      <p class="text-sm font-bold text-neutral-800 dark:text-slate-100">Document Upload Progress</p>
+      <p class="text-xs text-neutral-400 mt-0.5">
+        {{ uploadedCount() }} of {{ documents().length }} documents uploaded
+        · <span class="font-semibold text-rose-500">{{ requiredCount() - requiredUploadedCount() }} required missing</span>
+      </p>
+    </div>
+    <span class="text-2xl font-extrabold text-indigo-600 dark:text-indigo-400">{{ progressPercent() }}%</span>
+  </div>
+  <div class="h-2 bg-neutral-100 dark:bg-slate-700 rounded-full overflow-hidden">
+    <div class="h-full rounded-full transition-all duration-700 ease-out"
+      [style.width.%]="progressPercent()"
+      [class.bg-indigo-500]="progressPercent() < 100"
+      [class.bg-emerald-500]="progressPercent() === 100">
+    </div>
+  </div>
+</div>
+
+<!-- ── Document Upload Slots ── -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+  <div *ngFor="let doc of documents()"
+    class="bg-white dark:bg-slate-900 rounded-2xl border border-neutral-100 dark:border-slate-800 shadow-sm overflow-hidden">
+
+    <div class="p-5">
+      <!-- Header -->
+      <div class="flex items-start justify-between gap-3 mb-3">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+            [class.bg-indigo-50]="doc.status === 'pending'"
+            [class.dark:bg-indigo-900/30]="doc.status === 'pending'"
+            [class.bg-emerald-50]="doc.status !== 'pending'"
+            [class.dark:bg-emerald-900/30]="doc.status !== 'pending'">
+            <i [class]="doc.icon"
+              [class.text-indigo-500]="doc.status === 'pending'"
+              [class.text-emerald-500]="doc.status !== 'pending'"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <p class="text-sm font-bold text-neutral-900 dark:text-slate-100">{{ doc.label }}</p>
+              <span *ngIf="doc.required"
+                class="text-[9px] font-bold uppercase bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 px-1.5 py-0.5 rounded-full">
+                Required
+              </span>
+            </div>
+            <p class="text-xs text-neutral-400 dark:text-slate-500 mt-0.5">{{ doc.description }}</p>
+          </div>
+        </div>
+        <span class="status-badge flex-shrink-0 self-start" [ngClass]="getDocStatusClass(doc.status)">
+          {{ getDocStatusLabel(doc.status) }}
+        </span>
+      </div>
+
+      <!-- Uploaded file info -->
+      <div *ngIf="doc.status !== 'pending'"
+        class="flex items-center gap-2 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg px-3 py-2 mb-3">
+        <i class="fas fa-file-check text-emerald-500 text-xs"></i>
+        <div class="flex-1 min-w-0">
+          <p class="text-xs font-semibold text-emerald-700 dark:text-emerald-300 truncate">{{ doc.fileName }}</p>
+          <p class="text-[10px] text-emerald-500 dark:text-emerald-400">Uploaded {{ doc.uploadedAt }}</p>
+        </div>
+        <button (click)="removeDocument(doc)"
+          *ngIf="verificationStatus() !== 'under_review'"
+          class="text-rose-400 hover:text-rose-600 transition-colors flex-shrink-0">
+          <i class="fas fa-times text-xs"></i>
+        </button>
+      </div>
+
+      <!-- Upload button / drop zone -->
+      <button *ngIf="doc.status === 'pending'"
+        (click)="simulateUpload(doc)"
+        [disabled]="isUploading() !== null"
+        class="upload-slot w-full flex flex-col items-center gap-2 disabled:opacity-60">
+        <div *ngIf="isUploading() === doc.key" class="flex flex-col items-center gap-2">
+          <div class="w-6 h-6 border-2 border-indigo-300 border-t-indigo-600 rounded-full animate-spin"></div>
+          <p class="text-xs text-neutral-400">Uploading...</p>
+        </div>
+        <div *ngIf="isUploading() !== doc.key" class="flex flex-col items-center gap-1.5">
+          <div class="w-10 h-10 rounded-full bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center">
+            <i class="fas fa-cloud-upload-alt text-indigo-400 text-lg"></i>
+          </div>
+          <p class="text-xs font-semibold text-neutral-600 dark:text-slate-300">Click to upload</p>
+          <p class="text-[10px] text-neutral-400">PDF, JPG, PNG — max 10MB</p>
+        </div>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Submit for Review ── -->
+<div class="bg-white dark:bg-slate-900 rounded-2xl border border-neutral-100 dark:border-slate-800 shadow-sm p-6">
+  <div class="flex items-start gap-4">
+    <div class="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center flex-shrink-0">
+      <i class="fas fa-paper-plane text-indigo-500"></i>
+    </div>
+    <div class="flex-1">
+      <p class="font-bold text-neutral-900 dark:text-slate-100">Submit for Verification</p>
+      <p class="text-sm text-neutral-500 dark:text-slate-400 mt-1">
+        Once all required documents are uploaded, submit your application for review.
+        Our team will verify your documents within 1–3 business days.
+      </p>
+
+      <!-- Checklist -->
+      <div class="flex flex-wrap gap-3 mt-3">
+        <ng-container *ngFor="let doc of documents()">
+          <div *ngIf="doc.required" class="flex items-center gap-1.5">
+            <i [class]="doc.status !== 'pending' ? 'fas fa-check-circle text-emerald-500' : 'fas fa-circle text-neutral-200 dark:text-slate-700'"
+              class="text-sm"></i>
+            <span class="text-xs text-neutral-500 dark:text-slate-400">{{ doc.label }}</span>
+          </div>
+        </ng-container>
+      </div>
+
+      <div class="mt-4">
+        <!-- Already submitted -->
+        <div *ngIf="submittedForReview()" class="flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400 font-semibold">
+          <i class="fas fa-clock"></i> Application under review — we'll notify you soon
+        </div>
+
+        <!-- Submit button -->
+        <button *ngIf="!submittedForReview()"
+          (click)="submitForReview()"
+          [disabled]="!allRequiredDone() || isSubmitting()"
+          class="btn-primary disabled:opacity-50 disabled:cursor-not-allowed">
+          <i *ngIf="isSubmitting()" class="fas fa-spinner fa-spin text-xs"></i>
+          <i *ngIf="!isSubmitting()" class="fas fa-paper-plane text-xs"></i>
+          {{ isSubmitting() ? 'Submitting...' : 'Submit for Review' }}
+        </button>
+
+        <p *ngIf="!allRequiredDone() && !submittedForReview()" class="text-xs text-rose-500 mt-2">
+          <i class="fas fa-exclamation-circle mr-1"></i>
+          Please upload all {{ requiredCount() }} required documents before submitting.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>

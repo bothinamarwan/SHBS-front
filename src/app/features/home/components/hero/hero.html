@@ -1,36 +1,99 @@
 <!-- Hero Section -->
-<section class="relative h-[870px] flex items-center justify-center px-8 overflow-hidden">
-<div class="absolute inset-0 z-0">
-<img alt="Modern student common room" class="w-full h-full object-cover brightness-75" data-alt="Modern spacious student common room with high ceilings, large windows, minimalist furniture, and warm morning sunlight streaming in" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC2XUAwy_tdsROxrlqO4WNrkpMHoTgCZetF8-bzHDoVehHHBYqBqasjCVmSZ5bcGLF8GDDl8FU1WtMOJY6bTOXUpx8kQ3dQlh9lA12ItIMFypHCxXc7XJZfetN0mi4kRbzNjA6rHtC5h4d_37lkF57t6tSBYtBpL7zWDOafcQELfRZMsgzMa2mbvVhlmSz14eTM5qIOOXXNci_xM2cHEAl3inGMhIXL8pTF8G9BrdrZiC4_IaKmy-iYVcAWZ9UXBSEgk2XgZ_MExJE"/>
-</div>
-<div class="relative z-10 w-full max-w-5xl text-center">
-<h1 class="font-headline text-5xl md:text-7xl font-extrabold text-white mb-8 tracking-tight drop-shadow-lg">
-                    Find Your Next <br/><span class="text-secondary-container">UniStay</span>
-</h1>
-<!-- Prominent Search Component (The Lobby) -->
-<div class="bg-surface-container-lowest p-4 md:p-6 rounded-xl shadow-[0_20px_40px_rgba(38,44,81,0.15)] flex flex-col md:flex-row gap-4 items-center">
-<div class="flex-1 w-full grid grid-cols-1 md:grid-cols-3 gap-4">
-<div class="flex items-center gap-3 px-4 py-3 bg-surface-container-high rounded-lg group focus-within:ring-2 ring-primary-container transition-all">
-<span class="material-symbols-outlined text-outline">location_on</span>
-<input class="bg-transparent border-none focus:ring-0 text-on-surface w-full font-medium" placeholder="Near University..." type="text"/>
-</div>
-<div class="flex items-center gap-3 px-4 py-3 bg-surface-container-high rounded-lg group focus-within:ring-2 ring-primary-container transition-all">
-<span class="material-symbols-outlined text-outline">payments</span>
-<input class="bg-transparent border-none focus:ring-0 text-on-surface w-full font-medium" placeholder="Max Price (EGP)" type="number"/>
-</div>
-<div class="flex items-center gap-3 px-4 py-3 bg-surface-container-high rounded-lg group focus-within:ring-2 ring-primary-container transition-all">
-<span class="material-symbols-outlined text-outline">bed</span>
-<select class="bg-transparent border-none focus:ring-0 text-on-surface w-full font-medium">
-<option>Room Type</option>
-<option>Studio</option>
-<option>Shared Apartment</option>
-<option>En-suite</option>
-</select>
-</div>
-</div>
-<button routerLink="/listings" class="w-full md:w-auto px-10 py-4 signature-gradient text-white font-bold rounded-full hover:shadow-lg active:scale-95 transition-all">
-                        Search
-                    </button>
-</div>
-</div>
+<section class="relative h-[870px] flex items-center justify-center px-6 overflow-hidden">
+  <!-- Background Image -->
+  <div class="absolute inset-0 z-0">
+    <img
+      alt="Modern student common room"
+      class="w-full h-full object-cover"
+      src="https://lh3.googleusercontent.com/aida-public/AB6AXuC2XUAwy_tdsROxrlqO4WNrkpMHoTgCZetF8-bzHDoVehHHBYqBqasjCVmSZ5bcGLF8GDDl8FU1WtMOJY6bTOXUpx8kQ3dQlh9lA12ItIMFypHCxXc7XJZfetN0mi4kRbzNjA6rHtC5h4d_37lkF57t6tSBYtBpL7zWDOafcQELfRZMsgzMa2mbvVhlmSz14eTM5qIOOXXNci_xM2cHEAl3inGMhIXL8pTF8G9BrdrZiC4_IaKmy-iYVcAWZ9UXBSEgk2XgZ_MExJE"
+    />
+    <!-- Gradient overlay -->
+    <div class="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/70"></div>
+  </div>
+
+  <!-- Content -->
+  <div class="relative z-10 w-full max-w-3xl text-center flex flex-col items-center gap-8">
+
+    <!-- Badge -->
+    <div class="hero-badge">
+      <span class="material-symbols-outlined" style="font-size:14px;">auto_awesome</span>
+      Student Housing Simplified
+    </div>
+
+    <!-- Headline -->
+    <h1 class="font-headline text-4xl md:text-6xl font-extrabold text-white tracking-tight leading-tight drop-shadow-2xl">
+      Find Your Perfect<br/>
+      <span class="hero-gradient-text">UniStay</span>
+    </h1>
+
+    <!-- Sub -->
+    <p class="text-white/70 text-base md:text-lg font-medium max-w-md">
+      Verified student housing near top Egyptian universities — search, compare, and book in minutes.
+    </p>
+
+    <!-- ── UNIFIED PILL SEARCH BAR ── -->
+    <div class="search-pill">
+
+      <!-- Location -->
+      <div class="search-field">
+        <span class="material-symbols-outlined search-icon">location_on</span>
+        <div class="search-field-inner">
+          <label class="search-label">Location</label>
+          <input class="search-input" placeholder="Near any university…" type="text"/>
+        </div>
+      </div>
+
+      <div class="search-sep"></div>
+
+      <!-- Budget -->
+      <div class="search-field">
+        <span class="material-symbols-outlined search-icon">payments</span>
+        <div class="search-field-inner">
+          <label class="search-label">Max Budget</label>
+          <input class="search-input" placeholder="EGP / month" type="number"/>
+        </div>
+      </div>
+
+      <div class="search-sep"></div>
+
+      <!-- Room Type -->
+      <div class="search-field">
+        <span class="material-symbols-outlined search-icon">bed</span>
+        <div class="search-field-inner">
+          <label class="search-label">Room Type</label>
+          <select class="search-input search-select">
+            <option value="">Any type</option>
+            <option>Studio</option>
+            <option>Shared Apartment</option>
+            <option>En-suite</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Search Button -->
+      <a routerLink="/listings" class="search-btn">
+        <span class="material-symbols-outlined" style="font-size:20px;">search</span>
+        <span class="search-btn-text">Search</span>
+      </a>
+    </div>
+
+    <!-- Quick stats -->
+    <div class="hero-stats">
+      <div class="hero-stat">
+        <span class="hero-stat-num">2,400+</span>
+        <span class="hero-stat-lbl">Listings</span>
+      </div>
+      <div class="hero-stat-divider"></div>
+      <div class="hero-stat">
+        <span class="hero-stat-num">120+</span>
+        <span class="hero-stat-lbl">Universities</span>
+      </div>
+      <div class="hero-stat-divider"></div>
+      <div class="hero-stat">
+        <span class="hero-stat-num">98%</span>
+        <span class="hero-stat-lbl">Verified</span>
+      </div>
+    </div>
+
+  </div>
 </section>

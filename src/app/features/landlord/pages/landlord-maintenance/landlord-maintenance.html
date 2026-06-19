@@ -1,0 +1,211 @@
+<!-- Page Header -->
+<div class="flex items-center justify-between mb-8">
+  <div>
+    <h1 class="text-2xl font-extrabold text-neutral-900 dark:text-slate-100">Complaints & Maintenance</h1>
+    <p class="text-sm text-neutral-500 dark:text-slate-400 mt-1">
+      Resolve tenant issues and track maintenance requests
+    </p>
+  </div>
+  <!-- Summary chips -->
+  <div class="hidden sm:flex items-center gap-2">
+    <span *ngIf="openCount() > 0"
+      class="text-xs font-bold bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 px-3 py-1.5 rounded-full flex items-center gap-1.5">
+      <span class="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
+      {{ openCount() }} Open
+    </span>
+    <span *ngIf="inProgressCount() > 0"
+      class="text-xs font-bold bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 px-3 py-1.5 rounded-full flex items-center gap-1.5">
+      <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+      {{ inProgressCount() }} In Progress
+    </span>
+  </div>
+</div>
+
+<!-- Filter Tabs -->
+<div class="flex gap-2 mb-6 overflow-x-auto pb-1">
+  <button *ngFor="let filter of filters"
+    (click)="activeFilter.set(filter.value)"
+    [class.active]="activeFilter() === filter.value"
+    class="tab-btn flex-shrink-0 px-4 py-2 rounded-xl border border-neutral-200 dark:border-slate-700 bg-white dark:bg-slate-900">
+    {{ filter.label }}
+  </button>
+</div>
+
+<!-- Empty State -->
+<div *ngIf="filteredComplaints().length === 0"
+  class="flex flex-col items-center justify-center py-24 gap-4 text-center">
+  <div class="w-20 h-20 rounded-2xl bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center">
+    <i class="fas fa-check-circle text-4xl text-emerald-400"></i>
+  </div>
+  <h3 class="text-lg font-bold text-neutral-800 dark:text-slate-100">All clear!</h3>
+  <p class="text-sm text-neutral-400">No complaints matching this filter.</p>
+</div>
+
+<!-- Complaints List -->
+<div class="space-y-4">
+  <div *ngFor="let complaint of filteredComplaints()"
+    class="bg-white dark:bg-slate-900 rounded-2xl border shadow-sm hover:shadow-md transition-all"
+    [class.border-rose-200]="complaint.complaintStatus === 'open'"
+    [class.dark:border-rose-800]="complaint.complaintStatus === 'open'"
+    [class.border-blue-200]="complaint.complaintStatus === 'in-progress'"
+    [class.dark:border-blue-800]="complaint.complaintStatus === 'in-progress'"
+    [class.border-neutral-100]="complaint.complaintStatus === 'resolved'"
+    [class.dark:border-slate-800]="complaint.complaintStatus === 'resolved'">
+
+    <!-- Card Header -->
+    <div class="p-5 flex items-start gap-4">
+
+      <!-- Priority dot + avatar -->
+      <div class="relative flex-shrink-0">
+        <div class="w-11 h-11 rounded-full bg-gradient-to-br from-slate-500 to-slate-700 flex items-center justify-center text-white font-bold text-base">
+          {{ complaint.studentName.charAt(0) }}
+        </div>
+        <span class="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-white dark:border-slate-900"
+          [class.bg-rose-500]="complaint.priority === 'high'"
+          [class.bg-amber-500]="complaint.priority === 'medium'"
+          [class.bg-emerald-500]="complaint.priority === 'low'">
+        </span>
+      </div>
+
+      <div class="flex-1 min-w-0">
+        <div class="flex items-start justify-between gap-3 flex-wrap">
+          <div>
+            <div class="flex items-center gap-2">
+              <p class="font-bold text-neutral-900 dark:text-slate-100">{{ complaint.studentName }}</p>
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase" [ngClass]="getPriorityClass(complaint.priority)">
+                {{ complaint.priority }}
+              </span>
+            </div>
+            <p class="text-xs text-neutral-400 dark:text-slate-500 mt-0.5">
+              <i class="fas fa-building mr-1"></i>{{ complaint.propertyTitle }} — {{ complaint.roomName }}
+            </p>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="status-badge" [ngClass]="getStatusClass(complaint.complaintStatus)">
+              {{ complaint.complaintStatus === 'in-progress' ? 'In Progress' : (complaint.complaintStatus | titlecase) }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Description -->
+        <p class="text-sm text-neutral-600 dark:text-slate-300 mt-2.5 leading-relaxed line-clamp-2">
+          {{ complaint.description }}
+        </p>
+
+        <!-- Resolution note (if exists) -->
+        <div *ngIf="complaint.resolution"
+          class="mt-2.5 flex items-start gap-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg px-3 py-2">
+          <i class="fas fa-wrench text-blue-400 text-xs mt-0.5 flex-shrink-0"></i>
+          <p class="text-xs text-blue-700 dark:text-blue-300 leading-snug">{{ complaint.resolution }}</p>
+        </div>
+
+        <!-- Meta -->
+        <div class="flex items-center gap-3 mt-3">
+          <span class="text-xs text-neutral-400 flex items-center gap-1">
+            <i class="fas fa-calendar-alt text-[10px]"></i>
+            {{ complaint.createdDate }}
+          </span>
+          <span class="text-xs text-neutral-400 font-mono">{{ complaint.complaintId }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Action Footer -->
+    <div class="px-5 py-3 border-t border-neutral-50 dark:border-slate-800 bg-neutral-50/50 dark:bg-slate-800/20 rounded-b-2xl flex items-center gap-2 flex-wrap">
+      <button (click)="openModal(complaint)"
+        class="text-xs font-semibold text-neutral-600 dark:text-slate-300 bg-white dark:bg-slate-800 border border-neutral-200 dark:border-slate-700 px-3 py-1.5 rounded-lg hover:border-indigo-300 hover:text-indigo-600 transition-all">
+        <i class="fas fa-edit mr-1"></i> Update Status
+      </button>
+
+      <button *ngIf="complaint.complaintStatus !== 'resolved'"
+        (click)="resolveComplaint(complaint)"
+        class="text-xs font-semibold bg-emerald-500 hover:bg-emerald-600 text-white px-3 py-1.5 rounded-lg transition-colors">
+        <i class="fas fa-check mr-1"></i> Mark Resolved
+      </button>
+
+      <span *ngIf="complaint.complaintStatus === 'resolved'"
+        class="text-xs text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1 ml-auto">
+        <i class="fas fa-check-circle"></i> Issue resolved
+      </span>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════
+     Update Status Modal
+══════════════════════════════════ -->
+<div *ngIf="isModalOpen()" class="modal-overlay" (click)="closeModal()">
+  <div class="modal-panel max-w-lg" (click)="$event.stopPropagation()">
+
+    <div class="px-6 pt-6 pb-4 border-b border-neutral-100 dark:border-slate-800 flex items-center justify-between">
+      <h2 class="text-base font-bold text-neutral-900 dark:text-slate-100">Update Complaint</h2>
+      <button (click)="closeModal()" class="w-8 h-8 rounded-lg text-neutral-400 hover:bg-neutral-100 dark:hover:bg-slate-800 flex items-center justify-center transition-colors">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <div class="p-6 space-y-5" *ngIf="selectedComplaint() as c">
+
+      <!-- Complaint summary -->
+      <div class="bg-neutral-50 dark:bg-slate-800/50 rounded-xl p-4">
+        <div class="flex items-center gap-2 mb-2">
+          <span class="font-bold text-sm text-neutral-800 dark:text-slate-100">{{ c.studentName }}</span>
+          <span class="text-xs text-neutral-400">·</span>
+          <span class="text-xs font-mono text-neutral-400">{{ c.complaintId }}</span>
+        </div>
+        <p class="text-sm text-neutral-600 dark:text-slate-300 leading-relaxed">{{ c.description }}</p>
+      </div>
+
+      <!-- Status selector -->
+      <div>
+        <label class="lc-label">Update Status</label>
+        <div class="grid grid-cols-3 gap-2 mt-1">
+          <button type="button"
+            (click)="newStatus.set('open')"
+            [class.ring-2]="newStatus() === 'open'"
+            [class.ring-rose-400]="newStatus() === 'open'"
+            class="px-3 py-2.5 rounded-xl border text-xs font-semibold text-center transition-all bg-white dark:bg-slate-900 border-neutral-200 dark:border-slate-700">
+            <i class="fas fa-exclamation-circle text-rose-500 block mb-1 text-base"></i>
+            Open
+          </button>
+          <button type="button"
+            (click)="newStatus.set('in-progress')"
+            [class.ring-2]="newStatus() === 'in-progress'"
+            [class.ring-blue-400]="newStatus() === 'in-progress'"
+            class="px-3 py-2.5 rounded-xl border text-xs font-semibold text-center transition-all bg-white dark:bg-slate-900 border-neutral-200 dark:border-slate-700">
+            <i class="fas fa-tools text-blue-500 block mb-1 text-base"></i>
+            In Progress
+          </button>
+          <button type="button"
+            (click)="newStatus.set('resolved')"
+            [class.ring-2]="newStatus() === 'resolved'"
+            [class.ring-emerald-400]="newStatus() === 'resolved'"
+            class="px-3 py-2.5 rounded-xl border text-xs font-semibold text-center transition-all bg-white dark:bg-slate-900 border-neutral-200 dark:border-slate-700">
+            <i class="fas fa-check-circle text-emerald-500 block mb-1 text-base"></i>
+            Resolved
+          </button>
+        </div>
+      </div>
+
+      <!-- Resolution notes -->
+      <div>
+        <label class="lc-label">Resolution Notes</label>
+        <textarea rows="3"
+          [value]="resolutionText()"
+          (input)="resolutionText.set($any($event.target).value)"
+          class="lc-input resize-none"
+          placeholder="Describe what action was taken or is planned..."></textarea>
+      </div>
+
+      <!-- Footer -->
+      <div class="flex gap-3 pt-2 border-t border-neutral-100 dark:border-slate-800">
+        <button (click)="closeModal()" class="btn-ghost flex-1 justify-center">Cancel</button>
+        <button (click)="updateComplaintStatus()" [disabled]="isSaving()" class="btn-primary flex-1 justify-center">
+          <i *ngIf="isSaving()" class="fas fa-spinner fa-spin text-xs"></i>
+          <i *ngIf="!isSaving()" class="fas fa-save text-xs"></i>
+          {{ isSaving() ? 'Saving...' : 'Save Update' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

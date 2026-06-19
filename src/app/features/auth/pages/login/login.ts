@@ -47,7 +47,14 @@ export class Login {
       this.authService.login(payload).subscribe({
         next: () => {
           this.isLoading.set(false);
-          this.router.navigate(['/student']);
+          const user = this.authService.currentUserValue;
+          const role = user?.role || 'student';
+          const redirectMap: Record<string, string> = {
+            landlord: '/landlord',
+            admin: '/admin',
+            student: '/student'
+          };
+          this.router.navigate([redirectMap[role] ?? '/student']);
         },
         error: (err) => {
           this.isLoading.set(false);

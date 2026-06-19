@@ -1,0 +1,287 @@
+<!-- Page Header -->
+<div class="flex items-center justify-between mb-8">
+  <div>
+    <h1 class="text-2xl font-extrabold text-neutral-900 dark:text-slate-100">Booking Requests</h1>
+    <p class="text-sm text-neutral-500 dark:text-slate-400 mt-1">
+      Review and manage incoming reservation requests
+      <span *ngIf="pendingCount() > 0" class="ml-2 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 text-xs font-bold px-2 py-0.5 rounded-full">
+        {{ pendingCount() }} pending
+      </span>
+    </p>
+  </div>
+</div>
+
+<!-- Filter Tabs -->
+<div class="flex gap-2 mb-6 overflow-x-auto pb-1">
+  <button *ngFor="let filter of filters"
+    (click)="activeFilter.set(filter.value)"
+    [class.active]="activeFilter() === filter.value"
+    class="tab-btn flex-shrink-0 flex-none px-4 py-2 rounded-xl border border-neutral-200 dark:border-slate-700 bg-white dark:bg-slate-900">
+    {{ filter.label }}
+    <span *ngIf="filter.value === 'pending' && pendingCount() > 0"
+      class="ml-1.5 bg-amber-400 text-white text-[9px] font-bold w-4 h-4 rounded-full inline-flex items-center justify-center">
+      {{ pendingCount() }}
+    </span>
+  </button>
+</div>
+
+<!-- Empty State -->
+<div *ngIf="filteredBookings().length === 0"
+  class="flex flex-col items-center justify-center py-24 gap-4 text-center">
+  <div class="w-20 h-20 rounded-2xl bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center">
+    <i class="fas fa-calendar-times text-4xl text-indigo-300 dark:text-indigo-600"></i>
+  </div>
+  <h3 class="text-lg font-bold text-neutral-800 dark:text-slate-100">No bookings found</h3>
+  <p class="text-sm text-neutral-400">No requests matching this filter yet.</p>
+</div>
+
+<!-- Bookings List -->
+<div class="space-y-4">
+  <div *ngFor="let booking of filteredBookings()"
+    class="bg-white dark:bg-slate-900 rounded-2xl border border-neutral-100 dark:border-slate-800 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
+
+    <div class="p-5 flex flex-col sm:flex-row items-start gap-4">
+
+      <!-- Avatar -->
+      <div class="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
+        {{ booking.studentName.charAt(0) }}
+      </div>
+
+      <!-- Info -->
+      <div class="flex-1 min-w-0">
+        <div class="flex items-start justify-between gap-3">
+          <div>
+            <p class="font-bold text-neutral-900 dark:text-slate-100">{{ booking.studentName }}</p>
+            <p class="text-xs text-neutral-400 dark:text-slate-500 mt-0.5">
+              <i class="fas fa-building mr-1"></i>{{ booking.housingTitle }} — {{ booking.roomName }}
+            </p>
+          </div>
+          <span class="status-badge flex-shrink-0" [ngClass]="getStatusClass(booking.status)">
+            {{ booking.status | titlecase }}
+          </span>
+        </div>
+
+        <!-- Details row -->
+        <div class="flex flex-wrap gap-x-4 gap-y-1 mt-3">
+          <span class="text-xs text-neutral-500 dark:text-slate-400 flex items-center gap-1">
+            <i class="fas fa-calendar-alt text-indigo-400 text-[10px]"></i>
+            Move-in: <strong class="text-neutral-700 dark:text-slate-200 ml-1">{{ booking.moveInDate }}</strong>
+          </span>
+          <span class="text-xs text-neutral-500 dark:text-slate-400 flex items-center gap-1">
+            <i class="fas fa-clock text-indigo-400 text-[10px]"></i>
+            Duration: <strong class="text-neutral-700 dark:text-slate-200 ml-1">{{ booking.duration }} months</strong>
+          </span>
+          <span class="text-xs text-neutral-500 dark:text-slate-400 flex items-center gap-1">
+            <i class="fas fa-tag text-indigo-400 text-[10px]"></i>
+            Total: <strong class="text-indigo-600 dark:text-indigo-400 ml-1">{{ formatCurrency(booking.totalPrice) }}</strong>
+          </span>
+          <span class="text-xs text-neutral-500 dark:text-slate-400 flex items-center gap-1">
+            <i class="fas fa-hashtag text-indigo-400 text-[10px]"></i>
+            {{ booking.id }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions Footer -->
+    <div class="px-5 py-3 bg-neutral-50/50 dark:bg-slate-800/30 border-t border-neutral-50 dark:border-slate-800 flex items-center gap-2 flex-wrap">
+      <button (click)="openDetail(booking)"
+        class="text-xs font-semibold text-neutral-600 dark:text-slate-300 bg-white dark:bg-slate-800 border border-neutral-200 dark:border-slate-700 px-3 py-1.5 rounded-lg hover:border-indigo-300 hover:text-indigo-600 transition-all">
+        <i class="fas fa-eye mr-1"></i> View Details
+      </button>
+
+      <!-- Approve -->
+      <button *ngIf="booking.status === 'pending'"
+        (click)="approveBooking(booking)"
+        [disabled]="actionLoading() !== null"
+        class="text-xs font-semibold bg-emerald-500 hover:bg-emerald-600 text-white px-3 py-1.5 rounded-lg transition-colors disabled:opacity-60">
+        <i *ngIf="isActionLoading(booking.id, 'approve')" class="fas fa-spinner fa-spin mr-1"></i>
+        <i *ngIf="!isActionLoading(booking.id, 'approve')" class="fas fa-check mr-1"></i>
+        Approve
+      </button>
+
+      <!-- Reject -->
+      <button *ngIf="booking.status === 'pending'"
+        (click)="rejectBooking(booking)"
+        [disabled]="actionLoading() !== null"
+        class="text-xs font-semibold bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 hover:bg-rose-100 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-60">
+        <i *ngIf="isActionLoading(booking.id, 'reject')" class="fas fa-spinner fa-spin mr-1"></i>
+        <i *ngIf="!isActionLoading(booking.id, 'reject')" class="fas fa-times mr-1"></i>
+        Reject
+      </button>
+
+      <!-- Generate Contract -->
+      <button *ngIf="booking.status === 'approved'"
+        (click)="openContractModal(booking)"
+        class="text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg transition-colors ml-auto">
+        <i class="fas fa-file-contract mr-1"></i> Sign Lease Contract
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════
+     Booking Detail Drawer
+══════════════════════════════════ -->
+<div *ngIf="isDetailOpen()" class="modal-overlay" (click)="closeDetail()">
+  <div class="modal-panel max-w-lg" (click)="$event.stopPropagation()">
+    <div class="px-6 pt-6 pb-4 border-b border-neutral-100 dark:border-slate-800 flex items-center justify-between">
+      <h2 class="text-lg font-bold text-neutral-900 dark:text-slate-100">Booking Details</h2>
+      <button (click)="closeDetail()" class="w-8 h-8 rounded-lg text-neutral-400 hover:bg-neutral-100 dark:hover:bg-slate-800 flex items-center justify-center transition-colors">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="p-6 space-y-4" *ngIf="detailBooking() as b">
+      <!-- Status -->
+      <div class="flex items-center justify-between">
+        <p class="text-sm text-neutral-500 dark:text-slate-400">Status</p>
+        <span class="status-badge" [ngClass]="getStatusClass(b.status)">{{ b.status | titlecase }}</span>
+      </div>
+      <div class="flex items-center justify-between">
+        <p class="text-sm text-neutral-500 dark:text-slate-400">Booking ID</p>
+        <p class="text-sm font-mono font-bold text-neutral-800 dark:text-slate-100">{{ b.id }}</p>
+      </div>
+      <div class="flex items-center justify-between">
+        <p class="text-sm text-neutral-500 dark:text-slate-400">Student</p>
+        <p class="text-sm font-bold text-neutral-800 dark:text-slate-100">{{ b.studentName }}</p>
+      </div>
+      <div class="flex items-center justify-between">
+        <p class="text-sm text-neutral-500 dark:text-slate-400">Property</p>
+        <p class="text-sm font-semibold text-neutral-700 dark:text-slate-200">{{ b.housingTitle }}</p>
+      </div>
+      <div class="flex items-center justify-between">
+        <p class="text-sm text-neutral-500 dark:text-slate-400">Room</p>
+        <p class="text-sm font-semibold text-neutral-700 dark:text-slate-200">{{ b.roomName }}</p>
+      </div>
+      <div class="flex items-center justify-between">
+        <p class="text-sm text-neutral-500 dark:text-slate-400">Move-in Date</p>
+        <p class="text-sm font-semibold text-neutral-700 dark:text-slate-200">{{ b.moveInDate }}</p>
+      </div>
+      <div class="flex items-center justify-between">
+        <p class="text-sm text-neutral-500 dark:text-slate-400">Duration</p>
+        <p class="text-sm font-semibold text-neutral-700 dark:text-slate-200">{{ b.duration }} months</p>
+      </div>
+      <div class="flex items-center justify-between border-t border-neutral-100 dark:border-slate-800 pt-4">
+        <p class="text-sm font-bold text-neutral-800 dark:text-slate-100">Total Price</p>
+        <p class="text-lg font-extrabold text-indigo-600 dark:text-indigo-400">{{ formatCurrency(b.totalPrice) }}</p>
+      </div>
+
+      <div class="flex gap-3 pt-2">
+        <button *ngIf="b.status === 'pending'" (click)="approveBooking(b); closeDetail()" class="btn-primary flex-1 justify-center">
+          <i class="fas fa-check text-xs"></i> Approve
+        </button>
+        <button *ngIf="b.status === 'pending'" (click)="rejectBooking(b); closeDetail()" class="btn-danger flex-1 justify-center">
+          <i class="fas fa-times text-xs"></i> Reject
+        </button>
+        <button *ngIf="b.status === 'approved'" (click)="openContractModal(b); closeDetail()" class="btn-primary flex-1 justify-center">
+          <i class="fas fa-file-contract text-xs"></i> Sign Contract
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════
+     Lease Contract Signing Modal
+══════════════════════════════════ -->
+<div *ngIf="isContractOpen()" class="modal-overlay" (click)="closeContract()">
+  <div class="modal-panel max-w-2xl" (click)="$event.stopPropagation()">
+
+    <!-- Header -->
+    <div class="px-6 pt-6 pb-4 border-b border-neutral-100 dark:border-slate-800 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center">
+          <i class="fas fa-file-contract text-indigo-600 dark:text-indigo-400"></i>
+        </div>
+        <h2 class="text-lg font-bold text-neutral-900 dark:text-slate-100">Rental Lease Agreement</h2>
+      </div>
+      <button (click)="closeContract()" class="w-8 h-8 rounded-lg text-neutral-400 hover:bg-neutral-100 dark:hover:bg-slate-800 flex items-center justify-center transition-colors">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <!-- Success State -->
+    <div *ngIf="contractSigned()" class="p-10 flex flex-col items-center gap-4">
+      <div class="w-20 h-20 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
+        <i class="fas fa-check-circle text-emerald-500 text-3xl"></i>
+      </div>
+      <h3 class="text-xl font-bold text-neutral-900 dark:text-slate-100">Contract Signed!</h3>
+      <p class="text-sm text-neutral-500 dark:text-slate-400 text-center max-w-sm">
+        The lease agreement has been digitally signed and saved. The booking status has been updated to Confirmed.
+      </p>
+      <button (click)="closeContract()" class="btn-primary mt-2">
+        <i class="fas fa-check text-xs"></i> Done
+      </button>
+    </div>
+
+    <!-- Contract Body -->
+    <div *ngIf="!contractSigned() && selectedBooking() as b" class="p-6 space-y-5">
+
+      <!-- Contract Document -->
+      <div class="bg-neutral-50 dark:bg-slate-800/50 rounded-xl p-5 border border-neutral-100 dark:border-slate-700 text-sm leading-relaxed space-y-3">
+        <div class="text-center mb-4">
+          <p class="font-bold text-lg text-neutral-900 dark:text-slate-100">RESIDENTIAL LEASE AGREEMENT</p>
+          <p class="text-xs text-neutral-400 mt-1">Date: {{ getTodayDate() }}</p>
+        </div>
+        <p class="text-neutral-600 dark:text-slate-300">
+          This Residential Lease Agreement ("Agreement") is entered into as of <strong>{{ getTodayDate() }}</strong>,
+          between the <strong>Landlord</strong> (property owner) and the <strong>Tenant</strong>:
+          <strong>{{ b.studentName }}</strong>.
+        </p>
+        <div class="grid grid-cols-2 gap-3 bg-white dark:bg-slate-900 rounded-lg p-3 border border-neutral-100 dark:border-slate-800 text-xs">
+          <div>
+            <p class="text-neutral-400 font-medium">Property</p>
+            <p class="font-bold text-neutral-800 dark:text-slate-100 mt-0.5">{{ b.housingTitle }}</p>
+          </div>
+          <div>
+            <p class="text-neutral-400 font-medium">Room</p>
+            <p class="font-bold text-neutral-800 dark:text-slate-100 mt-0.5">{{ b.roomName }}</p>
+          </div>
+          <div>
+            <p class="text-neutral-400 font-medium">Lease Start</p>
+            <p class="font-bold text-neutral-800 dark:text-slate-100 mt-0.5">{{ b.moveInDate }}</p>
+          </div>
+          <div>
+            <p class="text-neutral-400 font-medium">Lease Duration</p>
+            <p class="font-bold text-neutral-800 dark:text-slate-100 mt-0.5">{{ b.duration }} months</p>
+          </div>
+          <div class="col-span-2">
+            <p class="text-neutral-400 font-medium">Total Rent</p>
+            <p class="font-bold text-indigo-600 dark:text-indigo-400 mt-0.5 text-base">{{ formatCurrency(b.totalPrice) }}</p>
+          </div>
+        </div>
+        <p class="text-neutral-500 dark:text-slate-400 text-xs leading-relaxed">
+          <strong>Terms:</strong> The Tenant agrees to pay the rent monthly in advance. The Tenant shall maintain the property
+          in good condition and comply with all house rules. Early termination requires 30 days written notice.
+          The Landlord shall ensure the property is habitable and all facilities are in working order throughout the lease term.
+        </p>
+      </div>
+
+      <!-- Signature field -->
+      <div>
+        <label class="lc-label">Landlord Digital Signature *</label>
+        <p class="text-xs text-neutral-400 dark:text-slate-500 mb-2">Type your full name to legally sign this agreement</p>
+        <input [value]="landlordSignature()"
+          (input)="landlordSignature.set($any($event.target).value)"
+          class="lc-input font-signature text-xl"
+          style="font-family: 'Brush Script MT', cursive; font-size: 1.4rem; letter-spacing: 0.05em;"
+          placeholder="Sign here..." />
+        <p *ngIf="!landlordSignature().trim()" class="text-xs text-neutral-400 mt-1">
+          Your typed name serves as your legally binding digital signature.
+        </p>
+      </div>
+
+      <!-- Footer -->
+      <div class="flex gap-3 pt-2 border-t border-neutral-100 dark:border-slate-800">
+        <button (click)="closeContract()" class="btn-ghost flex-1 justify-center">Cancel</button>
+        <button (click)="signContract()"
+          [disabled]="!landlordSignature().trim() || isSigning()"
+          class="btn-primary flex-1 justify-center disabled:opacity-50 disabled:cursor-not-allowed">
+          <i *ngIf="isSigning()" class="fas fa-spinner fa-spin text-xs"></i>
+          <i *ngIf="!isSigning()" class="fas fa-pen-nib text-xs"></i>
+          {{ isSigning() ? 'Signing...' : 'Sign & Execute Contract' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
