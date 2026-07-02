@@ -36,9 +36,32 @@ export interface AuthResponse {
     id: string;
     email: string;
     phoneNumber: string;
-    fullName: string;
     roles: string[];
     studentId?: string;
     landLordId?: string;
   };
+  requiresTwoFactor?: boolean;
+}
+
+export interface TwoFactorSetupResponse {
+  success: boolean;
+  message: string;
+  secret: string;
+  qrCodeUri: string;
+}
+
+export interface TwoFactorRequest {
+  email: string;
+  code: string;
+}
+
+export interface ForgotPasswordRequest {
+  email: string;
+}
+
+export interface ResetPasswordRequest {
+  email: string;
+  token: string;
+  newPassword: string;
+  confirmPassword: string;
 }

@@ -1,0 +1,120 @@
+<div class="animate-fade-in pb-10">
+
+  <!-- Header -->
+  <div class="mb-8 border-b border-slate-200 dark:border-slate-800 pb-4 flex justify-between items-center">
+    <div>
+      <h1 class="text-2xl font-bold text-slate-800 dark:text-slate-100">Receipts & Financials</h1>
+      <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Manage all system receipts and view financial summaries.</p>
+    </div>
+    <!-- Quick Export -->
+    <div class="flex items-center gap-2">
+      <input type="text" [(ngModel)]="exportUserId" placeholder="User ID for Export" class="input-field w-48 text-sm">
+      <button (click)="exportUserReceipts()" [disabled]="!exportUserId() || isExporting()" class="btn-primary py-2 px-4 text-sm flex items-center gap-2">
+        <i class="fas" [ngClass]="isExporting() ? 'fa-spinner fa-spin' : 'fa-file-export'"></i>
+        Export
+      </button>
+    </div>
+  </div>
+
+  <!-- Summary Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8" *ngIf="summary()">
+    <div class="bg-white dark:bg-slate-900 rounded-2xl p-6 shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-slate-100 dark:border-slate-800 flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-xl">
+        <i class="fas fa-dollar-sign"></i>
+      </div>
+      <div>
+        <p class="text-sm font-medium text-slate-500 dark:text-slate-400">Total Revenue</p>
+        <h3 class="text-2xl font-bold text-slate-800 dark:text-slate-100">${{ summary()?.totalRevenue | number:'1.2-2' }}</h3>
+      </div>
+    </div>
+    
+    <div class="bg-white dark:bg-slate-900 rounded-2xl p-6 shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-slate-100 dark:border-slate-800 flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center text-xl">
+        <i class="fas fa-receipt"></i>
+      </div>
+      <div>
+        <p class="text-sm font-medium text-slate-500 dark:text-slate-400">Recent Transactions</p>
+        <h3 class="text-2xl font-bold text-slate-800 dark:text-slate-100">{{ summary()?.recentTransactionsCount }}</h3>
+      </div>
+    </div>
+  </div>
+
+  <!-- Controls -->
+  <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-slate-100 dark:border-slate-800 mb-6 flex flex-wrap gap-4 items-center justify-between">
+    <div class="flex gap-2">
+      <button (click)="loadRecentReceipts()" [ngClass]="{'bg-indigo-50 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300': activeTab() === 'recent', 'text-slate-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800': activeTab() !== 'recent'}" class="px-4 py-2 rounded-xl font-semibold text-sm transition-colors">
+        Recent Receipts
+      </button>
+      <button (click)="loadReceiptsByType()" [ngClass]="{'bg-indigo-50 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300': activeTab() === 'byType', 'text-slate-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800': activeTab() !== 'byType'}" class="px-4 py-2 rounded-xl font-semibold text-sm transition-colors">
+        By Type
+      </button>
+    </div>
+    <div *ngIf="activeTab() === 'byType'" class="flex items-center gap-2">
+      <label class="text-sm font-semibold text-slate-600 dark:text-slate-400">Filter:</label>
+      <select [ngModel]="selectedType()" (change)="onTypeChange($event)" class="input-field py-2 text-sm w-40">
+        <option value="Rent">Rent</option>
+        <option value="Deposit">Deposit</option>
+        <option value="Commission">Commission</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading()" class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 p-12 text-center animate-pulse">
+    <div class="w-10 h-10 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin mx-auto mb-4"></div>
+    <p class="text-slate-500 font-medium">Fetching receipts...</p>
+  </div>
+
+  <!-- Receipts Table -->
+  <div *ngIf="!isLoading()" class="bg-white dark:bg-slate-900 rounded-2xl shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-slate-100 dark:border-slate-800 overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse whitespace-nowrap">
+        <thead>
+          <tr class="bg-slate-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wider font-semibold border-b border-slate-100 dark:border-slate-800">
+            <th class="px-6 py-4">Receipt ID</th>
+            <th class="px-6 py-4">User ID</th>
+            <th class="px-6 py-4">Date</th>
+            <th class="px-6 py-4">Type</th>
+            <th class="px-6 py-4">Amount</th>
+            <th class="px-6 py-4">Status</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100 dark:divide-slate-800 text-sm">
+          
+          <tr *ngIf="receipts().length === 0">
+            <td colspan="6" class="px-6 py-12 text-center text-slate-500">
+              <i class="fas fa-receipt text-4xl mb-3 text-slate-300"></i>
+              <p>No receipts found for this view.</p>
+            </td>
+          </tr>
+
+          <tr *ngFor="let receipt of receipts()" class="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors">
+            <td class="px-6 py-4 font-mono text-xs text-indigo-600 dark:text-indigo-400 font-semibold">
+              {{ receipt.receiptNumber || receipt.id || '---' }}
+            </td>
+            <td class="px-6 py-4 font-mono text-xs text-slate-500">
+              {{ receipt.userId | slice:0:8 }}...
+            </td>
+            <td class="px-6 py-4 text-slate-600 dark:text-slate-400">
+              {{ receipt.date | date:'mediumDate' }}
+            </td>
+            <td class="px-6 py-4">
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300">
+                {{ receipt.type }}
+              </span>
+            </td>
+            <td class="px-6 py-4 font-bold text-slate-800 dark:text-slate-100">
+              ${{ receipt.amount | number:'1.2-2' }}
+            </td>
+            <td class="px-6 py-4">
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold"
+                    [ngClass]="receipt.status === 'Paid' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'">
+                {{ receipt.status || 'Paid' }}
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

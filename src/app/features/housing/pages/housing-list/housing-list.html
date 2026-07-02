@@ -1,5 +1,6 @@
 <div class="flex flex-col lg:flex-row gap-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-  <!-- Filter Sidebar -->
+
+  <!-- ── Filter Sidebar ── -->
   <aside class="w-full lg:w-72 space-y-6">
     <div class="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-neutral-100 dark:border-slate-800 shadow-sm sticky top-24">
       <div class="flex items-center justify-between mb-6">
@@ -10,7 +11,7 @@
       <form [formGroup]="filterForm" class="space-y-6">
         <!-- Search -->
         <div>
-          <label class="block text-xs font-bold text-neutral-400 dark:text-slate-500 uppercase tracking-wider mb-2">Search Location</label>
+          <label class="block text-xs font-bold text-neutral-400 dark:text-slate-500 uppercase tracking-wider mb-2">Search</label>
           <div class="relative">
             <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 text-sm"></i>
             <input formControlName="search" type="text" placeholder="City, area or name..."
@@ -18,9 +19,19 @@
           </div>
         </div>
 
+        <!-- City -->
+        <div>
+          <label class="block text-xs font-bold text-neutral-400 dark:text-slate-500 uppercase tracking-wider mb-2">City</label>
+          <div class="relative">
+            <i class="fas fa-city absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 text-sm"></i>
+            <input formControlName="city" type="text" placeholder="e.g. Cairo, Alexandria..."
+              class="w-full pl-10 pr-4 py-2 bg-neutral-50 dark:bg-slate-800 border border-transparent dark:border-slate-700 rounded-xl focus:bg-white dark:focus:bg-slate-700 focus:border-indigo-500 transition-all text-sm text-neutral-800 dark:text-slate-200">
+          </div>
+        </div>
+
         <!-- Price Range -->
         <div>
-          <label class="block text-xs font-bold text-neutral-400 dark:text-slate-500 uppercase tracking-wider mb-2">Price Range (EGP)</label>
+          <label class="block text-xs font-bold text-neutral-400 dark:text-slate-500 uppercase tracking-wider mb-2">Price Range (EGP / Month)</label>
           <div class="grid grid-cols-2 gap-2">
             <input formControlName="minPrice" type="number" placeholder="Min"
               class="w-full px-3 py-2 bg-neutral-50 dark:bg-slate-800 border border-transparent dark:border-slate-700 rounded-xl text-sm focus:bg-white dark:focus:bg-slate-700 focus:border-indigo-500 text-neutral-800 dark:text-slate-200">
@@ -29,68 +40,43 @@
           </div>
         </div>
 
-        <!-- Room Type -->
-        <div>
-          <label class="block text-xs font-bold text-neutral-400 dark:text-slate-500 uppercase tracking-wider mb-2">Room Type</label>
-          <select formControlName="type" class="w-full px-3 py-2 bg-neutral-50 dark:bg-slate-800 border border-transparent dark:border-slate-700 rounded-xl text-sm focus:bg-white dark:focus:bg-slate-700 focus:border-indigo-500 text-neutral-800 dark:text-slate-200">
-            <option value="">All Types</option>
-            <option value="single">Single Room</option>
-            <option value="shared">Shared Room</option>
-          </select>
-        </div>
-
         <!-- Gender -->
         <div>
           <label class="block text-xs font-bold text-neutral-400 dark:text-slate-500 uppercase tracking-wider mb-3">Gender</label>
           <div class="flex gap-2 p-1 bg-neutral-50 dark:bg-slate-800 rounded-xl">
             <button type="button" (click)="setGender('')"
-              [class.bg-white]="!filterForm.get('gender')?.value"
-              [class.dark:bg-slate-700]="!filterForm.get('gender')?.value"
-              [class.shadow-sm]="!filterForm.get('gender')?.value"
+              [class.bg-white]="filterForm.get('gender')?.value === ''"
+              [class.dark:bg-slate-700]="filterForm.get('gender')?.value === ''"
+              [class.shadow-sm]="filterForm.get('gender')?.value === ''"
               class="flex-1 py-1.5 text-xs font-bold rounded-lg transition-all dark:text-slate-300">All</button>
-            <button type="button" (click)="setGender('male')"
-              [class.bg-white]="filterForm.get('gender')?.value === 'male'"
-              [class.dark:bg-slate-700]="filterForm.get('gender')?.value === 'male'"
-              [class.shadow-sm]="filterForm.get('gender')?.value === 'male'"
+            <button type="button" (click)="setGender('1')"
+              [class.bg-white]="filterForm.get('gender')?.value === '1'"
+              [class.dark:bg-slate-700]="filterForm.get('gender')?.value === '1'"
+              [class.shadow-sm]="filterForm.get('gender')?.value === '1'"
               class="flex-1 py-1.5 text-xs font-bold rounded-lg transition-all dark:text-slate-300">Male</button>
-            <button type="button" (click)="setGender('female')"
-              [class.bg-white]="filterForm.get('gender')?.value === 'female'"
-              [class.dark:bg-slate-700]="filterForm.get('gender')?.value === 'female'"
-              [class.shadow-sm]="filterForm.get('gender')?.value === 'female'"
+            <button type="button" (click)="setGender('2')"
+              [class.bg-white]="filterForm.get('gender')?.value === '2'"
+              [class.dark:bg-slate-700]="filterForm.get('gender')?.value === '2'"
+              [class.shadow-sm]="filterForm.get('gender')?.value === '2'"
               class="flex-1 py-1.5 text-xs font-bold rounded-lg transition-all dark:text-slate-300">Female</button>
-          </div>
-        </div>
-
-        <!-- Facilities -->
-        <div>
-          <label class="block text-xs font-bold text-neutral-400 dark:text-slate-500 uppercase tracking-wider mb-3">Facilities</label>
-          <div class="space-y-2">
-            <label *ngFor="let f of ['WiFi', 'AC', 'Kitchen', 'Laundry', 'Gym']" class="flex items-center gap-3 cursor-pointer group">
-              <div class="w-5 h-5 rounded border-2 border-neutral-200 dark:border-slate-700 flex items-center justify-center transition-all group-hover:border-indigo-500"
-                [class.bg-indigo-600]="isFacilitySelected(f)" [class.border-indigo-600]="isFacilitySelected(f)">
-                <i class="fas fa-check text-[10px] text-white" *ngIf="isFacilitySelected(f)"></i>
-              </div>
-              <input type="checkbox" class="hidden" (change)="toggleFacility(f)">
-              <span class="text-sm font-medium text-neutral-600 dark:text-slate-400 group-hover:text-neutral-900 dark:group-hover:text-slate-200 transition-colors">{{ f }}</span>
-            </label>
           </div>
         </div>
       </form>
     </div>
   </aside>
 
-  <!-- Results Area -->
+  <!-- ── Results Area ── -->
   <div class="flex-1 min-w-0">
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
       <div>
         <h1 class="text-3xl font-extrabold text-neutral-800 dark:text-slate-100">Explore Housing</h1>
         <p class="text-neutral-500 dark:text-slate-400 text-sm mt-1" *ngIf="!isLoading()">
-          Found {{ housings().length }} stays &mdash; showing page {{ currentPage() }} of {{ totalPages() }}
+          Found {{ housings().length }} units &mdash; page {{ currentPage() }} of {{ totalPages() }}
         </p>
         <p class="text-neutral-500 dark:text-slate-400 text-sm mt-1" *ngIf="isLoading()">Searching for best matches...</p>
       </div>
 
-      <!-- Sort By (bound to form) -->
+      <!-- Sort -->
       <div class="flex items-center gap-3" [formGroup]="filterForm">
         <span class="text-xs font-bold text-neutral-400 dark:text-slate-500 uppercase">Sort by:</span>
         <select formControlName="sortBy"
@@ -98,81 +84,108 @@
           <option value="recommended">Recommended</option>
           <option value="price-asc">Price: Low to High</option>
           <option value="price-desc">Price: High to Low</option>
-          <option value="top-rated">Top Rated</option>
         </select>
       </div>
     </div>
 
+    <!-- Map link banner -->
+    <a routerLink="/listings/map"
+      class="flex items-center gap-3 mb-6 p-4 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl text-white cursor-pointer hover:opacity-90 transition-opacity shadow-lg shadow-indigo-100 dark:shadow-none">
+      <i class="fas fa-map-marked-alt text-xl"></i>
+      <div class="flex-1">
+        <p class="font-bold text-sm">View on Map</p>
+        <p class="text-xs text-indigo-100">See all available units on an interactive map</p>
+      </div>
+      <i class="fas fa-arrow-right"></i>
+    </a>
+
+    <!-- Error -->
+    <div *ngIf="errorMessage()" class="mb-6 p-4 bg-rose-50 dark:bg-rose-900/20 border border-rose-100 dark:border-rose-800/30 rounded-2xl flex items-center gap-3">
+      <i class="fas fa-exclamation-circle text-rose-500"></i>
+      <p class="text-rose-700 dark:text-rose-400 text-sm font-medium">{{ errorMessage() }}</p>
+      <button (click)="loadHousings()" class="ml-auto text-xs font-bold text-rose-600 hover:underline">Retry</button>
+    </div>
+
     <!-- Loader Skeleton -->
     <div *ngIf="isLoading()" class="grid grid-cols-1 md:grid-cols-2 gap-8">
-      <div *ngFor="let i of [1,2,3,4]" class="animate-pulse">
+      <div *ngFor="let i of [1,2,3,4,5,6]" class="animate-pulse">
         <div class="bg-neutral-200 dark:bg-slate-800 h-64 rounded-3xl mb-4"></div>
         <div class="h-4 bg-neutral-200 dark:bg-slate-800 rounded w-3/4 mb-2"></div>
         <div class="h-4 bg-neutral-200 dark:bg-slate-800 rounded w-1/2"></div>
       </div>
     </div>
 
-    <!-- Housing Grid (paginated) -->
+    <!-- Housing Grid -->
     <div *ngIf="!isLoading()" class="grid grid-cols-1 md:grid-cols-2 gap-8">
       <div *ngFor="let item of paginatedHousings()"
         class="bg-white dark:bg-slate-900 rounded-[2rem] overflow-hidden border border-neutral-100 dark:border-slate-800 shadow-sm hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 group cursor-pointer"
-        [routerLink]="['/student/housing', item.id]">
-        <div class="relative h-64 overflow-hidden">
-          <img [src]="item.images[0]" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" [alt]="item.title">
+        [routerLink]="['/listings/housing', item.housingUnitId]">
+
+        <!-- Image -->
+        <div class="relative h-64 overflow-hidden bg-neutral-100 dark:bg-slate-800">
+          <img [src]="item.unitImageUrl || 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800'"
+            class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+            [alt]="item.title"
+            onerror="this.src='https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800'">
+
+          <!-- Gender & availability badges -->
           <div class="absolute top-6 left-6 flex flex-col gap-2">
-            <span class="px-3 py-1.5 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md rounded-full text-indigo-600 dark:text-indigo-400 text-[10px] font-extrabold shadow-sm uppercase tracking-wider">
-              {{ item.type }} room
-            </span>
-            <span *ngIf="item.gender !== 'mixed'"
-              [class.bg-rose-500]="item.gender === 'female'" [class.bg-indigo-500]="item.gender === 'male'"
+            <span *ngIf="item.genderAllowed !== GenderAllowed.Mixed"
+              [class.bg-rose-500]="item.genderAllowed === GenderAllowed.Female"
+              [class.bg-indigo-500]="item.genderAllowed === GenderAllowed.Male"
               class="px-3 py-1.5 text-white text-[10px] font-extrabold rounded-full shadow-sm uppercase tracking-wider">
-              {{ item.gender }} only
+              {{ genderLabel(item.genderAllowed) }} only
+            </span>
+            <span *ngIf="!item.isAvailable"
+              class="px-3 py-1.5 bg-neutral-800/80 text-white text-[10px] font-extrabold rounded-full shadow-sm uppercase tracking-wider">
+              Unavailable
             </span>
           </div>
+
+          <!-- Wishlist -->
           <button (click)="toggleWishlist(item, $event)"
-            [class.text-rose-500]="isInWishlist(item.id)" [class.bg-white]="isInWishlist(item.id)"
-            [class.dark:bg-slate-900]="isInWishlist(item.id)"
+            [class.text-rose-500]="isInWishlist(item.housingUnitId)"
+            [class.bg-white]="isInWishlist(item.housingUnitId)"
+            [class.dark:bg-slate-900]="isInWishlist(item.housingUnitId)"
             class="absolute top-6 right-6 w-10 h-10 bg-white/50 dark:bg-slate-900/50 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:text-rose-500 hover:bg-white dark:hover:bg-slate-900 transition-all shadow-sm z-10">
-            <i [class]="isInWishlist(item.id) ? 'fas fa-heart text-lg' : 'far fa-heart text-lg'"></i>
+            <i [class]="isInWishlist(item.housingUnitId) ? 'fas fa-heart text-lg' : 'far fa-heart text-lg'"></i>
           </button>
+
+          <!-- Hover overlay -->
           <div class="absolute bottom-6 left-6 right-6 p-4 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 flex justify-between items-center opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0 transition-all duration-300">
-            <span class="text-white text-xs font-bold">Quick Preview</span>
+            <span class="text-white text-xs font-bold">View Details</span>
             <i class="fas fa-arrow-right text-white"></i>
           </div>
         </div>
 
+        <!-- Card Body -->
         <div class="p-8">
           <div class="flex justify-between items-start mb-2">
-            <h3 class="font-extrabold text-xl text-neutral-800 dark:text-slate-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors leading-tight">{{ item.title }}</h3>
-            <div class="flex items-center gap-1 bg-amber-50 dark:bg-amber-900/20 px-2 py-1 rounded-lg">
-              <i class="fas fa-star text-amber-500 text-xs"></i>
-              <span class="text-amber-700 dark:text-amber-400 text-xs font-bold">{{ item.rating }}</span>
-            </div>
+            <h3 class="font-extrabold text-xl text-neutral-800 dark:text-slate-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors leading-tight line-clamp-1">
+              {{ item.title }}
+            </h3>
+            <span class="ml-3 shrink-0 flex items-center gap-1 bg-indigo-50 dark:bg-indigo-900/20 px-2 py-1 rounded-lg">
+              <i class="fas fa-door-open text-indigo-500 text-xs"></i>
+              <span class="text-indigo-700 dark:text-indigo-400 text-xs font-bold">{{ item.numberOfRooms }} rooms</span>
+            </span>
           </div>
 
-          <p class="text-neutral-500 dark:text-slate-400 text-sm flex items-center gap-2 mb-6">
+          <p class="text-neutral-500 dark:text-slate-400 text-sm flex items-center gap-2 mb-4">
             <i class="fas fa-map-marker-alt text-indigo-400"></i> {{ item.area }}, {{ item.city }}
           </p>
 
-          <div class="flex flex-wrap gap-2 mb-8">
-            <span *ngFor="let facility of item.facilities.slice(0,3)" class="px-2.5 py-1 bg-neutral-50 dark:bg-slate-800 text-neutral-500 dark:text-slate-400 text-[10px] font-bold rounded-md uppercase tracking-tighter">
-              {{ facility }}
-            </span>
-            <span *ngIf="item.facilities.length > 3" class="px-2.5 py-1 bg-neutral-50 dark:bg-slate-800 text-neutral-400 text-[10px] font-bold rounded-md">
-              +{{ item.facilities.length - 3 }} more
-            </span>
-          </div>
+          <p class="text-neutral-400 dark:text-slate-500 text-xs line-clamp-2 mb-6">{{ item.description }}</p>
 
           <div class="flex items-center justify-between pt-6 border-t border-neutral-50 dark:border-slate-800">
             <div>
               <span class="text-neutral-400 dark:text-slate-500 text-[10px] font-bold uppercase tracking-wider block">Starting from</span>
               <div class="flex items-baseline gap-1">
-                <span class="text-2xl font-black text-neutral-900 dark:text-slate-100">{{ item.price | number }}</span>
+                <span class="text-2xl font-black text-neutral-900 dark:text-slate-100">{{ item.baseMonthlyPrice | number }}</span>
                 <span class="text-neutral-500 dark:text-slate-400 font-bold text-xs uppercase">EGP/mo</span>
               </div>
             </div>
-            <button class="bg-neutral-900 dark:bg-slate-800 text-white px-6 py-3 rounded-2xl font-bold hover:bg-neutral-800 dark:hover:bg-slate-700 transition-colors shadow-lg shadow-neutral-100 dark:shadow-none flex items-center gap-2 group-hover:bg-indigo-600 dark:group-hover:bg-indigo-500 transition-all duration-300">
-              Select Room
+            <button class="bg-neutral-900 dark:bg-slate-800 text-white px-6 py-3 rounded-2xl font-bold hover:bg-neutral-800 dark:hover:bg-slate-700 transition-colors shadow-lg shadow-neutral-100 dark:shadow-none flex items-center gap-2 group-hover:bg-indigo-600 dark:group-hover:bg-indigo-500 duration-300">
+              View Unit
             </button>
           </div>
         </div>
@@ -180,7 +193,8 @@
     </div>
 
     <!-- Empty State -->
-    <div *ngIf="!isLoading() && housings().length === 0" class="flex flex-col items-center justify-center py-24 bg-white dark:bg-slate-900 rounded-[2rem] border border-dashed border-neutral-200 dark:border-slate-800">
+    <div *ngIf="!isLoading() && housings().length === 0 && !errorMessage()"
+      class="flex flex-col items-center justify-center py-24 bg-white dark:bg-slate-900 rounded-[2rem] border border-dashed border-neutral-200 dark:border-slate-800">
       <div class="w-20 h-20 bg-neutral-50 dark:bg-slate-800 rounded-full flex items-center justify-center mb-6">
         <i class="fas fa-search-minus text-3xl text-neutral-300"></i>
       </div>
@@ -190,26 +204,22 @@
     </div>
 
     <!-- Pagination -->
-    <div *ngIf="!isLoading() && housings().length > 0" class="flex items-center justify-center gap-2 mt-12">
-      <!-- Prev -->
+    <div *ngIf="!isLoading() && housings().length > pageSize" class="flex items-center justify-center gap-2 mt-12">
       <button (click)="prevPage()" [disabled]="currentPage() === 1"
         class="w-10 h-10 rounded-2xl flex items-center justify-center border border-neutral-100 dark:border-slate-700 bg-white dark:bg-slate-900 text-neutral-500 dark:text-slate-400 font-bold transition-all hover:border-indigo-500 hover:text-indigo-600 disabled:opacity-30 disabled:cursor-not-allowed shadow-sm">
         <i class="fas fa-chevron-left text-xs"></i>
       </button>
 
-      <!-- Page numbers -->
       <ng-container *ngFor="let p of pageNumbers()">
         <button (click)="goToPage(p)"
           [class.bg-indigo-600]="p === currentPage()"
           [class.text-white]="p === currentPage()"
           [class.border-indigo-600]="p === currentPage()"
-          [class.shadow-indigo-100]="p === currentPage()"
           class="w-10 h-10 rounded-2xl flex items-center justify-center border border-neutral-100 dark:border-slate-700 bg-white dark:bg-slate-900 text-neutral-600 dark:text-slate-400 text-sm font-bold transition-all hover:border-indigo-500 hover:text-indigo-600 shadow-sm">
           {{ p }}
         </button>
       </ng-container>
 
-      <!-- Next -->
       <button (click)="nextPage()" [disabled]="currentPage() === totalPages()"
         class="w-10 h-10 rounded-2xl flex items-center justify-center border border-neutral-100 dark:border-slate-700 bg-white dark:bg-slate-900 text-neutral-500 dark:text-slate-400 font-bold transition-all hover:border-indigo-500 hover:text-indigo-600 disabled:opacity-30 disabled:cursor-not-allowed shadow-sm">
         <i class="fas fa-chevron-right text-xs"></i>

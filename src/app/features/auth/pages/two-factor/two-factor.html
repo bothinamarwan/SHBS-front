@@ -1,0 +1,110 @@
+<div class="auth-page">
+
+  <!-- Left Panel: Branding -->
+  <div class="auth-brand-panel">
+    <div class="brand-overlay"></div>
+    <div class="brand-content">
+      <div class="brand-logo">
+        <span class="material-symbols-outlined logo-icon">home_work</span>
+        <span class="logo-text">UniStay</span>
+      </div>
+      <div class="brand-tagline">
+        <h2>Two-Factor <br/><span class="accent">Verification</span></h2>
+        <p>Enter the 6-digit code from your authenticator app to verify your identity and access your account.</p>
+      </div>
+      <div class="brand-stats">
+        <div class="stat-item">
+          <span class="material-symbols-outlined" style="font-size:2rem;color:#81f3e5">shield</span>
+          <span class="stat-label">Secure Login</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <span class="material-symbols-outlined" style="font-size:2rem;color:#81f3e5">verified_user</span>
+          <span class="stat-label">Identity Verified</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <span class="material-symbols-outlined" style="font-size:2rem;color:#81f3e5">lock</span>
+          <span class="stat-label">Protected</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Panel: 2FA Verify Form -->
+  <div class="auth-form-panel">
+    <div class="form-container">
+
+      <!-- Mobile Logo -->
+      <div class="mobile-logo">
+        <span class="material-symbols-outlined">home_work</span>
+        <span>UniStay</span>
+      </div>
+
+      <div class="form-header">
+        <div class="lock-icon-wrapper">
+          <span class="material-symbols-outlined">lock</span>
+        </div>
+        <h1>Verify Your Identity</h1>
+        <p>Enter the 6-digit code from your authenticator app to continue</p>
+      </div>
+
+      @if (errorMessage()) {
+        <div class="global-alert error-alert">
+          <span class="material-symbols-outlined">error</span>
+          <span>{{ errorMessage() }}</span>
+        </div>
+      }
+
+      <form [formGroup]="codeForm" (ngSubmit)="onSubmit()" class="auth-form" novalidate>
+
+        <div class="field-group">
+          <label for="verify-code">Verification Code</label>
+          <div class="input-wrapper" [class.input-error]="code?.invalid && code?.touched" [class.input-success]="code?.valid && code?.touched">
+            <span class="material-symbols-outlined input-icon">pin</span>
+            <input
+              id="verify-code"
+              type="text"
+              formControlName="code"
+              placeholder="000000"
+              maxlength="6"
+              autocomplete="one-time-code"
+              inputmode="numeric"
+            />
+            @if (code?.valid && code?.touched) {
+              <span class="material-symbols-outlined valid-icon">check_circle</span>
+            }
+          </div>
+          @if (code?.invalid && code?.touched) {
+            <span class="field-error">
+              <span class="material-symbols-outlined">error</span>
+              @if (code?.errors?.['required']) { Please enter the verification code. }
+              @if (code?.errors?.['minlength'] || code?.errors?.['maxlength']) { Code must be exactly 6 digits. }
+              @if (code?.errors?.['pattern']) { Code must contain only numbers. }
+            </span>
+          }
+        </div>
+
+        <button type="submit" class="btn-primary" [class.loading]="isLoading()" [disabled]="isLoading()">
+          @if (isLoading()) {
+            <span class="spinner"></span>
+            <span>Verifying...</span>
+          } @else {
+            <span>Verify & Sign In</span>
+            <span class="material-symbols-outlined">arrow_forward</span>
+          }
+        </button>
+
+      </form>
+
+      <p class="switch-auth">
+        <a routerLink="/auth/login" id="back-to-login">
+          <span class="material-symbols-outlined" style="font-size:1rem;vertical-align:middle">arrow_back</span>
+          Back to Login
+        </a>
+      </p>
+
+    </div>
+  </div>
+
+</div>

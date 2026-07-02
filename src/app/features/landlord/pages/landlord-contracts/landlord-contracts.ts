@@ -23,32 +23,7 @@ type ContractFilter = 'all' | 'signed' | 'draft' | 'expired';
 export class LandlordContracts {
   activeFilter = signal<ContractFilter>('all');
 
-  contracts = signal<ContractView[]>([
-    {
-      contractId: 'CT-001', bookingId: 'BK-003',
-      terms: 'Standard 6-month residential lease with monthly payments. No smoking policy applies.',
-      signedDate: '2026-05-21', status: 'signed',
-      studentName: 'Nour Ibrahim', propertyTitle: 'Premium Student Studio',
-      roomName: 'Master Studio', moveInDate: '2026-06-01', duration: 3,
-      totalPrice: 16500, monthlyRent: 5500
-    },
-    {
-      contractId: 'CT-002', bookingId: 'BK-005',
-      terms: 'Standard 12-month residential lease. All utilities included in rent.',
-      signedDate: undefined, status: 'draft',
-      studentName: 'Layla Mostafa', propertyTitle: 'Premium Student Studio',
-      roomName: 'Master Studio', moveInDate: '2026-08-01', duration: 12,
-      totalPrice: 66000, monthlyRent: 5500
-    },
-    {
-      contractId: 'CT-003', bookingId: 'BK-006',
-      terms: 'Standard 3-month lease. Quiet hours policy after 10PM.',
-      signedDate: '2026-02-15', status: 'expired',
-      studentName: 'Omar Fathy', propertyTitle: 'Cozy Shared Suite',
-      roomName: 'Twin Room', moveInDate: '2026-02-15', duration: 3,
-      totalPrice: 9600, monthlyRent: 3200
-    },
-  ]);
+  contracts = signal<ContractView[]>([]);
 
   filters: { label: string; value: ContractFilter }[] = [
     { label: 'All Contracts', value: 'all' },

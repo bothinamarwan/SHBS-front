@@ -4,7 +4,8 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { HousingService } from '../../../../core/services/housing.service';
 import { BookingService } from '../../../../core/services/booking.service';
-import { Housing, Room } from '../../../../core/models/housing.model';
+import { StudentService } from '../../../../core/services/student.service';
+import { HousingUnitDetails, Room } from '../../../../core/models/housing.model';
 
 @Component({
   selector: 'app-booking-create',
@@ -18,9 +19,10 @@ export class BookingCreate implements OnInit {
   private fb = inject(FormBuilder);
   private housingService = inject(HousingService);
   private bookingService = inject(BookingService);
+  private studentService = inject(StudentService);
 
-  housing = signal<Housing | null>(null);
-  selectedRoom = signal<Room | null>(null);
+  housing = signal<HousingUnitDetails | null>(null);
+  selectedRooms = signal<Room[]>([]);
   currentStep = signal(1);
   isLoading = signal(false);
   bookingForm: FormGroup;
@@ -28,16 +30,20 @@ export class BookingCreate implements OnInit {
 
   constructor() {
     this.bookingForm = this.fb.group({
-      selectedRoomId: ['', Validators.required],
       moveInDate: ['', Validators.required],
       duration: [12, [Validators.required, Validators.min(1)]],
       paymentMethod: ['card']
     });
   }
 
-  selectRoom(room: Room) {
-    this.selectedRoom.set(room);
-    this.bookingForm.get('selectedRoomId')?.setValue(room.id);
+  toggleRoom(room: Room) {
+    const current = this.selectedRooms();
+    const index = current.findIndex(r => r.id === room.id);
+    if (index > -1) {
+      this.selectedRooms.set(current.filter(r => r.id !== room.id));
+    } else {
+      this.selectedRooms.set([...current, room]);
+    }
   }
 
   setPaymentMethod(method: 'card' | 'wallet' | 'cash') {
@@ -47,17 +53,42 @@ export class BookingCreate implements OnInit {
 
   calcTotal(): number {
     const months = this.bookingForm.get('duration')?.value || 0;
-    const price = this.selectedRoom()?.price || 0;
-    return price * months;
+    const roomsPrice = this.selectedRooms().reduce((sum, r) => sum + r.price, 0);
+    return roomsPrice * months;
   }
 
   ngOnInit() {
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
-      this.housingService.getHousingById(id).subscribe(data => {
-        if (data) this.housing.set(data);
+      this.housingService.getDetailsById(id).subscribe(data => {
+        if (data) {
+          this.housing.set(data);
+          // Mock a room based on the housing unit details for the booking form
+          const mockRoom: Room = {
+            id: data.housingUnitId,
+            name: data.title + ' - Entire Unit',
+            roomType: 'single',
+            beds: data.numberOfRooms,
+            price: data.baseMonthlyPrice || data.price,
+            availableBeds: data.numberOfRooms
+          };
+          this.selectedRooms.set([]); // Reset selection
+        }
       });
     }
+  }
+
+  get roomsForHousing(): Room[] {
+    const data = this.housing();
+    if (!data) return [];
+    return [{
+      id: data.housingUnitId,
+      name: data.title + ' - Unit',
+      roomType: 'single',
+      beds: data.numberOfRooms,
+      price: data.baseMonthlyPrice || data.price,
+      availableBeds: data.numberOfRooms
+    }];
   }
 
   nextStep() {
@@ -74,21 +105,30 @@ export class BookingCreate implements OnInit {
 
   confirmBooking() {
     this.isLoading.set(true);
-    const data = {
-      housingId: this.housing()?.id,
-      housingTitle: this.housing()?.title,
-      roomId: this.selectedRoom()?.id,
-      roomName: this.selectedRoom()?.name,
-      ...this.bookingForm.value,
-      totalPrice: (this.selectedRoom()?.price || 0) * 2 + 250 // Simplified calc
+    const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+    const sId = currentUser.studentId || currentUser.id || '3fa85f64-5717-4562-b3fc-2c963f66afa6';
+
+    const moveIn = new Date(this.bookingForm.value.moveInDate);
+    const months = this.bookingForm.value.duration || 12;
+    const moveOut = new Date(moveIn);
+    moveOut.setMonth(moveOut.getMonth() + months);
+
+    const payload = {
+      studentId: sId,
+      roomIds: this.selectedRooms().map(r => r.id),
+      startDate: moveIn.toISOString(),
+      endDate: moveOut.toISOString()
     };
 
-    this.bookingService.createBooking(data).subscribe({
-      next: (b) => {
+    // Use BookingService.multiRoom
+    this.bookingService.multiRoom(payload).subscribe({
+      next: (res: any) => {
         this.isLoading.set(false);
-        this.router.navigate(['/student/bookings'], { queryParams: { success: true, bookingId: b.id } });
+        // MultiRoom returns an array of bookings, so we can pass the first one's ID if we want, or just a success param
+        const bookingId = (Array.isArray(res) && res.length > 0) ? res[0]?.bookingId : (res?.bookingId || 'new-booking');
+        this.router.navigate(['/student/bookings'], { queryParams: { success: true, bookingId } });
       },
-      error: (err) => {
+      error: (err: any) => {
         this.isLoading.set(false);
         console.error(err);
       }

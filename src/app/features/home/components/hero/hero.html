@@ -37,10 +37,7 @@
       <!-- Location -->
       <div class="search-field">
         <span class="material-symbols-outlined search-icon">location_on</span>
-        <div class="search-field-inner">
-          <label class="search-label">Location</label>
-          <input class="search-input" placeholder="Near any university…" type="text"/>
-        </div>
+        <input class="search-input" placeholder="Where do you want to live?" type="text"/>
       </div>
 
       <div class="search-sep"></div>
@@ -48,10 +45,7 @@
       <!-- Budget -->
       <div class="search-field">
         <span class="material-symbols-outlined search-icon">payments</span>
-        <div class="search-field-inner">
-          <label class="search-label">Max Budget</label>
-          <input class="search-input" placeholder="EGP / month" type="number"/>
-        </div>
+        <input class="search-input" placeholder="Max Budget (EGP)" type="number"/>
       </div>
 
       <div class="search-sep"></div>
@@ -59,15 +53,12 @@
       <!-- Room Type -->
       <div class="search-field">
         <span class="material-symbols-outlined search-icon">bed</span>
-        <div class="search-field-inner">
-          <label class="search-label">Room Type</label>
-          <select class="search-input search-select">
-            <option value="">Any type</option>
-            <option>Studio</option>
-            <option>Shared Apartment</option>
-            <option>En-suite</option>
-          </select>
-        </div>
+        <select class="search-input search-select">
+          <option value="" disabled selected>Any room type</option>
+          <option>Studio</option>
+          <option>Shared Apartment</option>
+          <option>En-suite</option>
+        </select>
       </div>
 
       <!-- Search Button -->

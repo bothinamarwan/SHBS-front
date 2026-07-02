@@ -1,8 +1,11 @@
-import { Component, signal } from '@angular/core';
+import { Component, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { RouterLink, Router } from '@angular/router';
 import { AuthService } from '../../../../core/services/auth.service';
+import { AuthResponse } from '../../../../core/models/user.model';
+
+declare var google: any;
 
 @Component({
   selector: 'app-login',
@@ -34,42 +37,59 @@ export class Login {
   }
 
   onSubmit() {
-    if (this.loginForm.valid) {
-      this.isLoading.set(true);
-      this.errorMessage.set(null);
-      const payload = {
-        email: this.loginForm.value.email,
-        password: this.loginForm.value.password
-      };
-
-      console.log('Sending Login Payload:', payload);
-
-      this.authService.login(payload).subscribe({
-        next: () => {
-          this.isLoading.set(false);
-          const user = this.authService.currentUserValue;
-          const role = user?.role || 'student';
-          const redirectMap: Record<string, string> = {
-            landlord: '/landlord',
-            admin: '/admin',
-            student: '/student'
-          };
-          this.router.navigate([redirectMap[role] ?? '/student']);
-        },
-        error: (err) => {
-          this.isLoading.set(false);
-          this.errorMessage.set('Invalid email or password');
-          console.error('Login Error:', err);
-          if (err.error && err.error.errors) {
-            console.error('Validation Errors from Backend:', err.error.errors);
-          } else if (err.error) {
-             console.error('Backend Error Message:', err.error);
-          }
-        }
-      });
-    } else {
+    if (this.loginForm.invalid) {
       this.loginForm.markAllAsTouched();
+      return;
     }
+
+    this.isLoading.set(true);
+    this.errorMessage.set(null);
+
+    const payload = {
+      email: this.loginForm.value.email as string,
+      password: this.loginForm.value.password as string
+    };
+
+    this.authService.login(payload).subscribe({
+      next: (res: AuthResponse) => {
+        this.isLoading.set(false);
+
+        // Backend requires 2FA before granting access
+        if (res.requiresTwoFactor) {
+          this.router.navigate(['/auth/two-factor'], {
+            queryParams: { email: payload.email }
+          });
+          return;
+        }
+
+        // Normal login — redirect by role
+        const role = this.authService.currentUserValue?.role ?? 'student';
+        const redirectMap: Record<string, string> = {
+          landlord: '/landlord',
+          admin: '/admin',
+          student: '/student'
+        };
+        this.router.navigate([redirectMap[role] ?? '/student']);
+      },
+      error: (err) => {
+        this.isLoading.set(false);
+
+        // Use backend message when available, fall back to generic message
+        const backendMsg =
+          err?.error?.message ||
+          err?.error?.title ||
+          (typeof err?.error === 'string' ? err.error : null);
+
+        this.errorMessage.set(backendMsg ?? 'Invalid email or password. Please try again.');
+        console.error('Login error:', err);
+      }
+    });
+  }
+
+  // We are currently using the backend redirect challenge for Google Login 
+  // since a client ID is not provided.
+  onGoogleLogin(): void {
+    this.authService.initiateGoogleLogin();
   }
 
   get email() { return this.loginForm.get('email'); }

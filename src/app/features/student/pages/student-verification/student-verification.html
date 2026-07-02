@@ -1,0 +1,49 @@
+<div class="p-6 max-w-2xl mx-auto space-y-6">
+  <h1 class="text-3xl font-bold text-neutral-800 dark:text-slate-100">University Verification</h1>
+  <p class="text-neutral-600 dark:text-slate-400">
+    Please provide your university details and upload a valid student ID card to get verified.
+  </p>
+
+  <div *ngIf="isSuccess()" class="p-6 bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl border border-emerald-100 dark:border-emerald-800 text-center">
+    <span class="material-symbols-outlined text-4xl text-emerald-500 mb-2">check_circle</span>
+    <h3 class="text-xl font-bold text-emerald-800 dark:text-emerald-400 mb-2">Submitted Successfully</h3>
+    <p class="text-emerald-600 dark:text-emerald-300">Your verification documents have been submitted and are under review.</p>
+  </div>
+
+  <form *ngIf="!isSuccess()" [formGroup]="verificationForm" (ngSubmit)="onSubmit()" class="bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-sm border border-neutral-100 dark:border-slate-800 space-y-6">
+    <div *ngIf="errorMessage()" class="p-4 bg-rose-50 text-rose-600 rounded-xl text-sm font-medium">
+      {{ errorMessage() }}
+    </div>
+
+    <div>
+      <label class="block text-sm font-bold text-neutral-700 dark:text-slate-300 mb-2">University Name</label>
+      <input type="text" formControlName="universityName" class="w-full p-3 rounded-xl bg-neutral-50 dark:bg-slate-800 border-none ring-1 ring-neutral-200 dark:ring-slate-700 focus:ring-2 focus:ring-indigo-500 transition-all dark:text-slate-100 placeholder:text-neutral-400" placeholder="e.g. Cairo University">
+      <div *ngIf="verificationForm.get('universityName')?.touched && verificationForm.get('universityName')?.invalid" class="text-rose-500 text-xs mt-1 font-medium">University Name is required.</div>
+    </div>
+
+    <div>
+      <label class="block text-sm font-bold text-neutral-700 dark:text-slate-300 mb-2">Faculty Name</label>
+      <input type="text" formControlName="facultyName" class="w-full p-3 rounded-xl bg-neutral-50 dark:bg-slate-800 border-none ring-1 ring-neutral-200 dark:ring-slate-700 focus:ring-2 focus:ring-indigo-500 transition-all dark:text-slate-100 placeholder:text-neutral-400" placeholder="e.g. Faculty of Engineering">
+      <div *ngIf="verificationForm.get('facultyName')?.touched && verificationForm.get('facultyName')?.invalid" class="text-rose-500 text-xs mt-1 font-medium">Faculty Name is required.</div>
+    </div>
+
+    <div>
+      <label class="block text-sm font-bold text-neutral-700 dark:text-slate-300 mb-2">University Email</label>
+      <input type="email" formControlName="universityEmail" class="w-full p-3 rounded-xl bg-neutral-50 dark:bg-slate-800 border-none ring-1 ring-neutral-200 dark:ring-slate-700 focus:ring-2 focus:ring-indigo-500 transition-all dark:text-slate-100 placeholder:text-neutral-400" placeholder="your.name@eng.cu.edu.eg">
+      <div *ngIf="verificationForm.get('universityEmail')?.touched && verificationForm.get('universityEmail')?.invalid" class="text-rose-500 text-xs mt-1 font-medium">Valid University Email is required.</div>
+    </div>
+
+    <div>
+      <label class="block text-sm font-bold text-neutral-700 dark:text-slate-300 mb-2">Upload ID Card</label>
+      <input type="file" accept="image/*,.pdf" (change)="onFileSelected($event)" class="w-full p-3 rounded-xl bg-neutral-50 dark:bg-slate-800 border-none ring-1 ring-neutral-200 dark:ring-slate-700 focus:ring-2 focus:ring-indigo-500 transition-all dark:text-slate-100">
+      <div *ngIf="!selectedFile() && verificationForm.touched" class="text-rose-500 text-xs mt-1 font-medium">ID Card upload is required.</div>
+    </div>
+
+    <div class="pt-4 border-t border-neutral-100 dark:border-slate-800">
+      <button type="submit" [disabled]="isLoading()" class="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold tracking-wide transition-colors flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed shadow-md shadow-indigo-200 dark:shadow-none">
+        <span *ngIf="isLoading()" class="material-symbols-outlined animate-spin" style="font-size: 20px;">progress_activity</span>
+        <span>{{ isLoading() ? 'Submitting...' : 'Submit Verification' }}</span>
+      </button>
+    </div>
+  </form>
+</div>

@@ -14,26 +14,8 @@ export class FeedbackService {
   }
 
   private loadMockData() {
-    this.reviews.set([
-      {
-        id: 'rev1',
-        studentId: 's1',
-        studentName: 'Ahmed Ali',
-        housingId: '1',
-        rating: 5,
-        comment: 'Amazing place! Very clean and close to the university.',
-        reviewDate: '2026-03-20'
-      },
-      {
-        id: 'rev2',
-        studentId: 's2',
-        studentName: 'Sara Kamal',
-        housingId: '1',
-        rating: 4,
-        comment: 'Great facilities, but the internet was a bit slow sometimes.',
-        reviewDate: '2026-04-05'
-      }
-    ]);
+    this.reviews.set([]);
+    this.complaints.set([]);
   }
 
   getReviewsByHousing(housingId: string): Observable<Review[]> {

@@ -1,8 +1,8 @@
 export interface UpdateStudentRequest {
   studentId: string;
   fullName: string;
-  dateOfBirth: string; // ISO format
-  gender: number; // 0 or 1
+  dateOfBirth: string;
+  gender: number;
   address: string;
   city: string;
   preferredArea: string;
@@ -12,14 +12,46 @@ export interface UpdateStudentRequest {
 export interface StudentResponse {
   studentId: string;
   userId: string;
+  fullName?: string;
   dateOfBirth: string;
   gender: number;
   address: string;
   city: string;
   preferredArea: string;
   nationalId: string;
-  createdAt: string;
-  updatedAt: string;
-  isVerified: boolean;
-  verificationStatus: number;
+  facultyName: string;
+  universityName: string;
+  universityEmail: string;
+  universityVerificationStatus: number;
+}
+
+export interface ChangePasswordRequest {
+  studentId: string;
+  currentPassword?: string;
+  newPassword?: string;
+  confirmPassword?: string;
+}
+
+export interface GetStudentsRequest {
+  city?: string;
+  preferredArea?: string;
+  gender?: number;
+  dateOfBirthFrom?: string;
+  dateOfBirthTo?: string;
+  pageNumber?: number;
+  pageSize?: number;
+}
+
+export interface PaginatedStudentResponse {
+  pageSize: number;
+  pageIndex: number;
+  totalRecords: number;
+  records: StudentResponse[];
+}
+
+export interface MultiRoomBookingRequest {
+  studentId: string;
+  roomIds: string[];
+  startDate: string;
+  endDate: string;
 }

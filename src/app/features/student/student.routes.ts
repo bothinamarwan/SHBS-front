@@ -27,6 +27,14 @@ export const studentRoutes: Routes = [
         loadComponent: () => import('../booking/pages/booking-create/booking-create').then(m => m.BookingCreate)
       },
       {
+        path: 'booking/pay/:id',
+        loadComponent: () => import('../booking/pages/booking-payment/booking-payment').then(m => m.BookingPaymentPage)
+      },
+      {
+        path: 'booking/payment-callback',
+        loadComponent: () => import('../booking/pages/booking-payment-callback/booking-payment-callback').then(m => m.BookingPaymentCallbackPage)
+      },
+      {
         path: 'wishlist',
         loadComponent: () => import('../wishlist/pages/wishlist-list/wishlist-list').then(m => m.WishlistList)
       },
@@ -45,6 +53,18 @@ export const studentRoutes: Routes = [
       {
         path: 'complaint',
         loadComponent: () => import('./pages/complaint-form/complaint-form').then(m => m.ComplaintForm)
+      },
+      {
+        path: 'verification',
+        loadComponent: () => import('./pages/student-verification/student-verification').then(m => m.StudentVerification)
+      },
+      {
+        path: 'receipts',
+        loadComponent: () => import('./pages/student-receipts/student-receipts').then(m => m.StudentReceipts)
+      },
+      {
+        path: 'payments',
+        loadComponent: () => import('../payments/pages/payment-history/payment-history').then(m => m.PaymentHistoryPage)
       }
     ]
   }

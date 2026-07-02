@@ -1,0 +1,69 @@
+<div class="auth-page">
+
+  <!-- Left Panel: Branding -->
+  <div class="auth-brand-panel">
+    <div class="brand-overlay"></div>
+    <div class="brand-content">
+      <div class="brand-logo">
+        <span class="material-symbols-outlined logo-icon">home_work</span>
+        <span class="logo-text">UniStay</span>
+      </div>
+      <div class="brand-tagline">
+        <h2>Email <br/><span class="accent">Confirmation</span></h2>
+        <p>Verify your email address to unlock all features of your UniStay account.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Panel: Confirmation Status -->
+  <div class="auth-form-panel">
+    <div class="form-container">
+
+      <!-- Mobile Logo -->
+      <div class="mobile-logo">
+        <span class="material-symbols-outlined">home_work</span>
+        <span>UniStay</span>
+      </div>
+
+      @if (isLoading()) {
+        <div class="status-state">
+          <div class="status-icon-wrapper loading-icon">
+            <span class="confirm-spinner"></span>
+          </div>
+          <h2>Confirming Your Email</h2>
+          <p>Please wait while we verify your email address...</p>
+        </div>
+      }
+
+      @if (isSuccess()) {
+        <div class="status-state">
+          <div class="status-icon-wrapper success-icon">
+            <span class="material-symbols-outlined">mark_email_read</span>
+          </div>
+          <h2>Email Confirmed!</h2>
+          <p>{{ successMessage() }}</p>
+          <a routerLink="/auth/login" class="btn-primary" id="goto-login-after-confirm">
+            <span>Continue to Login</span>
+            <span class="material-symbols-outlined">arrow_forward</span>
+          </a>
+        </div>
+      }
+
+      @if (errorMessage()) {
+        <div class="status-state">
+          <div class="status-icon-wrapper error-icon">
+            <span class="material-symbols-outlined">error</span>
+          </div>
+          <h2>Confirmation Failed</h2>
+          <p>{{ errorMessage() }}</p>
+          <a routerLink="/auth/login" class="btn-secondary" id="goto-login-after-error">
+            <span class="material-symbols-outlined">arrow_back</span>
+            <span>Back to Login</span>
+          </a>
+        </div>
+      }
+
+    </div>
+  </div>
+
+</div>

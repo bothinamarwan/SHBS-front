@@ -1,10 +1,11 @@
-import { Component, inject, signal, computed } from '@angular/core';
+import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
 import { LandlordService } from '../../../../core/services/landlord.service';
-import { Booking, RentalContract } from '../../../../core/models/booking.model';
+import { BookingService } from '../../../../core/services/booking.service';
+import { Booking } from '../../../../core/models/booking.model';
 
-type BookingFilter = 'all' | 'pending' | 'approved' | 'rejected' | 'cancelled';
+type BookingFilter = 'all' | number;
 
 @Component({
   selector: 'app-landlord-bookings',
@@ -12,112 +13,98 @@ type BookingFilter = 'all' | 'pending' | 'approved' | 'rejected' | 'cancelled';
   imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './landlord-bookings.html'
 })
-export class LandlordBookings {
+export class LandlordBookings implements OnInit {
   private landlordService = inject(LandlordService);
+  private bookingService = inject(BookingService);
 
   activeFilter = signal<BookingFilter>('all');
-  isLoading = signal(false);
+  isLoading = signal(true);
   actionLoading = signal<string | null>(null);
 
-  // Mock bookings — in production would come from API
-  allBookings = signal<(Booking & { studentName: string; propertyTitle: string })[]>([
-    {
-      id: 'BK-001', studentId: 'S1', housingId: '1',
-      housingTitle: 'Premium Student Studio', roomId: 'r1', roomName: 'Master Studio',
-      moveInDate: '2026-07-01', duration: 6, totalPrice: 33000,
-      status: 'pending', bookingDate: '2026-06-17', createdAt: '2026-06-17',
-      studentName: 'Ahmed Hassan', propertyTitle: 'Premium Student Studio'
-    },
-    {
-      id: 'BK-002', studentId: 'S2', housingId: '2',
-      housingTitle: 'Cozy Shared Suite', roomId: 'r2', roomName: 'Twin Room',
-      moveInDate: '2026-07-15', duration: 4, totalPrice: 12800,
-      status: 'pending', bookingDate: '2026-06-16', createdAt: '2026-06-16',
-      studentName: 'Sara Ali', propertyTitle: 'Cozy Shared Suite'
-    },
-    {
-      id: 'BK-003', studentId: 'S3', housingId: '1',
-      housingTitle: 'Premium Student Studio', roomId: 'r1', roomName: 'Master Studio',
-      moveInDate: '2026-06-01', duration: 3, totalPrice: 16500,
-      status: 'approved', bookingDate: '2026-05-20', createdAt: '2026-05-20',
-      studentName: 'Nour Ibrahim', propertyTitle: 'Premium Student Studio'
-    },
-    {
-      id: 'BK-004', studentId: 'S4', housingId: '2',
-      housingTitle: 'Cozy Shared Suite', roomId: 'r2', roomName: 'Twin Room',
-      moveInDate: '2026-05-01', duration: 3, totalPrice: 9600,
-      status: 'rejected', bookingDate: '2026-04-25', createdAt: '2026-04-25',
-      studentName: 'Mohamed Khaled', propertyTitle: 'Cozy Shared Suite'
-    },
-    {
-      id: 'BK-005', studentId: 'S5', housingId: '1',
-      housingTitle: 'Premium Student Studio', roomId: 'r1', roomName: 'Master Studio',
-      moveInDate: '2026-08-01', duration: 12, totalPrice: 66000,
-      status: 'cancelled', bookingDate: '2026-06-10', createdAt: '2026-06-10',
-      studentName: 'Layla Mostafa', propertyTitle: 'Premium Student Studio'
-    },
-  ]);
+  // Bookings from API
+  allBookings = signal<(Booking & { studentName?: string; propertyTitle?: string })[]>([]);
 
   filters: { label: string; value: BookingFilter }[] = [
     { label: 'All', value: 'all' },
-    { label: 'Pending', value: 'pending' },
-    { label: 'Approved', value: 'approved' },
-    { label: 'Rejected', value: 'rejected' },
-    { label: 'Cancelled', value: 'cancelled' },
+    { label: 'Pending', value: 0 },
+    { label: 'Approved', value: 1 },
+    { label: 'Rejected', value: 2 },
+    { label: 'Cancelled', value: 3 },
   ];
 
   filteredBookings = computed(() => {
     const f = this.activeFilter();
     const all = this.allBookings();
-    return f === 'all' ? all : all.filter(b => b.status === f);
+    return f === 'all' ? all : all.filter(b => b.bookingStatus === f);
   });
 
-  pendingCount = computed(() => this.allBookings().filter(b => b.status === 'pending').length);
+  pendingCount = computed(() => this.allBookings().filter(b => b.bookingStatus === 0).length);
 
   // Contract signing state
-  selectedBooking = signal<(Booking & { studentName: string; propertyTitle: string }) | null>(null);
+  selectedBooking = signal<(Booking & { studentName?: string; propertyTitle?: string }) | null>(null);
   isContractOpen = signal(false);
   landlordSignature = signal('');
   isSigning = signal(false);
   contractSigned = signal(false);
 
   // Detail drawer
-  detailBooking = signal<(Booking & { studentName: string; propertyTitle: string }) | null>(null);
+  detailBooking = signal<(Booking & { studentName?: string; propertyTitle?: string }) | null>(null);
   isDetailOpen = signal(false);
 
-  openDetail(booking: Booking & { studentName: string; propertyTitle: string }) {
+  ngOnInit() {
+    // Assuming landlordService.getMyBookings() returns Booking objects mapped to the new schema
+    this.landlordService.getMyBookings().subscribe({
+      next: (bookings: any[]) => {
+        this.allBookings.set(bookings);
+        this.isLoading.set(false);
+      },
+      error: () => this.isLoading.set(false)
+    });
+  }
+
+  openDetail(booking: Booking & { studentName?: string; propertyTitle?: string }) {
     this.detailBooking.set(booking);
     this.isDetailOpen.set(true);
   }
   closeDetail() { this.isDetailOpen.set(false); }
 
-  approveBooking(booking: Booking & { studentName: string; propertyTitle: string }) {
-    this.actionLoading.set(booking.id + '_approve');
-    this.landlordService.approveBooking(booking.id).subscribe({
-      complete: () => this.finalizeAction(booking.id, 'approved'),
-      error: () => this.finalizeAction(booking.id, 'approved') // optimistic
+  approveBooking(booking: Booking & { studentName?: string; propertyTitle?: string }) {
+    this.actionLoading.set(booking.bookingId + '_approve');
+    this.bookingService.update({
+      bookingId: booking.bookingId,
+      startDate: booking.startDate,
+      endDate: booking.endDate,
+      bookingStatus: 1
+    }).subscribe({
+      complete: () => this.finalizeAction(booking.bookingId, 1),
+      error: () => this.finalizeAction(booking.bookingId, 1) // optimistic
     });
   }
 
-  rejectBooking(booking: Booking & { studentName: string; propertyTitle: string }) {
-    this.actionLoading.set(booking.id + '_reject');
-    this.landlordService.rejectBooking(booking.id).subscribe({
-      complete: () => this.finalizeAction(booking.id, 'rejected'),
-      error: () => this.finalizeAction(booking.id, 'rejected') // optimistic
+  rejectBooking(booking: Booking & { studentName?: string; propertyTitle?: string }) {
+    this.actionLoading.set(booking.bookingId + '_reject');
+    this.bookingService.update({
+      bookingId: booking.bookingId,
+      startDate: booking.startDate,
+      endDate: booking.endDate,
+      bookingStatus: 2
+    }).subscribe({
+      complete: () => this.finalizeAction(booking.bookingId, 2),
+      error: () => this.finalizeAction(booking.bookingId, 2) // optimistic
     });
   }
 
-  finalizeAction(id: string, newStatus: Booking['status']) {
+  finalizeAction(id: string, newStatus: number) {
     this.allBookings.update(prev =>
-      prev.map(b => b.id === id ? { ...b, status: newStatus } : b)
+      prev.map(b => b.bookingId === id ? { ...b, bookingStatus: newStatus } : b)
     );
     this.actionLoading.set(null);
-    if (this.isDetailOpen() && this.detailBooking()?.id === id) {
-      this.detailBooking.update(b => b ? { ...b, status: newStatus } : b);
+    if (this.isDetailOpen() && this.detailBooking()?.bookingId === id) {
+      this.detailBooking.update(b => b ? { ...b, bookingStatus: newStatus } : b);
     }
   }
 
-  openContractModal(booking: Booking & { studentName: string; propertyTitle: string }) {
+  openContractModal(booking: Booking & { studentName?: string; propertyTitle?: string }) {
     this.selectedBooking.set(booking);
     this.landlordSignature.set('');
     this.contractSigned.set(false);
@@ -132,25 +119,36 @@ export class LandlordBookings {
     setTimeout(() => {
       this.isSigning.set(false);
       this.contractSigned.set(true);
-      // Mark booking as confirmed locally
-      const bId = this.selectedBooking()?.id;
+      // Mark booking as confirmed locally (status 4)
+      const bId = this.selectedBooking()?.bookingId;
       if (bId) {
         this.allBookings.update(prev =>
-          prev.map(b => b.id === bId ? { ...b, status: 'confirmed' as any } : b)
+          prev.map(b => b.bookingId === bId ? { ...b, bookingStatus: 4 } : b)
         );
       }
     }, 1500);
   }
 
-  getStatusClass(status: string): string {
-    const map: Record<string, string> = {
-      pending: 'status-badge--pending',
-      approved: 'status-badge--approved',
-      rejected: 'status-badge--rejected',
-      cancelled: 'status-badge--cancelled',
-      confirmed: 'status-badge--signed'
+  getStatusClass(status: number): string {
+    const map: Record<number, string> = {
+      0: 'status-badge--pending',
+      1: 'status-badge--approved',
+      2: 'status-badge--rejected',
+      3: 'status-badge--cancelled',
+      4: 'status-badge--signed'
     };
     return map[status] || '';
+  }
+  
+  getStatusLabel(status: number): string {
+    const map: Record<number, string> = {
+      0: 'Pending',
+      1: 'Approved',
+      2: 'Rejected',
+      3: 'Cancelled',
+      4: 'Confirmed'
+    };
+    return map[status] || 'Unknown';
   }
 
   formatCurrency(amount: number): string {

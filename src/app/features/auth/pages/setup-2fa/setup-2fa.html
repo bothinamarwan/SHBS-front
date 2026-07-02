@@ -1,0 +1,156 @@
+<div class="auth-page">
+
+  <!-- Left Panel: Branding -->
+  <div class="auth-brand-panel">
+    <div class="brand-overlay"></div>
+    <div class="brand-content">
+      <div class="brand-logo">
+        <span class="material-symbols-outlined logo-icon">home_work</span>
+        <span class="logo-text">UniStay</span>
+      </div>
+      <div class="brand-tagline">
+        <h2>Secure Your <br/><span class="accent">Account</span></h2>
+        <p>Enable two-factor authentication to add an extra layer of security to your UniStay account.</p>
+      </div>
+      <div class="brand-stats">
+        <div class="stat-item">
+          <span class="material-symbols-outlined" style="font-size:2rem;color:#81f3e5">verified_user</span>
+          <span class="stat-label">Enhanced Security</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <span class="material-symbols-outlined" style="font-size:2rem;color:#81f3e5">shield</span>
+          <span class="stat-label">Account Protection</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <span class="material-symbols-outlined" style="font-size:2rem;color:#81f3e5">lock</span>
+          <span class="stat-label">TOTP Verified</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Panel: 2FA Setup Form -->
+  <div class="auth-form-panel">
+    <div class="form-container">
+
+      <!-- Mobile Logo -->
+      <div class="mobile-logo">
+        <span class="material-symbols-outlined">home_work</span>
+        <span>UniStay</span>
+      </div>
+
+      <!-- Step indicator -->
+      <div class="step-indicator">
+        <div class="step completed">
+          <span class="step-number">
+            <span class="material-symbols-outlined">check</span>
+          </span>
+          <span class="step-text">Register</span>
+        </div>
+        <div class="step-line"></div>
+        <div class="step active">
+          <span class="step-number">2</span>
+          <span class="step-text">Secure Account</span>
+        </div>
+      </div>
+
+      <div class="form-header">
+        <h1>Setup Two-Factor Auth</h1>
+        <p>Scan the QR code below with your authenticator app (Google Authenticator, Authy, etc.)</p>
+      </div>
+
+      @if (errorMessage()) {
+        <div class="global-alert error-alert">
+          <span class="material-symbols-outlined">error</span>
+          <span>{{ errorMessage() }}</span>
+        </div>
+      }
+
+      @if (successMessage()) {
+        <div class="global-alert success-alert">
+          <span class="material-symbols-outlined">check_circle</span>
+          <span>{{ successMessage() }}</span>
+        </div>
+      }
+
+      @if (setupComplete()) {
+        <div class="success-state">
+          <div class="success-icon-wrapper">
+            <span class="material-symbols-outlined">verified_user</span>
+          </div>
+          <h2>2FA Enabled!</h2>
+          <p>Redirecting you to your dashboard...</p>
+          <div class="redirect-spinner"></div>
+        </div>
+      } @else {
+
+        @if (isSetupLoading()) {
+          <div class="loading-state">
+            <div class="qr-skeleton"></div>
+            <p>Setting up two-factor authentication...</p>
+          </div>
+        } @else if (qrCodeUri()) {
+          <!-- QR Code Display -->
+          <div class="qr-section">
+            <div class="qr-code-wrapper">
+              <img [src]="qrImageUrl()" alt="QR Code for 2FA setup" class="qr-code-img" />
+            </div>
+
+            <!-- Secret Key -->
+            <div class="secret-key-section">
+              <p class="secret-label">Or enter this key manually:</p>
+              <div class="secret-key-box" (click)="copySecret()">
+                <code class="secret-key-text">{{ secret() }}</code>
+                <span class="material-symbols-outlined copy-icon">content_copy</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Verification Code Form -->
+          <form [formGroup]="codeForm" (ngSubmit)="onSubmit()" class="auth-form" novalidate>
+            <div class="field-group">
+              <label for="2fa-code">Verification Code</label>
+              <div class="input-wrapper" [class.input-error]="code?.invalid && code?.touched" [class.input-success]="code?.valid && code?.touched">
+                <span class="material-symbols-outlined input-icon">pin</span>
+                <input
+                  id="2fa-code"
+                  type="text"
+                  formControlName="code"
+                  placeholder="Enter 6-digit code"
+                  maxlength="6"
+                  autocomplete="one-time-code"
+                  inputmode="numeric"
+                />
+                @if (code?.valid && code?.touched) {
+                  <span class="material-symbols-outlined valid-icon">check_circle</span>
+                }
+              </div>
+              @if (code?.invalid && code?.touched) {
+                <span class="field-error">
+                  <span class="material-symbols-outlined">error</span>
+                  @if (code?.errors?.['required']) { Please enter the verification code. }
+                  @if (code?.errors?.['minlength'] || code?.errors?.['maxlength']) { Code must be exactly 6 digits. }
+                  @if (code?.errors?.['pattern']) { Code must contain only numbers. }
+                </span>
+              }
+            </div>
+
+            <button type="submit" class="btn-primary" [class.loading]="isLoading()" [disabled]="isLoading()">
+              @if (isLoading()) {
+                <span class="spinner"></span>
+                <span>Verifying...</span>
+              } @else {
+                <span class="material-symbols-outlined">verified_user</span>
+                <span>Enable Two-Factor Auth</span>
+              }
+            </button>
+          </form>
+        }
+      }
+
+    </div>
+  </div>
+
+</div>

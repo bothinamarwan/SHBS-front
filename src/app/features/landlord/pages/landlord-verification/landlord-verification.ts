@@ -1,6 +1,8 @@
-import { Component, inject, signal, computed } from '@angular/core';
+import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../../../core/services/auth.service';
+import { LandlordService } from '../../../../core/services/landlord.service';
+import { Observable } from 'rxjs';
 
 export interface VerificationDocument {
   key: string;
@@ -21,12 +23,75 @@ export type VerificationStep = 'documents' | 'review' | 'complete';
   imports: [CommonModule],
   templateUrl: './landlord-verification.html'
 })
-export class LandlordVerification {
+export class LandlordVerification implements OnInit {
   private authService = inject(AuthService);
+  private landlordService = inject(LandlordService);
   user = this.authService.currentUser$;
 
   // Overall verification status
   verificationStatus = signal<'pending' | 'under_review' | 'verified' | 'rejected'>('pending');
+
+  ngOnInit() {
+    this.landlordService.getAccountStatus().subscribe({
+      next: (res: any) => {
+        if (res && res.status) {
+          const statusMap: Record<string, 'pending' | 'under_review' | 'verified' | 'rejected'> = {
+            'Pending': 'pending',
+            'UnderReview': 'under_review',
+            'Under_Review': 'under_review',
+            'Verified': 'verified',
+            'Approved': 'verified',
+            'Rejected': 'rejected'
+          };
+          const mapped = statusMap[res.status] || res.status.toLowerCase();
+          this.verificationStatus.set(mapped as any);
+          if (mapped === 'under_review') {
+            this.submittedForReview.set(true);
+          }
+        }
+      },
+      error: (err) => {
+        console.error('Failed to get landlord verification status:', err);
+      }
+    });
+
+    this.authService.currentUser$.subscribe(u => {
+      const landlordId = u?.landlordId || (u as any)?.landLordId || u?.id;
+      if (landlordId && u?.role === 'landlord') {
+        this.landlordService.getById(landlordId).subscribe({
+          next: (landlord: any) => {
+            if (landlord) {
+              this.documents.update(prev =>
+                prev.map(d => {
+                  const hasNationalId = landlord.nationalIdImageUrl || landlord.nationalID || landlord.nationalId;
+                  const hasDeed = landlord.housingUnitDocumentationUrl || landlord.propertyOwnershipProof || landlord.propertyOwnerShipProof;
+                  
+                  if (d.key === 'national_id' && hasNationalId) {
+                    return {
+                      ...d,
+                      status: 'uploaded',
+                      fileName: (typeof hasNationalId === 'string' && hasNationalId.includes('/') ? hasNationalId.split('/').pop() : null) || 'National ID File'
+                    };
+                  }
+                  if (d.key === 'property_deed' && hasDeed) {
+                    return {
+                      ...d,
+                      status: 'uploaded',
+                      fileName: (typeof hasDeed === 'string' && hasDeed.includes('/') ? hasDeed.split('/').pop() : null) || 'Ownership Document'
+                    };
+                  }
+                  return d;
+                })
+              );
+            }
+          },
+          error: (err) => {
+            console.error('Failed to load landlord profile:', err);
+          }
+        });
+      }
+    });
+  }
 
   documents = signal<VerificationDocument[]>([
     {
@@ -35,9 +100,7 @@ export class LandlordVerification {
       description: 'Clear photo of both sides of your Egyptian National ID card',
       icon: 'fas fa-id-card',
       required: true,
-      status: 'uploaded',
-      fileName: 'national_id_front_back.jpg',
-      uploadedAt: '2026-06-10'
+      status: 'pending'
     },
     {
       key: 'property_deed',
@@ -81,24 +144,60 @@ export class LandlordVerification {
 
   isUploading = signal<string | null>(null);
 
-  // Simulate file upload
+  triggerFileInput(docKey: string) {
+    const fileInput = document.getElementById(`fileInput_${docKey}`) as HTMLInputElement;
+    if (fileInput) {
+      fileInput.click();
+    }
+  }
+
+  onFileSelected(event: any, doc: VerificationDocument) {
+    const file: File = event.target.files[0];
+    if (file) {
+      this.isUploading.set(doc.key);
+
+      let uploadObservable;
+      if (doc.key === 'national_id') {
+        uploadObservable = this.landlordService.uploadNationalId(file);
+      } else if (doc.key === 'property_deed') {
+        uploadObservable = this.landlordService.uploadUnitDocumentation(file);
+      } else {
+        // Fallback simulation for other optional documents not strictly mapped to endpoints
+        uploadObservable = new Observable((observer: any) => {
+          setTimeout(() => {
+            observer.next({ message: 'Success' });
+            observer.complete();
+          }, 1500);
+        });
+      }
+
+      uploadObservable.subscribe({
+        next: () => {
+          this.documents.update(prev =>
+            prev.map(d => d.key === doc.key
+              ? {
+                ...d,
+                status: 'uploaded' as const,
+                fileName: file.name,
+                uploadedAt: new Date().toISOString().split('T')[0]
+              }
+              : d
+            )
+          );
+          this.isUploading.set(null);
+        },
+        error: (err: any) => {
+          console.error('File upload failed:', err);
+          alert(`Failed to upload ${doc.label}`);
+          this.isUploading.set(null);
+        }
+      });
+    }
+  }
+
+  // Fallback if needed
   simulateUpload(doc: VerificationDocument) {
-    if (doc.status !== 'pending') return;
-    this.isUploading.set(doc.key);
-    setTimeout(() => {
-      this.documents.update(prev =>
-        prev.map(d => d.key === doc.key
-          ? {
-              ...d,
-              status: 'uploaded' as const,
-              fileName: `${doc.key}_document.pdf`,
-              uploadedAt: new Date().toISOString().split('T')[0]
-            }
-          : d
-        )
-      );
-      this.isUploading.set(null);
-    }, 1800);
+    this.triggerFileInput(doc.key);
   }
 
   removeDocument(doc: VerificationDocument) {

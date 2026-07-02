@@ -2,6 +2,34 @@ import { Routes } from '@angular/router';
 import { guestGuard } from '../../core/guards/auth.guard';
 
 export const authRoutes: Routes = [
+  // ── Google OAuth callback — must be outside guestGuard ──────────────────
+  {
+    path: 'google-callback',
+    loadComponent: () =>
+      import('./pages/google-callback/google-callback').then(m => m.GoogleCallback)
+  },
+
+  // ── 2FA Setup (post-registration) — outside guestGuard ─────────────────
+  {
+    path: 'setup-2fa',
+    loadComponent: () =>
+      import('./pages/setup-2fa/setup-2fa').then(m => m.SetupTwoFactor)
+  },
+
+  // ── 2FA Verify (login flow) — outside guestGuard ───────────────────────
+  {
+    path: 'two-factor',
+    loadComponent: () =>
+      import('./pages/two-factor/two-factor').then(m => m.TwoFactor)
+  },
+
+  // ── Email Confirmation — outside guestGuard ────────────────────────────
+  {
+    path: 'confirm-email',
+    loadComponent: () =>
+      import('./pages/confirm-email/confirm-email').then(m => m.ConfirmEmail)
+  },
+
   {
     path: '',
     canActivate: [guestGuard],
@@ -26,3 +54,4 @@ export const authRoutes: Routes = [
     ]
   }
 ];
+

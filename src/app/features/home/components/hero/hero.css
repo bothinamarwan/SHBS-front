@@ -59,31 +59,17 @@
   flex-shrink: 0;
 }
 
-.search-field-inner {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  width: 100%;
-}
 
-.search-label {
-  font-size: 0.65rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: #105aaf;
-  margin-bottom: 1px;
-}
 
 .search-input {
   background: transparent;
   border: none;
   outline: none;
-  font-size: 0.88rem;
+  font-size: 0.95rem;
   font-weight: 500;
   color: #1e293b;
   width: 100%;
-  padding: 0;
+  padding: 8px 0;
   box-shadow: none !important;
 }
 .search-input::placeholder { color: #94a3b8; }

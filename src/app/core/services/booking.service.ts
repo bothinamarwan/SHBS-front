@@ -1,53 +1,42 @@
-import { Injectable, signal } from '@angular/core';
-import { Observable, of, delay, tap } from 'rxjs';
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
 import { Booking } from '../models/booking.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class BookingService {
-  private bookings = signal<Booking[]>([]);
+  private baseUrl = '/api/Booking';
 
-  constructor() {
-    this.loadBookings();
-  }
-
-  private loadBookings() {
-    // Mock data
-    const mock: Booking[] = [
-      {
-        id: 'B1001',
-        studentId: 'S555',
-        housingId: '2',
-        housingTitle: 'Cozy Shared Suite',
-        roomId: 'r2',
-        roomName: 'Twin Room',
-        moveInDate: '2026-05-15',
-        duration: 3,
-        totalPrice: 9600,
-        status: 'confirmed',
-        bookingDate: '2026-04-10',
-        createdAt: '2026-04-10'
-      }
-    ];
-    this.bookings.set(mock);
-  }
+  constructor(private http: HttpClient) {}
 
   getBookings(): Observable<Booking[]> {
-    return of(this.bookings()).pipe(delay(1000));
+    // Attempting MyBookings. If the API doesn't have it, it might need to be switched to GetAll with filters later.
+    return this.http.get<Booking[]>(`${this.baseUrl}/MyBookings`);
   }
 
-  createBooking(bookingData: any): Observable<Booking> {
-    const newBooking: Booking = {
-      id: 'B' + Math.floor(Math.random() * 10000),
-      ...bookingData,
-      status: 'pending',
-      createdAt: new Date().toISOString().split('T')[0]
-    };
+  getById(id: string): Observable<Booking> {
+    return this.http.get<Booking>(`${this.baseUrl}/GetById/${id}`);
+  }
 
-    return of(newBooking).pipe(
-      delay(2000),
-      tap(b => this.bookings.update(prev => [b, ...prev]))
-    );
+  getAll(): Observable<any> {
+    return this.http.get<any>(`${this.baseUrl}/GetAll`);
+  }
+
+  create(bookingData: any): Observable<Booking> {
+    return this.http.post<Booking>(`${this.baseUrl}/Create`, bookingData);
+  }
+
+  multiRoom(bookingData: any): Observable<Booking[]> {
+    return this.http.post<Booking[]>(`${this.baseUrl}/MultiRoom`, bookingData);
+  }
+
+  update(bookingData: any): Observable<Booking> {
+    return this.http.put<Booking>(`${this.baseUrl}/Update`, bookingData);
+  }
+
+  cancel(id: string): Observable<any> {
+    return this.http.delete(`${this.baseUrl}/Cancel/${id}`);
   }
 }

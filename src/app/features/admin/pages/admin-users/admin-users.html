@@ -1,0 +1,455 @@
+<div class="animate-fade-in pb-10">
+
+  <!-- Header & Tab controls -->
+  <div class="mb-6 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+    <div>
+      <h1 class="text-2xl font-bold text-slate-800 dark:text-slate-100">User Management</h1>
+      <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Manage system accounts and specialized student directories.</p>
+    </div>
+
+    <!-- Tabs bar & Actions -->
+    <div class="flex items-center gap-3">
+      <div class="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
+        <button (click)="setTab('all')" 
+                class="px-4 py-2 text-xs font-bold rounded-lg transition-all"
+                [class.bg-white]="activeTab() === 'all'"
+                [class.dark:bg-slate-700]="activeTab() === 'all'"
+                [class.shadow-sm]="activeTab() === 'all'"
+                [class.text-slate-800]="activeTab() === 'all'"
+                [class.dark:text-white]="activeTab() === 'all'"
+                [class.text-slate-500]="activeTab() !== 'all'">
+          All Accounts
+        </button>
+        <button (click)="setTab('students')" 
+                class="px-4 py-2 text-xs font-bold rounded-lg transition-all"
+                [class.bg-white]="activeTab() === 'students'"
+                [class.dark:bg-slate-700]="activeTab() === 'students'"
+                [class.shadow-sm]="activeTab() === 'students'"
+                [class.text-slate-800]="activeTab() === 'students'"
+                [class.dark:text-white]="activeTab() === 'students'"
+                [class.text-slate-500]="activeTab() !== 'students'">
+          Student Directory
+        </button>
+        <button (click)="setTab('landlords')" 
+                class="px-4 py-2 text-xs font-bold rounded-lg transition-all"
+                [class.bg-white]="activeTab() === 'landlords'"
+                [class.dark:bg-slate-700]="activeTab() === 'landlords'"
+                [class.shadow-sm]="activeTab() === 'landlords'"
+                [class.text-slate-800]="activeTab() === 'landlords'"
+                [class.dark:text-white]="activeTab() === 'landlords'"
+                [class.text-slate-500]="activeTab() !== 'landlords'">
+          Landlord Directory
+        </button>
+      </div>
+      
+      <!-- Add Student Button -->
+      <button *ngIf="activeTab() === 'students'" (click)="openCreateModal()" 
+              class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-lg shadow-sm transition-colors flex items-center gap-2">
+        <i class="fas fa-plus"></i> Add Student
+      </button>
+
+      <!-- Add Landlord Button -->
+      <button *ngIf="activeTab() === 'landlords'" (click)="openCreateModal()" 
+              class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-lg shadow-sm transition-colors flex items-center gap-2">
+        <i class="fas fa-plus"></i> Add Landlord
+      </button>
+    </div>
+  </div>
+
+  <!-- Filters block -->
+  <div class="mb-8 bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-[0_2px_10px_rgba(0,0,0,0.01)] flex flex-wrap items-center justify-between gap-4">
+    
+    <!-- General Users Filters -->
+    <div *ngIf="activeTab() === 'all'" class="flex flex-wrap items-center gap-3 w-full">
+      <!-- Search -->
+      <div class="relative flex-grow md:flex-grow-0 md:min-w-[300px]">
+        <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+        <input type="text" placeholder="Search by name or email..." class="input-field pl-10 w-full"
+               (input)="onSearchChange($event)">
+      </div>
+
+      <!-- Role Filter -->
+      <div class="relative min-w-[140px]">
+        <select class="input-field w-full appearance-none pr-8" (change)="onRoleChange($event)">
+          <option value="">All Roles</option>
+          <option value="student">Student</option>
+          <option value="landlord">Landlord</option>
+          <option value="admin">Admin</option>
+        </select>
+        <i class="fas fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-xs"></i>
+      </div>
+
+      <!-- Status Filter -->
+      <div class="relative min-w-[140px]">
+        <select class="input-field w-full appearance-none pr-8" (change)="onStatusChange($event)">
+          <option value="">All Statuses</option>
+          <option value="active">Active</option>
+          <option value="inactive">Inactive</option>
+        </select>
+        <i class="fas fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-xs"></i>
+      </div>
+    </div>
+
+    <!-- Student specific filters -->
+    <div *ngIf="activeTab() === 'students'" class="flex flex-wrap items-center gap-3 w-full">
+      <!-- City Filter -->
+      <div class="relative min-w-[180px] flex-grow md:flex-grow-0">
+        <i class="fas fa-map-marker-alt absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+        <input type="text" placeholder="Filter by city..." class="input-field pl-10 w-full"
+               (input)="onStudentCityChange($event)">
+      </div>
+
+      <!-- Area Filter -->
+      <div class="relative min-w-[180px] flex-grow md:flex-grow-0">
+        <i class="fas fa-compass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+        <input type="text" placeholder="Filter by preferred area..." class="input-field pl-10 w-full"
+               (input)="onStudentAreaChange($event)">
+      </div>
+
+      <!-- Gender Filter -->
+      <div class="relative min-w-[140px]">
+        <select class="input-field w-full appearance-none pr-8" (change)="onStudentGenderChange($event)">
+          <option value="">All Genders</option>
+          <option value="male">Male</option>
+          <option value="female">Female</option>
+        </select>
+        <i class="fas fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-xs"></i>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading()" class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 p-12 text-center">
+    <div class="w-10 h-10 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin mx-auto mb-4"></div>
+    <p class="text-slate-500 font-medium">Fetching details from system...</p>
+  </div>
+
+  <!-- Data Table -->
+  <div *ngIf="!isLoading()" class="bg-white dark:bg-slate-900 rounded-2xl shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-slate-100 dark:border-slate-800 overflow-hidden">
+    <div class="overflow-x-auto">
+      
+      <!-- ── TAB 1: ALL ACCOUNTS TABLE ── -->
+      <table *ngIf="activeTab() === 'all'" class="w-full text-left border-collapse whitespace-nowrap">
+        <thead>
+          <tr class="bg-slate-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wider font-semibold border-b border-slate-100 dark:border-slate-800">
+            <th class="px-6 py-4">User</th>
+            <th class="px-6 py-4">Role</th>
+            <th class="px-6 py-4">Phone Number</th>
+            <th class="px-6 py-4 text-center">Status</th>
+            <th class="px-6 py-4 text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100 dark:divide-slate-800 text-sm">
+          <tr *ngIf="users().length === 0">
+            <td colspan="5" class="px-6 py-12 text-center text-slate-500">
+              <i class="fas fa-users text-4xl mb-3 text-slate-300"></i>
+              <p>No user accounts found matching your criteria.</p>
+            </td>
+          </tr>
+
+          <tr *ngFor="let user of users()" class="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors group">
+            <td class="px-6 py-4">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-indigo-900/40 dark:to-purple-900/40 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-bold shrink-0">
+                  {{ user.email ? user.email.charAt(0).toUpperCase() : 'U' }}
+                </div>
+                <div>
+                  <div class="font-semibold text-slate-800 dark:text-slate-200">
+                    {{ user.email ? user.email.split('@')[0] : 'Unknown' }}
+                  </div>
+                  <div class="text-xs text-slate-500">{{ user.email }}</div>
+                </div>
+              </div>
+            </td>
+            <td class="px-6 py-4">
+              <div class="flex flex-wrap gap-1">
+                <span *ngFor="let role of user.roles" class="px-2.5 py-1 rounded-md text-[11px] font-bold uppercase tracking-wider bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
+                  {{ role }}
+                </span>
+              </div>
+            </td>
+            <td class="px-6 py-4 text-slate-600 dark:text-slate-400">
+              {{ user.phoneNumber || 'N/A' }}
+            </td>
+            <td class="px-6 py-4 text-center">
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold"
+                    [ngClass]="user.isActive !== false ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400'">
+                <i class="fas text-[10px]" [ngClass]="user.isActive !== false ? 'fa-circle-check' : 'fa-ban'"></i>
+                {{ user.isActive !== false ? 'Active' : 'Inactive' }}
+              </span>
+            </td>
+            <td class="px-6 py-4 text-right">
+              <button (click)="toggleActive(user.id)" 
+                      class="text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors"
+                      [ngClass]="user.isActive !== false ? 'text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/20' : 'text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20'">
+                {{ user.isActive !== false ? 'Deactivate' : 'Activate' }}
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- ── TAB 2: SPECIALIZED STUDENTS DIRECTORY ── -->
+      <table *ngIf="activeTab() === 'students'" class="w-full text-left border-collapse whitespace-nowrap">
+        <thead>
+          <tr class="bg-slate-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wider font-semibold border-b border-slate-100 dark:border-slate-800">
+            <th class="px-6 py-4">Student</th>
+            <th class="px-6 py-4">University & Faculty</th>
+            <th class="px-6 py-4">Location & Gender</th>
+            <th class="px-6 py-4 text-center">Verification Status</th>
+            <th class="px-6 py-4 text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100 dark:divide-slate-800 text-sm">
+          <tr *ngIf="students().length === 0">
+            <td colspan="5" class="px-6 py-12 text-center text-slate-500">
+              <i class="fas fa-user-graduate text-4xl mb-3 text-slate-300"></i>
+              <p>No student profiles found.</p>
+            </td>
+          </tr>
+
+          <tr *ngFor="let s of students()" class="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors group">
+            <td class="px-6 py-4">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-900/40 dark:to-indigo-900/40 flex items-center justify-center text-blue-600 dark:text-blue-400 font-bold shrink-0">
+                  {{ s.fullName ? s.fullName.charAt(0).toUpperCase() : 'S' }}
+                </div>
+                <div>
+                  <div class="font-semibold text-slate-800 dark:text-slate-200">{{ s.fullName || 'Unknown Name' }}</div>
+                  <div class="text-xs text-slate-500">{{ s.universityEmail || 'No University Email' }}</div>
+                </div>
+              </div>
+            </td>
+            <td class="px-6 py-4">
+              <div class="text-slate-800 dark:text-slate-200 font-medium">{{ s.universityName || 'N/A' }}</div>
+              <div class="text-xs text-slate-400 dark:text-slate-500">{{ s.facultyName || 'N/A' }}</div>
+            </td>
+            <td class="px-6 py-4 text-slate-600 dark:text-slate-400">
+              <div class="flex flex-col">
+                <span>{{ s.city || 'N/A' }}, {{ s.preferredArea || 'N/A' }}</span>
+                <span class="text-xs font-semibold uppercase tracking-wider text-slate-400 mt-0.5">
+                  <i class="fas" [ngClass]="s.gender === 0 ? 'fa-mars text-blue-500' : 'fa-venus text-rose-500'"></i>
+                  {{ s.gender === 0 ? 'Male' : 'Female' }}
+                </span>
+              </div>
+            </td>
+            <td class="px-6 py-4 text-center">
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold"
+                    [ngClass]="s.universityVerificationStatus === 1 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 
+                               (s.universityVerificationStatus === 2 ? 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400' : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400')">
+                <i class="fas text-[10px]" [ngClass]="s.universityVerificationStatus === 1 ? 'fa-check' : (s.universityVerificationStatus === 2 ? 'fa-times' : 'fa-clock')"></i>
+                {{ s.universityVerificationStatus === 1 ? 'Verified' : (s.universityVerificationStatus === 2 ? 'Rejected' : 'Pending') }}
+              </span>
+            </td>
+            <td class="px-6 py-4 text-right">
+              <div class="flex justify-end gap-2">
+                <!-- Toggle status: deactivate/reactivate -->
+                <button *ngIf="s.universityVerificationStatus === 1" (click)="deactivateStudent(s.studentId)" 
+                        class="text-xs font-semibold px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-all">
+                  Deactivate
+                </button>
+                <button *ngIf="s.universityVerificationStatus === 2" (click)="reactivateStudent(s.studentId)" 
+                        class="text-xs font-semibold px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-all">
+                  Reactivate
+                </button>
+
+                <!-- Delete -->
+                <button (click)="deleteStudent(s.studentId)"
+                        class="text-xs font-semibold px-2.5 py-1.5 rounded-lg bg-rose-50 dark:bg-rose-950/20 text-rose-600 hover:bg-rose-100 hover:text-rose-700 transition-all">
+                  Delete
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- ── TAB 3: LANDLORDS DIRECTORY ── -->
+      <table *ngIf="activeTab() === 'landlords'" class="w-full text-left border-collapse whitespace-nowrap">
+        <thead>
+          <tr class="bg-slate-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wider font-semibold border-b border-slate-100 dark:border-slate-800">
+            <th class="px-6 py-4">Landlord</th>
+            <th class="px-6 py-4">Company Name</th>
+            <th class="px-6 py-4">Status</th>
+            <th class="px-6 py-4 text-center">Docs Status</th>
+            <th class="px-6 py-4 text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100 dark:divide-slate-800 text-sm">
+          <tr *ngIf="landlords().length === 0">
+            <td colspan="5" class="px-6 py-12 text-center text-slate-500">
+              <i class="fas fa-building text-4xl mb-3 text-slate-300"></i>
+              <p>No landlord profiles found.</p>
+            </td>
+          </tr>
+
+          <tr *ngFor="let l of landlords()" class="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors group">
+            <td class="px-6 py-4">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-100 to-teal-100 dark:from-emerald-900/40 dark:to-teal-900/40 flex items-center justify-center text-emerald-600 dark:text-emerald-400 font-bold shrink-0">
+                  {{ l.fullName ? l.fullName.charAt(0).toUpperCase() : 'L' }}
+                </div>
+                <div>
+                  <div class="font-semibold text-slate-800 dark:text-slate-200">{{ l.fullName || 'Unknown' }}</div>
+                  <div class="text-xs text-slate-500">{{ l.email || l.phoneNumber }}</div>
+                </div>
+              </div>
+            </td>
+            <td class="px-6 py-4">
+              <div class="text-slate-800 dark:text-slate-200 font-medium">{{ l.companyName || 'Independent' }}</div>
+            </td>
+            <td class="px-6 py-4">
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold"
+                    [ngClass]="l.isVerified ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'">
+                <i class="fas text-[10px]" [ngClass]="l.isVerified ? 'fa-check-circle' : 'fa-clock'"></i>
+                {{ l.isVerified ? 'Verified' : 'Unverified' }}
+              </span>
+            </td>
+            <td class="px-6 py-4 text-center">
+              <div class="flex items-center justify-center gap-2">
+                <i class="fas fa-id-card text-lg" [ngClass]="l.nationalIdImageUrl ? 'text-emerald-500' : 'text-slate-300'" title="National ID"></i>
+                <i class="fas fa-file-contract text-lg" [ngClass]="l.housingUnitDocumentationUrl ? 'text-emerald-500' : 'text-slate-300'" title="Documentation"></i>
+              </div>
+            </td>
+            <td class="px-6 py-4 text-right">
+              <div class="flex justify-end gap-2">
+                <button (click)="l.isVerified ? deactivateLandlord(l.landlordId) : reactivateLandlord(l.landlordId)" 
+                        class="text-xs font-semibold px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 transition-all"
+                        [ngClass]="l.isVerified ? 'text-amber-600 hover:bg-amber-50' : 'text-emerald-600 hover:bg-emerald-50'">
+                  {{ l.isVerified ? 'Deactivate' : 'Reactivate' }}
+                </button>
+                <button (click)="deleteLandlord(l.landlordId)"
+                        class="text-xs font-semibold px-2.5 py-1.5 rounded-lg bg-rose-50 dark:bg-rose-950/20 text-rose-600 hover:bg-rose-100 transition-all">
+                  Delete
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+    </div>
+
+    <!-- Pagination -->
+    <div class="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/20">
+      <p class="text-sm text-slate-500">
+        Showing page <span class="font-semibold text-slate-800 dark:text-slate-200">{{ pageNumber() }}</span> of 
+        <span class="font-semibold text-slate-800 dark:text-slate-200">{{ totalPages() }}</span>
+        <span class="ml-1 text-xs">({{ totalCount() }} total)</span>
+      </p>
+      
+      <div class="flex items-center gap-2">
+        <button (click)="prevPage()" [disabled]="pageNumber() === 1"
+                class="w-8 h-8 rounded-lg border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-500 hover:bg-white dark:hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+          <i class="fas fa-chevron-left text-xs"></i>
+        </button>
+        <button (click)="nextPage()" [disabled]="pageNumber() === totalPages()"
+                class="w-8 h-8 rounded-lg border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-500 hover:bg-white dark:hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+          <i class="fas fa-chevron-right text-xs"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Create Student Modal -->
+<div *ngIf="showCreateModal()" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-fade-in">
+  <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden border border-slate-100 dark:border-slate-800">
+    <div class="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
+      <h3 class="text-xl font-bold text-slate-800 dark:text-slate-100">Add New {{ activeTab() === 'landlords' ? 'Landlord' : 'Student' }}</h3>
+      <button (click)="closeCreateModal()" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 transition-colors">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    
+    <div class="p-6 max-h-[70vh] overflow-y-auto">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Basic Info -->
+        <div class="space-y-4">
+          <div *ngIf="activeTab() !== 'landlords'">
+            <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Full Name *</label>
+            <input type="text" [(ngModel)]="newStudent.userName" class="w-full px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all">
+          </div>
+          <div *ngIf="activeTab() === 'landlords'">
+            <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Full Name *</label>
+            <input type="text" [(ngModel)]="newStudent.fullName" class="w-full px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Email *</label>
+            <input type="email" [(ngModel)]="newStudent.email" class="w-full px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Phone Number</label>
+            <input type="text" [(ngModel)]="newStudent.phoneNumber" class="w-full px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">National ID</label>
+            <input type="text" [(ngModel)]="newStudent.nationalId" class="w-full px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all">
+          </div>
+        </div>
+
+        <!-- Details & Security -->
+        <div class="space-y-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Password *</label>
+            <input type="password" [(ngModel)]="newStudent.password" class="w-full px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Confirm Password *</label>
+            <input type="password" [(ngModel)]="newStudent.confirmPassword" class="w-full px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all">
+          </div>
+          <ng-container *ngIf="activeTab() !== 'landlords'">
+            <div class="flex gap-4">
+              <div class="flex-1">
+                <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Date of Birth</label>
+                <input type="date" [(ngModel)]="newStudent.dateOfBirth" class="w-full px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all">
+              </div>
+              <div class="flex-1">
+                <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Gender</label>
+                <select [(ngModel)]="newStudent.gender" class="w-full px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all">
+                  <option [ngValue]="0">Male</option>
+                  <option [ngValue]="1">Female</option>
+                </select>
+              </div>
+            </div>
+            <div class="flex gap-4">
+              <div class="flex-1">
+                <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">City</label>
+                <input type="text" [(ngModel)]="newStudent.city" class="w-full px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all">
+              </div>
+              <div class="flex-1">
+                <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Area</label>
+                <input type="text" [(ngModel)]="newStudent.preferredArea" class="w-full px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all">
+              </div>
+            </div>
+          </ng-container>
+
+          <ng-container *ngIf="activeTab() === 'landlords'">
+            <div>
+              <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Company Name</label>
+              <input type="text" [(ngModel)]="newStudent.companyName" class="w-full px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Property Ownership Proof URL</label>
+              <input type="text" [(ngModel)]="newStudent.propertyOwnerShipProof" class="w-full px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all">
+            </div>
+          </ng-container>
+        </div>
+      </div>
+    </div>
+    
+    <div class="p-6 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 flex justify-end gap-3">
+      <button (click)="closeCreateModal()" class="px-5 py-2.5 rounded-xl font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+        Cancel
+      </button>
+      <button (click)="saveNewUser()" [disabled]="isCreating()" 
+              class="px-5 py-2.5 rounded-xl font-semibold hover:bg-opacity-90 text-white shadow-md transition-colors flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+              [ngClass]="activeTab() === 'landlords' ? 'bg-emerald-600 shadow-emerald-200' : 'bg-indigo-600 shadow-indigo-200 dark:shadow-none'">
+        <i *ngIf="isCreating()" class="fas fa-spinner fa-spin"></i>
+        {{ isCreating() ? 'Creating...' : 'Create ' + (activeTab() === 'landlords' ? 'Landlord' : 'Student') }}
+      </button>
+    </div>
+  </div>
+</div>

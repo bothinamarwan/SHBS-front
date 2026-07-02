@@ -4,7 +4,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { HousingService } from '../../../../core/services/housing.service';
 import { WishlistService } from '../../../../core/services/wishlist.service';
 import { FeedbackService } from '../../../../core/services/feedback.service';
-import { Housing } from '../../../../core/models/housing.model';
+import { HousingUnitDetails, GenderAllowed, genderLabel } from '../../../../core/models/housing.model';
 import { Review } from '../../../../core/models/feedback.model';
 import { FormsModule } from '@angular/forms';
 
@@ -15,24 +15,36 @@ import { FormsModule } from '@angular/forms';
   templateUrl: './housing-details.html'
 })
 export class HousingDetails implements OnInit {
-  private route = inject(ActivatedRoute);
-  private housingService = inject(HousingService);
+  private route           = inject(ActivatedRoute);
+  private housingService  = inject(HousingService);
   private wishlistService = inject(WishlistService);
   private feedbackService = inject(FeedbackService);
 
-  housing = signal<Housing | null>(null);
-  reviews = signal<Review[]>([]);
-  newComment = signal('');
-  newRating = signal(5);
-  isSubmittingReview = signal(false);
+  housing              = signal<HousingUnitDetails | null>(null);
+  reviews              = signal<Review[]>([]);
+  isLoading            = signal(true);
+  errorMessage         = signal<string | null>(null);
+  newComment           = signal('');
+  newRating            = signal(5);
+  isSubmittingReview   = signal(false);
+
+  // expose to template
+  GenderAllowed = GenderAllowed;
+  genderLabel   = genderLabel;
 
   ngOnInit() {
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
-      this.housingService.getHousingById(id).subscribe(data => {
-        if (data) {
+      this.housingService.getDetailsById(id).subscribe({
+        next: (data) => {
           this.housing.set(data);
-          this.loadReviews(data.id);
+          this.isLoading.set(false);
+          this.loadReviews(data.housingUnitId);
+        },
+        error: (err) => {
+          console.error('Failed to load housing details', err);
+          this.errorMessage.set('Could not load housing details. Please try again.');
+          this.isLoading.set(false);
         }
       });
     }
@@ -45,7 +57,7 @@ export class HousingDetails implements OnInit {
   }
 
   submitReview() {
-    const id = this.housing()?.id;
+    const id = this.housing()?.housingUnitId;
     if (!id || !this.newComment().trim()) return;
 
     this.isSubmittingReview.set(true);
@@ -66,25 +78,19 @@ export class HousingDetails implements OnInit {
   toggleWishlist() {
     const item = this.housing();
     if (item) {
-      this.wishlistService.toggleWishlist(item);
+      this.wishlistService.toggleWishlist({ id: item.housingUnitId, ...item } as any);
     }
   }
 
   isInWishlist(): boolean {
     const item = this.housing();
-    return item ? this.wishlistService.isInWishlist(item.id) : false;
+    return item ? this.wishlistService.isInWishlist(item.housingUnitId) : false;
   }
 
-  getFacilityIcon(facility: string): string {
-    const map: any = {
-      'WiFi': 'fas fa-wifi',
-      'AC': 'fas fa-snowflake',
-      'Kitchen': 'fas fa-utensils',
-      'Laundry': 'fas fa-tshirt',
-      'Security': 'fas fa-user-shield',
-      'Gym': 'fas fa-dumbbell',
-      'Study Room': 'fas fa-book-reader'
-    };
-    return map[facility] || 'fas fa-check';
+  openMapLink() {
+    const h = this.housing();
+    if (h?.latitude && h?.longitude) {
+      window.open(`https://www.google.com/maps?q=${h.latitude},${h.longitude}`, '_blank');
+    }
   }
 }

@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
 import { HousingService } from '../../../../core/services/housing.service';
-import { Housing } from '../../../../core/models/housing.model';
+import { HousingUnit } from '../../../../core/models/housing.model';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
 
 @Component({
@@ -17,7 +17,7 @@ export class Search implements OnInit {
   private housingService = inject(HousingService);
 
   filterForm: FormGroup;
-  housings = signal<Housing[]>([]);
+  housings = signal<HousingUnit[]>([]);
   isLoading = signal(true);
 
   // ── Pagination ─────────────────────────────────────────────────────────────

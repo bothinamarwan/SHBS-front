@@ -1,19 +1,48 @@
 <div class="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-  <h1 class="text-3xl font-black text-neutral-800">Notifications</h1>
+  <div class="flex items-center justify-between">
+    <h1 class="text-3xl font-black text-neutral-800 dark:text-slate-100">Notifications</h1>
+    <button (click)="markAllAsRead()" class="text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 hover:underline transition-colors">
+      <i class="fas fa-check-double mr-1"></i> Mark all as read
+    </button>
+  </div>
 
-  <div class="bg-white rounded-[2.5rem] border border-neutral-100 shadow-sm overflow-hidden">
-    <div class="divide-y divide-neutral-50">
-      <div *ngFor="let n of notifications" class="p-8 hover:bg-neutral-50 transition-colors cursor-pointer flex gap-6">
-        <div [class]="n.color" class="w-12 h-12 rounded-2xl flex items-center justify-center text-xl shrink-0">
-          <i [class]="n.icon"></i>
+  <!-- Tabs -->
+  <div class="flex gap-2 border-b border-neutral-100 dark:border-slate-800 mb-6">
+    <button (click)="setTab('all')" [class.border-indigo-600]="activeTab() === 'all'" [class.text-indigo-600]="activeTab() === 'all'" class="px-4 py-2 text-sm font-bold border-b-2 border-transparent text-neutral-500 hover:text-neutral-800 dark:hover:text-slate-200 transition-colors">All</button>
+    <button (click)="setTab('unread')" [class.border-indigo-600]="activeTab() === 'unread'" [class.text-indigo-600]="activeTab() === 'unread'" class="px-4 py-2 text-sm font-bold border-b-2 border-transparent text-neutral-500 hover:text-neutral-800 dark:hover:text-slate-200 transition-colors">Unread</button>
+    <button *ngIf="isAdmin()" (click)="setTab('pending')" [class.border-indigo-600]="activeTab() === 'pending'" [class.text-indigo-600]="activeTab() === 'pending'" class="px-4 py-2 text-sm font-bold border-b-2 border-transparent text-neutral-500 hover:text-neutral-800 dark:hover:text-slate-200 transition-colors">Admin Pending</button>
+  </div>
+
+  <div class="bg-white dark:bg-slate-900 rounded-[2.5rem] border border-neutral-100 dark:border-slate-800 shadow-sm overflow-hidden relative min-h-[300px]">
+    
+    <!-- Loading -->
+    <div *ngIf="isLoading()" class="absolute inset-0 z-10 bg-white/50 dark:bg-slate-900/50 flex flex-col items-center justify-center gap-4">
+      <div class="w-10 h-10 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+      <p class="text-sm text-neutral-500 font-semibold">Loading notifications...</p>
+    </div>
+
+    <div class="divide-y divide-neutral-50 dark:divide-slate-800">
+      <div *ngFor="let n of notifications()" (click)="markAsRead(n)" [class.opacity-60]="n.isRead" class="p-8 hover:bg-neutral-50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer flex gap-6 relative group">
+        
+        <div *ngIf="!n.isRead" class="absolute left-3 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-indigo-500"></div>
+
+        <div [class]="getNotificationBg(n.type)" class="w-12 h-12 rounded-2xl flex items-center justify-center text-xl shrink-0">
+          <i [class]="getNotificationIcon(n.type)"></i>
         </div>
         <div class="flex-1">
           <div class="flex justify-between items-start mb-1">
-            <h3 class="font-bold text-neutral-800">{{ n.title }}</h3>
-            <span class="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">{{ n.time }}</span>
+            <h3 [class.font-extrabold]="!n.isRead" [class.font-bold]="n.isRead" class="text-neutral-800 dark:text-slate-100">{{ n.title }}</h3>
+            <span class="text-[10px] font-bold text-neutral-400 dark:text-slate-500 uppercase tracking-widest">{{ n.createdAt | date:'short' }}</span>
           </div>
-          <p class="text-sm text-neutral-500 leading-relaxed">{{ n.message }}</p>
+          <p class="text-sm text-neutral-500 dark:text-slate-400 leading-relaxed">{{ n.message }}</p>
         </div>
+      </div>
+
+      <!-- Empty state -->
+      <div *ngIf="!isLoading() && notifications().length === 0" class="p-16 text-center">
+        <i class="fas fa-bell-slash text-4xl text-neutral-300 dark:text-slate-600 mb-4 block"></i>
+        <p class="text-neutral-500 dark:text-slate-400 font-medium">No notifications found.</p>
+        <p *ngIf="activeTab() === 'unread'" class="text-sm text-neutral-400 dark:text-slate-500 mt-1">You're all caught up!</p>
       </div>
     </div>
   </div>

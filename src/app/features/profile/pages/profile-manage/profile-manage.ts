@@ -4,7 +4,9 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angula
 import { AuthService } from '../../../../core/services/auth.service';
 import { User } from '../../../../core/models/user.model';
 import { StudentService } from '../../../../core/services/student.service';
+import { LandlordService } from '../../../../core/services/landlord.service';
 import { UpdateStudentRequest } from '../../../../core/models/student.model';
+import { UpdateLandlordRequest } from '../../../../core/models/landlord.model';
 
 @Component({
   selector: 'app-profile-manage',
@@ -15,6 +17,7 @@ import { UpdateStudentRequest } from '../../../../core/models/student.model';
 export class ProfileManage implements OnInit {
   private authService = inject(AuthService);
   private studentService = inject(StudentService);
+  private landlordService = inject(LandlordService);
   private fb = inject(FormBuilder);
 
   user = this.authService.currentUser$;
@@ -22,6 +25,8 @@ export class ProfileManage implements OnInit {
   passwordForm: FormGroup;
   isLoading = signal(false);
   isPasswordLoading = signal(false);
+  isValidatingId = signal(false);
+  isLandlord = signal(false);
 
   constructor() {
     this.profileForm = this.fb.group({
@@ -33,7 +38,12 @@ export class ProfileManage implements OnInit {
       dateOfBirth: [''],
       city: [''],
       address: [''],
-      preferredArea: ['']
+      preferredArea: [''],
+      // Landlord specific fields
+      companyName: [''],
+      propertyOwnerShipProof: [''],
+      nationalIdImageUrl: [''],
+      housingUnitDocumentationUrl: ['']
     });
 
     this.passwordForm = this.fb.group({
@@ -53,29 +63,49 @@ export class ProfileManage implements OnInit {
           phone: u.phone || ''
         });
 
-        // Fetch detailed profile data from backend
-        const sId = u.studentId || u.id;
-        if (sId && sId !== '1') {
-          this.studentService.getStudent(sId).subscribe({
-            next: (data) => {
-              // Convert ISO date to YYYY-MM-DD for the HTML date picker
-              let dob = '';
-              if (data.dateOfBirth) {
-                dob = data.dateOfBirth.split('T')[0]; 
-              }
+        this.isLandlord.set(u.role === 'landlord');
 
-              this.profileForm.patchValue({
-                name: (data as any).fullName || u.name,
-                nationalID: data.nationalId || '',
-                gender: data.gender === 0 ? 'male' : 'female',
-                dateOfBirth: dob,
-                city: data.city || '',
-                address: data.address || '',
-                preferredArea: data.preferredArea || ''
-              });
-            },
-            error: (err) => console.error('Failed to fetch full student profile:', err)
-          });
+        if (this.isLandlord()) {
+          const lId = u.landlordId || u.id;
+          if (lId && lId !== '1') {
+            this.landlordService.getById(lId).subscribe({
+              next: (data: any) => {
+                this.profileForm.patchValue({
+                  name: data.fullName || u.name,
+                  nationalID: data.nationalId || '',
+                  companyName: data.companyName || '',
+                  propertyOwnerShipProof: data.propertyOwnerShipProof || '',
+                  nationalIdImageUrl: data.nationalIdImageUrl || '',
+                  housingUnitDocumentationUrl: data.housingUnitDocumentationUrl || ''
+                });
+              },
+              error: (err: any) => console.error('Failed to fetch landlord profile:', err)
+            });
+          }
+        } else {
+          // Fetch detailed profile data from backend
+          const sId = u.studentId || u.id;
+          if (sId && sId !== '1') {
+            this.studentService.getStudentById(sId).subscribe({
+              next: (data: any) => {
+                let dob = '';
+                if (data.dateOfBirth) {
+                  dob = data.dateOfBirth.split('T')[0]; 
+                }
+
+                this.profileForm.patchValue({
+                  name: (data as any).fullName || u.name,
+                  nationalID: data.nationalId || '',
+                  gender: data.gender === 0 ? 'male' : 'female',
+                  dateOfBirth: dob,
+                  city: data.city || '',
+                  address: data.address || '',
+                  preferredArea: data.preferredArea || ''
+                });
+              },
+              error: (err: any) => console.error('Failed to fetch full student profile:', err)
+            });
+          }
         }
       }
     });
@@ -89,50 +119,63 @@ export class ProfileManage implements OnInit {
       this.isLoading.set(true);
       const formVal = this.profileForm.value;
 
-      let sId = currentUser.studentId || currentUser.id;
-      // If the current user has a mock ID like '1', force a valid GUID so the backend doesn't reject it
-      if (sId === '1' || sId.length < 36) {
-        sId = '3fa85f64-5717-4562-b3fc-2c963f66afa6';
-      }
+      if (this.isLandlord()) {
+        const lId = currentUser.landlordId || currentUser.id;
+        const payload: UpdateLandlordRequest = {
+          landLordId: lId,
+          companyName: formVal.companyName || '',
+          propertyOwnerShipProof: formVal.propertyOwnerShipProof || '',
+          nationalIdImageUrl: formVal.nationalIdImageUrl || '',
+          housingUnitDocumentationUrl: formVal.housingUnitDocumentationUrl || ''
+        };
 
-      // Use the raw yyyy-mm-dd value from the date picker if it exists, or an ISO string
-      let dob = formVal.dateOfBirth;
-      if (!dob) {
-        dob = new Date().toISOString();
-      } else if (dob.indexOf('T') === -1) {
-        // If it's just yyyy-mm-dd, some backends prefer a full ISO string
-        dob = new Date(dob).toISOString();
-      }
-
-      const payload: UpdateStudentRequest = {
-        studentId: sId,
-        fullName: formVal.name,
-        dateOfBirth: dob,
-        gender: formVal.gender === 'male' ? 0 : 1,
-        address: formVal.address || 'Unknown',
-        city: formVal.city || 'Unknown',
-        preferredArea: formVal.preferredArea || 'Unknown',
-        nationalId: formVal.nationalID || '00000000000000'
-      };
-
-      console.log('Sending Update Payload:', payload);
-
-      this.studentService.updateStudent(payload).subscribe({
-        next: () => {
-          this.isLoading.set(false);
-          alert('Profile updated successfully!');
-        },
-        error: (err) => {
-          this.isLoading.set(false);
-          console.error('Update Error:', err);
-          if (err.error && err.error.errors) {
-            console.error('Validation Errors from Backend:', err.error.errors);
-          } else if (err.error) {
-             console.error('Backend Error Message:', err.error);
+        this.landlordService.update(payload).subscribe({
+          next: () => {
+            this.isLoading.set(false);
+            alert('Landlord Profile updated successfully!');
+          },
+          error: (err) => {
+            this.isLoading.set(false);
+            console.error('Update Error:', err);
+            alert('Failed to update landlord profile.');
           }
-          alert('Failed to update profile. Check console for details.');
+        });
+      } else {
+        let sId = currentUser.studentId || currentUser.id;
+        if (sId === '1' || sId.length < 36) {
+          sId = '3fa85f64-5717-4562-b3fc-2c963f66afa6';
         }
-      });
+
+        let dob = formVal.dateOfBirth;
+        if (!dob) {
+          dob = new Date().toISOString();
+        } else if (dob.indexOf('T') === -1) {
+          dob = new Date(dob).toISOString();
+        }
+
+        const payload: UpdateStudentRequest = {
+          studentId: sId,
+          fullName: formVal.name,
+          dateOfBirth: dob,
+          gender: formVal.gender === 'male' ? 0 : 1,
+          address: formVal.address || 'Unknown',
+          city: formVal.city || 'Unknown',
+          preferredArea: formVal.preferredArea || 'Unknown',
+          nationalId: formVal.nationalID || '00000000000000'
+        };
+
+        this.studentService.updateStudent(payload).subscribe({
+          next: () => {
+            this.isLoading.set(false);
+            alert('Profile updated successfully!');
+          },
+          error: (err) => {
+            this.isLoading.set(false);
+            console.error('Update Error:', err);
+            alert('Failed to update profile.');
+          }
+        });
+      }
     }
   }
 
@@ -144,23 +187,109 @@ export class ProfileManage implements OnInit {
       this.isPasswordLoading.set(true);
       const formVal = this.passwordForm.value;
 
-      const payload = {
-        studentId: currentUser.studentId || currentUser.id,
-        currentPassword: formVal.current,
-        newPassword: formVal.new,
-        confirmPassword: formVal.confirm
-      };
+      if (this.isLandlord()) {
+        const payload = {
+          studentId: currentUser.landlordId || currentUser.id, // Keeping 'studentId' as property name per requirements
+          currentPassword: formVal.current,
+          newPassword: formVal.new,
+          confirmPassword: formVal.confirm
+        };
 
-      this.studentService.changePassword(payload).subscribe({
+        this.landlordService.changePassword(payload).subscribe({
+          next: () => {
+            this.isPasswordLoading.set(false);
+            this.passwordForm.reset();
+            alert('Landlord Password changed successfully!');
+          },
+          error: (err: any) => {
+            this.isPasswordLoading.set(false);
+            console.error('Password Error:', err);
+            alert('Failed to change password.');
+          }
+        });
+      } else {
+        const payload = {
+          studentId: currentUser.studentId || currentUser.id,
+          currentPassword: formVal.current,
+          newPassword: formVal.new,
+          confirmPassword: formVal.confirm
+        };
+
+        this.studentService.changePassword(payload).subscribe({
+          next: () => {
+            this.isPasswordLoading.set(false);
+            this.passwordForm.reset();
+            alert('Password changed successfully!');
+          },
+          error: (err: any) => {
+            this.isPasswordLoading.set(false);
+            console.error('Password Error:', err);
+            alert('Failed to change password.');
+          }
+        });
+      }
+    }
+  }
+
+  validateNationalId() {
+    const id = this.profileForm.get('nationalID')?.value;
+    if (!id || id.length !== 14) {
+      alert('Please enter a valid 14-digit National ID before validating.');
+      return;
+    }
+
+    this.isValidatingId.set(true);
+    this.studentService.validateNationalId(id).subscribe({
+      next: () => {
+        this.isValidatingId.set(false);
+        alert('National ID is valid!');
+      },
+      error: (err: any) => {
+        this.isValidatingId.set(false);
+        alert('National ID validation failed. It might be invalid or already registered.');
+        console.error('Validation Error:', err);
+      }
+    });
+  }
+
+  onProfileImageSelected(event: any) {
+    const file: File = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e: any) => {
+        const base64Image = e.target.result;
+        this.authService.updateAvatar(base64Image);
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
+  removeProfileImage() {
+    this.authService.updateAvatar(null);
+  }
+
+  deleteAccount() {
+    const confirmDelete = confirm('Are you sure you want to permanently delete your student account? This action cannot be undone and will cancel all active bookings.');
+    if (confirmDelete) {
+      const currentUser = this.authService.currentUserValue;
+      if (!currentUser) return;
+
+      let sId = currentUser.studentId || currentUser.id;
+      if (sId === '1' || sId.length < 36) {
+        sId = '3fa85f64-5717-4562-b3fc-2c963f66afa6';
+      }
+
+      this.isLoading.set(true);
+      this.studentService.deleteStudent(sId).subscribe({
         next: () => {
-          this.isPasswordLoading.set(false);
-          this.passwordForm.reset();
-          alert('Password changed successfully!');
+          this.isLoading.set(false);
+          alert('Your account has been successfully deleted.');
+          this.authService.logout();
         },
-        error: (err) => {
-          this.isPasswordLoading.set(false);
-          console.error('Password Error:', err);
-          alert('Failed to change password. Check console for details.');
+        error: (err: any) => {
+          this.isLoading.set(false);
+          console.error('Delete student error:', err);
+          alert('Failed to delete account. Please try again.');
         }
       });
     }

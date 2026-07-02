@@ -17,6 +17,11 @@ export const landlordRoutes: Routes = [
           import('./pages/landlord-listings/landlord-listings').then(m => m.LandlordListings)
       },
       {
+        path: 'rooms',
+        loadComponent: () =>
+          import('./pages/landlord-rooms/landlord-rooms').then(m => m.LandlordRooms)
+      },
+      {
         path: 'bookings',
         loadComponent: () =>
           import('./pages/landlord-bookings/landlord-bookings').then(m => m.LandlordBookings)
@@ -40,6 +45,11 @@ export const landlordRoutes: Routes = [
         path: 'profile',
         loadComponent: () =>
           import('../profile/pages/profile-manage/profile-manage').then(m => m.ProfileManage)
+      },
+      {
+        path: 'notifications',
+        loadComponent: () => 
+          import('../notifications/pages/notification-page/notification-page').then(m => m.NotificationPage)
       }
     ]
   }

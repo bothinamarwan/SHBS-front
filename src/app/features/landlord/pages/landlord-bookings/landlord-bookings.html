@@ -18,7 +18,7 @@
     [class.active]="activeFilter() === filter.value"
     class="tab-btn flex-shrink-0 flex-none px-4 py-2 rounded-xl border border-neutral-200 dark:border-slate-700 bg-white dark:bg-slate-900">
     {{ filter.label }}
-    <span *ngIf="filter.value === 'pending' && pendingCount() > 0"
+    <span *ngIf="filter.value === 0 && pendingCount() > 0"
       class="ml-1.5 bg-amber-400 text-white text-[9px] font-bold w-4 h-4 rounded-full inline-flex items-center justify-center">
       {{ pendingCount() }}
     </span>
@@ -44,7 +44,7 @@
 
       <!-- Avatar -->
       <div class="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
-        {{ booking.studentName.charAt(0) }}
+        {{ booking.studentName?.charAt(0) || 'S' }}
       </div>
 
       <!-- Info -->
@@ -56,20 +56,20 @@
               <i class="fas fa-building mr-1"></i>{{ booking.housingTitle }} — {{ booking.roomName }}
             </p>
           </div>
-          <span class="status-badge flex-shrink-0" [ngClass]="getStatusClass(booking.status)">
-            {{ booking.status | titlecase }}
+          <span class="status-badge flex-shrink-0" [ngClass]="getStatusClass(booking.bookingStatus)">
+            {{ getStatusLabel(booking.bookingStatus) }}
           </span>
         </div>
 
         <!-- Details row -->
         <div class="flex flex-wrap gap-x-4 gap-y-1 mt-3">
           <span class="text-xs text-neutral-500 dark:text-slate-400 flex items-center gap-1">
-            <i class="fas fa-calendar-alt text-indigo-400 text-[10px]"></i>
-            Move-in: <strong class="text-neutral-700 dark:text-slate-200 ml-1">{{ booking.moveInDate }}</strong>
+            <i class="fas fa-calendar-check text-indigo-400"></i> Start Date
+            <strong class="block text-sm text-neutral-700 dark:text-slate-200 ml-1">{{ booking.startDate | date }}</strong>
           </span>
           <span class="text-xs text-neutral-500 dark:text-slate-400 flex items-center gap-1">
-            <i class="fas fa-clock text-indigo-400 text-[10px]"></i>
-            Duration: <strong class="text-neutral-700 dark:text-slate-200 ml-1">{{ booking.duration }} months</strong>
+            <i class="fas fa-clock text-indigo-400"></i> End Date
+            <strong class="block text-sm text-neutral-700 dark:text-slate-200 ml-1">{{ booking.endDate | date }}</strong>
           </span>
           <span class="text-xs text-neutral-500 dark:text-slate-400 flex items-center gap-1">
             <i class="fas fa-tag text-indigo-400 text-[10px]"></i>
@@ -77,41 +77,31 @@
           </span>
           <span class="text-xs text-neutral-500 dark:text-slate-400 flex items-center gap-1">
             <i class="fas fa-hashtag text-indigo-400 text-[10px]"></i>
-            {{ booking.id }}
+            {{ booking.bookingId }}
           </span>
         </div>
       </div>
     </div>
 
-    <!-- Actions Footer -->
-    <div class="px-5 py-3 bg-neutral-50/50 dark:bg-slate-800/30 border-t border-neutral-50 dark:border-slate-800 flex items-center gap-2 flex-wrap">
-      <button (click)="openDetail(booking)"
-        class="text-xs font-semibold text-neutral-600 dark:text-slate-300 bg-white dark:bg-slate-800 border border-neutral-200 dark:border-slate-700 px-3 py-1.5 rounded-lg hover:border-indigo-300 hover:text-indigo-600 transition-all">
-        <i class="fas fa-eye mr-1"></i> View Details
+    <!-- Quick Actions Overlay -->
+    <div class="p-4 bg-neutral-50 dark:bg-slate-800/50 border-t border-neutral-100 dark:border-slate-800 flex justify-end gap-2 relative z-10">
+      <button *ngIf="booking.bookingStatus === 0"
+              (click)="approveBooking(booking); $event.stopPropagation()"
+              [disabled]="actionLoading() !== null"
+              class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition-colors flex items-center justify-center disabled:opacity-50" title="Approve">
+        <i *ngIf="isActionLoading(booking.bookingId, 'approve')" class="fas fa-spinner fa-spin"></i>
+        <i *ngIf="!isActionLoading(booking.bookingId, 'approve')" class="fas fa-check"></i>
       </button>
 
-      <!-- Approve -->
-      <button *ngIf="booking.status === 'pending'"
-        (click)="approveBooking(booking)"
-        [disabled]="actionLoading() !== null"
-        class="text-xs font-semibold bg-emerald-500 hover:bg-emerald-600 text-white px-3 py-1.5 rounded-lg transition-colors disabled:opacity-60">
-        <i *ngIf="isActionLoading(booking.id, 'approve')" class="fas fa-spinner fa-spin mr-1"></i>
-        <i *ngIf="!isActionLoading(booking.id, 'approve')" class="fas fa-check mr-1"></i>
-        Approve
+      <button *ngIf="booking.bookingStatus === 0"
+              (click)="rejectBooking(booking); $event.stopPropagation()"
+              [disabled]="actionLoading() !== null"
+              class="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 hover:bg-rose-100 transition-colors flex items-center justify-center disabled:opacity-50" title="Reject">
+        <i *ngIf="isActionLoading(booking.bookingId, 'reject')" class="fas fa-spinner fa-spin"></i>
+        <i *ngIf="!isActionLoading(booking.bookingId, 'reject')" class="fas fa-times"></i>
       </button>
 
-      <!-- Reject -->
-      <button *ngIf="booking.status === 'pending'"
-        (click)="rejectBooking(booking)"
-        [disabled]="actionLoading() !== null"
-        class="text-xs font-semibold bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 hover:bg-rose-100 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-60">
-        <i *ngIf="isActionLoading(booking.id, 'reject')" class="fas fa-spinner fa-spin mr-1"></i>
-        <i *ngIf="!isActionLoading(booking.id, 'reject')" class="fas fa-times mr-1"></i>
-        Reject
-      </button>
-
-      <!-- Generate Contract -->
-      <button *ngIf="booking.status === 'approved'"
+      <button *ngIf="booking.bookingStatus === 1"
         (click)="openContractModal(booking)"
         class="text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg transition-colors ml-auto">
         <i class="fas fa-file-contract mr-1"></i> Sign Lease Contract
@@ -135,11 +125,13 @@
       <!-- Status -->
       <div class="flex items-center justify-between">
         <p class="text-sm text-neutral-500 dark:text-slate-400">Status</p>
-        <span class="status-badge" [ngClass]="getStatusClass(b.status)">{{ b.status | titlecase }}</span>
+        <span class="status-badge" [ngClass]="getStatusClass(b.bookingStatus)">{{ getStatusLabel(b.bookingStatus) }}</span>
       </div>
       <div class="flex items-center justify-between">
         <p class="text-sm text-neutral-500 dark:text-slate-400">Booking ID</p>
-        <p class="text-sm font-mono font-bold text-neutral-800 dark:text-slate-100">{{ b.id }}</p>
+        <div class="text-xs font-mono text-neutral-400 bg-neutral-100 dark:bg-slate-800 px-2 py-1 rounded">
+          {{ b.bookingId }}
+        </div>
       </div>
       <div class="flex items-center justify-between">
         <p class="text-sm text-neutral-500 dark:text-slate-400">Student</p>
@@ -153,28 +145,30 @@
         <p class="text-sm text-neutral-500 dark:text-slate-400">Room</p>
         <p class="text-sm font-semibold text-neutral-700 dark:text-slate-200">{{ b.roomName }}</p>
       </div>
-      <div class="flex items-center justify-between">
-        <p class="text-sm text-neutral-500 dark:text-slate-400">Move-in Date</p>
-        <p class="text-sm font-semibold text-neutral-700 dark:text-slate-200">{{ b.moveInDate }}</p>
+      <div class="p-4 bg-neutral-50 dark:bg-slate-800/50 rounded-2xl">
+        <p class="text-[10px] font-bold text-neutral-400 uppercase tracking-widest mb-1">Start Date</p>
+        <p class="font-bold text-neutral-700 dark:text-slate-200">{{ b.startDate | date }}</p>
       </div>
-      <div class="flex items-center justify-between">
-        <p class="text-sm text-neutral-500 dark:text-slate-400">Duration</p>
-        <p class="text-sm font-semibold text-neutral-700 dark:text-slate-200">{{ b.duration }} months</p>
+      <div class="p-4 bg-neutral-50 dark:bg-slate-800/50 rounded-2xl">
+        <p class="text-[10px] font-bold text-neutral-400 uppercase tracking-widest mb-1">End Date</p>
+        <p class="font-bold text-neutral-700 dark:text-slate-200">{{ b.endDate | date }}</p>
       </div>
       <div class="flex items-center justify-between border-t border-neutral-100 dark:border-slate-800 pt-4">
         <p class="text-sm font-bold text-neutral-800 dark:text-slate-100">Total Price</p>
         <p class="text-lg font-extrabold text-indigo-600 dark:text-indigo-400">{{ formatCurrency(b.totalPrice) }}</p>
       </div>
 
-      <div class="flex gap-3 pt-2">
-        <button *ngIf="b.status === 'pending'" (click)="approveBooking(b); closeDetail()" class="btn-primary flex-1 justify-center">
-          <i class="fas fa-check text-xs"></i> Approve
+      <div class="flex gap-3 pt-6 border-t border-neutral-100 dark:border-slate-800">
+        <button *ngIf="b.bookingStatus === 0" (click)="approveBooking(b)" [disabled]="actionLoading() !== null"
+          class="flex-1 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-bold transition-colors disabled:opacity-50">
+          <i *ngIf="isActionLoading(b.bookingId, 'approve')" class="fas fa-spinner fa-spin mr-1"></i> Approve
         </button>
-        <button *ngIf="b.status === 'pending'" (click)="rejectBooking(b); closeDetail()" class="btn-danger flex-1 justify-center">
-          <i class="fas fa-times text-xs"></i> Reject
+        <button *ngIf="b.bookingStatus === 0" (click)="rejectBooking(b)" [disabled]="actionLoading() !== null"
+          class="flex-1 py-3 bg-rose-50 text-rose-600 hover:bg-rose-100 rounded-xl font-bold transition-colors disabled:opacity-50">
+          <i *ngIf="isActionLoading(b.bookingId, 'reject')" class="fas fa-spinner fa-spin mr-1"></i> Reject
         </button>
-        <button *ngIf="b.status === 'approved'" (click)="openContractModal(b); closeDetail()" class="btn-primary flex-1 justify-center">
-          <i class="fas fa-file-contract text-xs"></i> Sign Contract
+        <button *ngIf="b.bookingStatus === 1" (click)="openContractModal(b)" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold transition-colors shadow-lg shadow-indigo-200 dark:shadow-none">
+          Sign Contract
         </button>
       </div>
     </div>
@@ -238,13 +232,13 @@
             <p class="font-bold text-neutral-800 dark:text-slate-100 mt-0.5">{{ b.roomName }}</p>
           </div>
           <div>
-            <p class="text-neutral-400 font-medium">Lease Start</p>
-            <p class="font-bold text-neutral-800 dark:text-slate-100 mt-0.5">{{ b.moveInDate }}</p>
-          </div>
-          <div>
-            <p class="text-neutral-400 font-medium">Lease Duration</p>
-            <p class="font-bold text-neutral-800 dark:text-slate-100 mt-0.5">{{ b.duration }} months</p>
-          </div>
+              <p class="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">Start Date</p>
+              <p class="text-sm font-bold text-neutral-800 dark:text-slate-100 mt-0.5">{{ b.startDate | date }}</p>
+            </div>
+            <div>
+              <p class="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">End Date</p>
+              <p class="text-sm font-bold text-neutral-800 dark:text-slate-100 mt-0.5">{{ b.endDate | date }}</p>
+            </div>
           <div class="col-span-2">
             <p class="text-neutral-400 font-medium">Total Rent</p>
             <p class="font-bold text-indigo-600 dark:text-indigo-400 mt-0.5 text-base">{{ formatCurrency(b.totalPrice) }}</p>

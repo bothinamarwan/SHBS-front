@@ -1,0 +1,107 @@
+<div class="animate-fade-in pb-10">
+
+  <!-- Header -->
+  <div class="mb-8 border-b border-slate-200 dark:border-slate-800 pb-4">
+    <h1 class="text-2xl font-bold text-slate-800 dark:text-slate-100">Financial Reports</h1>
+    <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Generate and view commission reports over specific timeframes.</p>
+  </div>
+
+  <!-- Filters Card -->
+  <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-slate-100 dark:border-slate-800 mb-8 flex flex-col md:flex-row items-end gap-4">
+    <div class="flex-grow flex flex-col sm:flex-row gap-4 w-full">
+      <div class="flex-1">
+        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Date From</label>
+        <div class="relative">
+          <i class="fas fa-calendar absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+          <input type="date" [(ngModel)]="dateFrom" class="input-field pl-10 w-full">
+        </div>
+      </div>
+      <div class="flex-1">
+        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Date To</label>
+        <div class="relative">
+          <i class="fas fa-calendar absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+          <input type="date" [(ngModel)]="dateTo" class="input-field pl-10 w-full">
+        </div>
+      </div>
+    </div>
+    <button (click)="fetchReport()" [disabled]="isLoading()" class="btn-primary flex items-center justify-center gap-2 w-full md:w-auto h-[42px] px-8">
+      <i class="fas fa-search" [class.hidden]="isLoading()"></i>
+      <i class="fas fa-circle-notch animate-spin" *ngIf="isLoading()"></i>
+      Generate
+    </button>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading()" class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 p-12 text-center animate-pulse">
+    <div class="w-10 h-10 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin mx-auto mb-4"></div>
+    <p class="text-slate-500 font-medium">Crunching the numbers...</p>
+  </div>
+
+  <!-- Report Content -->
+  <div *ngIf="!isLoading() && reportData() !== null">
+    
+    <!-- Summary Card -->
+    <div class="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl p-8 text-white relative overflow-hidden shadow-lg shadow-indigo-500/20 mb-8 flex flex-col md:flex-row justify-between items-center gap-6">
+      <div class="absolute -right-10 -bottom-10 opacity-10">
+        <i class="fas fa-wallet text-9xl"></i>
+      </div>
+      <div class="relative z-10 text-center md:text-left">
+        <p class="text-indigo-100 font-semibold mb-1">Total Commissions Generated</p>
+        <h2 class="text-4xl md:text-5xl font-bold">${{ getTotal() | number:'1.2-2' }}</h2>
+        <p class="text-xs text-indigo-200 mt-2">Between {{ dateFrom() | date }} and {{ dateTo() | date }}</p>
+      </div>
+      <div class="relative z-10">
+        <button class="bg-white/10 hover:bg-white/20 border border-white/20 backdrop-blur-sm text-white px-5 py-2.5 rounded-xl font-bold text-sm transition-colors flex items-center gap-2">
+          <i class="fas fa-download"></i> Export CSV
+        </button>
+      </div>
+    </div>
+
+    <!-- Items Table -->
+    <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-slate-100 dark:border-slate-800 overflow-hidden">
+      <div class="p-6 border-b border-slate-100 dark:border-slate-800">
+        <h3 class="text-lg font-bold text-slate-800 dark:text-slate-100">Commission Breakdown</h3>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse whitespace-nowrap">
+          <thead>
+            <tr class="bg-slate-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wider font-semibold border-b border-slate-100 dark:border-slate-800">
+              <th class="px-6 py-4">Transaction ID</th>
+              <th class="px-6 py-4">Date</th>
+              <th class="px-6 py-4">Amount</th>
+              <th class="px-6 py-4">Status</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100 dark:divide-slate-800 text-sm">
+            
+            <tr *ngIf="getItems().length === 0">
+              <td colspan="4" class="px-6 py-12 text-center text-slate-500">
+                <i class="fas fa-receipt text-4xl mb-3 text-slate-300"></i>
+                <p>No commissions found for this period.</p>
+              </td>
+            </tr>
+
+            <tr *ngFor="let item of getItems()" class="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors group">
+              <td class="px-6 py-4 font-mono text-xs text-indigo-600 dark:text-indigo-400 font-semibold">
+                {{ item.id || item.transactionId || '---' }}
+              </td>
+              <td class="px-6 py-4 text-slate-600 dark:text-slate-400">
+                {{ (item.date || item.createdAt) | date:'medium' }}
+              </td>
+              <td class="px-6 py-4 font-bold text-slate-800 dark:text-slate-100">
+                ${{ (item.amount || item.commissionAmount) | number:'1.2-2' }}
+              </td>
+              <td class="px-6 py-4">
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
+                  <i class="fas fa-check-circle text-[10px]"></i> Processed
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    
+  </div>
+
+</div>

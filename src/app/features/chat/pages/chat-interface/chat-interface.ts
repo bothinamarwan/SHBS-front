@@ -1,23 +1,9 @@
-import { Component, signal } from '@angular/core';
+import { Component, signal, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-
-interface Message {
-  id: string;
-  sender: 'student' | 'landlord';
-  text: string;
-  time: string;
-  isRead: boolean;
-}
-
-interface Chat {
-  id: string;
-  name: string;
-  avatar: string;
-  lastMessage: string;
-  time: string;
-  unread: number;
-}
+import { ChatService } from '../../../../core/services/chat.service';
+import { Conversation, ChatMessage } from '../../../../core/models/chat.model';
+import { AuthService } from '../../../../core/services/auth.service';
 
 @Component({
   selector: 'app-chat-interface',
@@ -25,46 +11,68 @@ interface Chat {
   imports: [CommonModule, FormsModule],
   templateUrl: './chat-interface.html'
 })
-export class ChatInterface {
+export class ChatInterface implements OnInit {
+  private chatService = inject(ChatService);
+  private authService = inject(AuthService);
+
   newMessage = '';
-  selectedChat = signal<Chat | null>(null);
+  selectedConversation = signal<Conversation | null>(null);
+  conversations = signal<Conversation[]>([]);
+  messages = signal<ChatMessage[]>([]);
+  isLoadingConversations = signal(true);
+  isLoadingMessages = signal(false);
+  isSending = signal(false);
 
-  chats: Chat[] = [
-    {
-      id: '1',
-      name: 'Ahmed Kamal',
-      avatar: 'https://ui-avatars.com/api/?name=Ahmed+K&background=4F46E5&color=fff',
-      lastMessage: 'The room is available for immediate viewing.',
-      time: '12:45 PM',
-      unread: 2
-    },
-    {
-      id: '2',
-      name: 'Mona Refaat',
-      avatar: 'https://ui-avatars.com/api/?name=Mona+R&background=E11D48&color=fff',
-      lastMessage: 'Sure, I can send you more photos of the kitchen.',
-      time: 'Yesterday',
-      unread: 0
-    }
-  ];
+  ngOnInit() {
+    this.loadConversations();
+  }
 
-  messages: Message[] = [
-    { id: '1', sender: 'landlord', text: 'Hello! I noticed you were interested in the Premium Studio.', time: '12:30 PM', isRead: true },
-    { id: '2', sender: 'student', text: 'Yes, is it still available for May?', time: '12:32 PM', isRead: true },
-    { id: '3', sender: 'landlord', text: 'Yes, it is! The room is available for immediate viewing.', time: '12:45 PM', isRead: false }
-  ];
+  loadConversations() {
+    this.isLoadingConversations.set(true);
+    // Conversations are initiated via bookingId; load will happen when user selects a booking
+    // For now we just reset loading state
+    this.isLoadingConversations.set(false);
+  }
+
+  selectConversation(conversation: Conversation) {
+    this.selectedConversation.set(conversation);
+    this.isLoadingMessages.set(true);
+    
+    // Mark conversation as read in the background
+    this.chatService.markAsRead(conversation.id).subscribe({
+      error: (err) => console.error('Failed to mark conversation as read', err)
+    });
+
+    this.chatService.getMessages(conversation.id).subscribe({
+      next: (msgs) => {
+        this.messages.set(msgs);
+        this.isLoadingMessages.set(false);
+      },
+      error: () => {
+        this.messages.set([]);
+        this.isLoadingMessages.set(false);
+      }
+    });
+  }
 
   sendMessage() {
-    if (!this.newMessage.trim()) return;
-    
-    this.messages.push({
-      id: Date.now().toString(),
-      sender: 'student',
-      text: this.newMessage,
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      isRead: false
-    });
-    
+    const conv = this.selectedConversation();
+    if (!this.newMessage.trim() || !conv) return;
+
+    const content = this.newMessage.trim();
     this.newMessage = '';
+    this.isSending.set(true);
+
+    this.chatService.sendMessage(conv.id, { content }).subscribe({
+      next: (msg) => {
+        this.messages.update(prev => [...prev, msg]);
+        this.isSending.set(false);
+      },
+      error: () => this.isSending.set(false)
+    });
+  }
+
+  get currentUserId(): string {
+    return this.authService.currentUserValue?.id ?? '';
   }
 }

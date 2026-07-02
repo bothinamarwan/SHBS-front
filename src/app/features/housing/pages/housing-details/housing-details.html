@@ -1,206 +1,236 @@
-<div *ngIf="housing() as item" class="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-  <!-- Top Actions & Breadcrumbs -->
+<!-- Loading State -->
+<div *ngIf="isLoading()" class="flex flex-col items-center justify-center py-32 gap-4">
+  <div class="w-12 h-12 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
+  <p class="text-neutral-400 dark:text-slate-500 font-medium">Loading property details...</p>
+</div>
+
+<!-- Error State -->
+<div *ngIf="!isLoading() && errorMessage()"
+  class="flex flex-col items-center justify-center py-32 gap-4">
+  <div class="w-20 h-20 bg-rose-50 dark:bg-rose-900/20 rounded-full flex items-center justify-center">
+    <i class="fas fa-exclamation-triangle text-3xl text-rose-400"></i>
+  </div>
+  <h3 class="text-xl font-bold text-neutral-800 dark:text-slate-100">Something went wrong</h3>
+  <p class="text-neutral-500 dark:text-slate-400">{{ errorMessage() }}</p>
+  <a routerLink="/listings" class="text-indigo-600 font-bold hover:underline">← Back to listings</a>
+</div>
+
+<!-- Main Content -->
+<div *ngIf="!isLoading() && housing() as item" class="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+
+  <!-- Breadcrumbs & Actions -->
   <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
     <nav class="flex items-center gap-2 text-sm text-neutral-400 dark:text-slate-500 font-medium">
-      <a routerLink="/student" class="hover:text-indigo-600 dark:hover:text-indigo-400">Home</a>
+      <a routerLink="/" class="hover:text-indigo-600 dark:hover:text-indigo-400">Home</a>
       <i class="fas fa-chevron-right text-[10px]"></i>
-      <a routerLink="/student/search" class="hover:text-indigo-600 dark:hover:text-indigo-400">Search</a>
+      <a routerLink="/listings" class="hover:text-indigo-600 dark:hover:text-indigo-400">Listings</a>
       <i class="fas fa-chevron-right text-[10px]"></i>
-      <span class="text-neutral-800 dark:text-slate-200">{{ item.title }}</span>
+      <span class="text-neutral-800 dark:text-slate-200 line-clamp-1">{{ item.title }}</span>
     </nav>
     <div class="flex gap-3">
-      <button class="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-900 border border-neutral-200 dark:border-slate-800 rounded-xl text-sm font-bold text-neutral-600 dark:text-slate-400 hover:bg-neutral-50 dark:hover:bg-slate-800 transition-all">
-        <i class="far fa-share-square"></i> Share
-      </button>
-      <button (click)="toggleWishlist()" 
-        [class.text-rose-500]="isInWishlist()" [class.bg-rose-50]="isInWishlist()" [class.dark:bg-rose-900/20]="isInWishlist()" [class.border-rose-100]="isInWishlist()"
+      <button (click)="openMapLink()" *ngIf="item.latitude && item.longitude"
         class="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-900 border border-neutral-200 dark:border-slate-800 rounded-xl text-sm font-bold text-neutral-600 dark:text-slate-400 hover:bg-neutral-50 dark:hover:bg-slate-800 transition-all">
-        <i [class]="isInWishlist() ? 'fas fa-heart' : 'far fa-heart'"></i> 
-        {{ isInWishlist() ? 'Saved in Wishlist' : 'Add to Wishlist' }}
+        <i class="fas fa-map-marker-alt text-indigo-500"></i> Map
+      </button>
+      <button (click)="toggleWishlist()"
+        [class.text-rose-500]="isInWishlist()"
+        [class.bg-rose-50]="isInWishlist()"
+        [class.dark:bg-rose-900\/20]="isInWishlist()"
+        [class.border-rose-100]="isInWishlist()"
+        class="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-900 border border-neutral-200 dark:border-slate-800 rounded-xl text-sm font-bold text-neutral-600 dark:text-slate-400 hover:bg-neutral-50 dark:hover:bg-slate-800 transition-all">
+        <i [class]="isInWishlist() ? 'fas fa-heart' : 'far fa-heart'"></i>
+        {{ isInWishlist() ? 'Saved' : 'Save' }}
       </button>
     </div>
   </div>
 
-  <!-- Hero Gallery -->
-  <section class="grid grid-cols-1 md:grid-cols-4 grid-rows-2 gap-4 h-[500px] sm:h-[600px] rounded-3xl overflow-hidden shadow-2xl shadow-neutral-100 dark:shadow-none">
-    <div class="md:col-span-2 md:row-span-2 relative group cursor-pointer overflow-hidden">
-      <img [src]="item.images[0]" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" alt="">
-      <div class="absolute inset-0 bg-neutral-900/10 group-hover:bg-transparent transition-colors"></div>
-    </div>
-    <div class="hidden md:block relative group cursor-pointer overflow-hidden">
-      <img [src]="item.images[1] || item.images[0]" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" alt="">
-    </div>
-    <div class="hidden md:block relative group cursor-pointer overflow-hidden">
-      <img [src]="item.images[0]" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" alt="">
-    </div>
-    <div class="hidden md:block md:col-span-2 relative group cursor-pointer overflow-hidden">
-      <img [src]="item.images[0]" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" alt="">
-      <div class="absolute inset-0 flex items-center justify-center bg-neutral-900/40 opacity-0 group-hover:opacity-100 transition-opacity">
-        <button class="bg-white dark:bg-slate-900 text-neutral-900 dark:text-slate-100 px-6 py-2 rounded-xl font-bold shadow-lg">View All Photos</button>
-      </div>
+  <!-- Hero Image -->
+  <section class="relative h-[420px] sm:h-[520px] rounded-3xl overflow-hidden shadow-2xl shadow-neutral-200 dark:shadow-none">
+    <img [src]="item.unitImageUrl || 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=1200'"
+      class="w-full h-full object-cover"
+      [alt]="item.title"
+      onerror="this.src='https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=1200'">
+    <div class="absolute inset-0 bg-gradient-to-t from-neutral-900/60 via-transparent to-transparent"></div>
+    <!-- Overlay badges -->
+    <div class="absolute bottom-6 left-6 flex flex-wrap gap-3">
+      <span *ngIf="item.genderAllowed !== GenderAllowed.Mixed"
+        [class.bg-rose-500]="item.genderAllowed === GenderAllowed.Female"
+        [class.bg-indigo-500]="item.genderAllowed === GenderAllowed.Male"
+        class="px-3 py-1.5 text-white text-xs font-bold rounded-full shadow uppercase">
+        {{ genderLabel(item.genderAllowed) }} only
+      </span>
+      <span [class]="item.isAvailable ? 'bg-emerald-500' : 'bg-neutral-500'"
+        class="px-3 py-1.5 text-white text-xs font-bold rounded-full shadow uppercase">
+        {{ item.isAvailable ? 'Available' : 'Not Available' }}
+      </span>
     </div>
   </section>
 
-  <!-- Main Content Grid -->
-  <div class="grid grid-cols-1 lg:grid-cols-3 gap-12">
-    <div class="lg:col-span-2 space-y-12">
-      <!-- Description Section -->
-      <div class="space-y-6">
-        <div class="flex justify-between items-start">
-          <div>
-            <h1 class="text-4xl font-black text-neutral-800 dark:text-slate-100 leading-tight">{{ item.title }}</h1>
-            <p class="text-lg text-neutral-500 dark:text-slate-400 mt-2 flex items-center gap-2">
-              <i class="fas fa-map-marker-alt text-indigo-500"></i> {{ item.area }}, {{ item.city }}
-            </p>
-          </div>
-          <div class="px-3 py-1 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 rounded-lg text-xs font-bold uppercase tracking-widest">
-            {{ item.type }}
-          </div>
-        </div>
+  <!-- Main Grid -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
 
-        <div class="flex items-center gap-8 py-6 border-y border-neutral-100 dark:border-slate-800">
-          <div class="flex items-center gap-3">
-            <div class="w-12 h-12 bg-neutral-50 dark:bg-slate-800 rounded-2xl flex items-center justify-center text-neutral-400">
-              <i class="fas fa-star text-lg text-amber-500"></i>
-            </div>
-            <div>
-              <p class="text-sm font-black text-neutral-800 dark:text-slate-100">{{ item.rating }} Rating</p>
-              <p class="text-xs text-neutral-400 dark:text-slate-500">{{ item.reviewsCount }} Reviews</p>
-            </div>
-          </div>
-          <div class="flex items-center gap-3 border-l border-neutral-100 dark:border-slate-800 pl-8">
-            <div class="w-12 h-12 bg-neutral-50 dark:bg-slate-800 rounded-2xl flex items-center justify-center text-neutral-400">
-              <i class="fas fa-shield-alt text-lg text-emerald-500"></i>
-            </div>
-            <div>
-              <p class="text-sm font-black text-neutral-800 dark:text-slate-100">Verified</p>
-              <p class="text-xs text-neutral-400 dark:text-slate-500">UniStay Choice</p>
-            </div>
-          </div>
-        </div>
+    <!-- Left: Details -->
+    <div class="lg:col-span-2 space-y-10">
 
-        <p class="text-neutral-600 dark:text-slate-400 leading-relaxed text-lg">
-          {{ item.description }}
-        </p>
-      </div>
-
-      <!-- Facilities -->
-      <div class="space-y-6">
-        <h3 class="text-2xl font-bold text-neutral-800 dark:text-slate-100">Facilities Offered</h3>
-        <div class="grid grid-cols-2 sm:grid-cols-3 gap-6">
-          <div *ngFor="let facility of item.facilities" class="flex items-center gap-4 p-4 bg-white dark:bg-slate-900 border border-neutral-50 dark:border-slate-800 shadow-sm rounded-2xl">
-            <div class="w-10 h-10 bg-neutral-50 dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 rounded-xl flex items-center justify-center">
-              <i [class]="getFacilityIcon(facility)"></i>
-            </div>
-            <span class="text-neutral-700 dark:text-slate-300 font-bold text-sm">{{ facility }}</span>
-          </div>
+      <!-- Title & Meta -->
+      <div class="space-y-4">
+        <h1 class="text-4xl font-black text-neutral-800 dark:text-slate-100 leading-tight">{{ item.title }}</h1>
+        <div class="flex flex-wrap items-center gap-4 text-sm text-neutral-500 dark:text-slate-400">
+          <span class="flex items-center gap-2">
+            <i class="fas fa-map-marker-alt text-indigo-500"></i>
+            {{ item.area }}, {{ item.city }}
+          </span>
+          <span *ngIf="item.address" class="flex items-center gap-2">
+            <i class="fas fa-road text-indigo-400"></i>
+            {{ item.address }}
+          </span>
+          <span class="flex items-center gap-2">
+            <i class="fas fa-door-open text-indigo-400"></i>
+            {{ item.numberOfRooms }} rooms
+          </span>
         </div>
       </div>
 
-      <!-- Rules Section -->
-      <div class="space-y-6" *ngIf="item.rules && item.rules.length > 0">
-        <h3 class="text-2xl font-bold text-neutral-800 dark:text-slate-100">House Rules</h3>
-        <div class="bg-neutral-50 dark:bg-slate-800/50 p-8 rounded-[2.5rem] border border-neutral-100 dark:border-slate-800">
-          <ul class="space-y-4">
-            <li *ngFor="let rule of item.rules" class="flex items-center gap-4 text-neutral-600 dark:text-slate-400 font-medium">
-              <i class="fas fa-info-circle text-indigo-400"></i>
-              {{ rule }}
-            </li>
-          </ul>
+      <!-- Description -->
+      <div class="space-y-4">
+        <h2 class="text-xl font-bold text-neutral-800 dark:text-slate-100">About this property</h2>
+        <p class="text-neutral-600 dark:text-slate-400 leading-relaxed text-base">{{ item.description }}</p>
+      </div>
+
+      <!-- Location block -->
+      <div *ngIf="item.location" class="p-5 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800/30 rounded-2xl flex items-start gap-4">
+        <div class="w-10 h-10 bg-indigo-100 dark:bg-indigo-800/40 rounded-xl flex items-center justify-center shrink-0">
+          <i class="fas fa-location-dot text-indigo-600 dark:text-indigo-400"></i>
+        </div>
+        <div>
+          <p class="text-xs font-bold text-indigo-500 dark:text-indigo-400 uppercase tracking-widest mb-1">Location</p>
+          <p class="text-neutral-700 dark:text-slate-300 font-medium text-sm">{{ item.location }}</p>
+          <button *ngIf="item.latitude && item.longitude" (click)="openMapLink()"
+            class="mt-2 text-xs text-indigo-600 dark:text-indigo-400 font-bold hover:underline flex items-center gap-1">
+            <i class="fas fa-external-link-alt text-[10px]"></i> View on Google Maps
+          </button>
         </div>
       </div>
 
-      <!-- Reviews Section -->
-      <div class="space-y-10">
+      <!-- Rules -->
+      <div *ngIf="item.rules" class="space-y-4">
+        <h2 class="text-xl font-bold text-neutral-800 dark:text-slate-100">House Rules</h2>
+        <div class="bg-neutral-50 dark:bg-slate-800/50 p-6 rounded-2xl border border-neutral-100 dark:border-slate-800">
+          <p class="text-neutral-600 dark:text-slate-400 font-medium leading-relaxed">{{ item.rules }}</p>
+        </div>
+      </div>
+
+      <!-- Reviews -->
+      <div class="space-y-8">
         <div class="flex justify-between items-center">
-          <h3 class="text-2xl font-bold text-neutral-800 dark:text-slate-100">Reviews ({{ reviews().length }})</h3>
-          <div class="flex items-center gap-2">
-            <i class="fas fa-star text-amber-500"></i>
-            <span class="font-black text-lg dark:text-slate-100">{{ item.rating }}</span>
-          </div>
+          <h2 class="text-xl font-bold text-neutral-800 dark:text-slate-100">Reviews ({{ reviews().length }})</h2>
         </div>
 
-        <!-- Add Review Form -->
-        <div class="p-8 bg-white dark:bg-slate-900 border border-neutral-100 dark:border-slate-800 rounded-[2.5rem] shadow-xl shadow-neutral-50 dark:shadow-none space-y-6">
+        <!-- Write a Review -->
+        <div class="p-6 bg-white dark:bg-slate-900 border border-neutral-100 dark:border-slate-800 rounded-2xl shadow-xl shadow-neutral-50 dark:shadow-none space-y-4">
           <h4 class="font-bold text-neutral-800 dark:text-slate-200">Share your experience</h4>
-          <div class="space-y-4">
-            <div class="flex items-center gap-4">
-              <span class="text-sm font-bold text-neutral-400 dark:text-slate-500 uppercase tracking-widest">Rate:</span>
-              <div class="flex gap-2">
-                <button *ngFor="let star of [1,2,3,4,5]" (click)="newRating.set(star)" class="text-xl transition-transform hover:scale-110">
-                  <i [class]="star <= newRating() ? 'fas fa-star text-amber-500' : 'far fa-star text-neutral-200 dark:text-slate-700'"></i>
-                </button>
-              </div>
-            </div>
-            <textarea [(ngModel)]="newComment" placeholder="What did you like about this stay?" 
-              class="w-full p-6 bg-neutral-50 dark:bg-slate-800 border border-transparent dark:border-slate-700 rounded-2xl focus:bg-white dark:focus:bg-slate-700 focus:border-indigo-500 transition-all font-medium text-neutral-800 dark:text-slate-200 min-h-[120px] outline-none"></textarea>
-            <div class="flex justify-end">
-              <button (click)="submitReview()" [disabled]="isSubmittingReview() || !newComment().trim()"
-                class="px-8 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100 dark:shadow-none disabled:opacity-50">
-                {{ isSubmittingReview() ? 'Posting...' : 'Post Review' }}
+          <div class="flex items-center gap-3">
+            <span class="text-xs font-bold text-neutral-400 uppercase tracking-widest">Rate:</span>
+            <div class="flex gap-1">
+              <button *ngFor="let star of [1,2,3,4,5]" (click)="newRating.set(star)" class="text-xl transition-transform hover:scale-110">
+                <i [class]="star <= newRating() ? 'fas fa-star text-amber-500' : 'far fa-star text-neutral-200 dark:text-slate-700'"></i>
               </button>
             </div>
           </div>
+          <textarea [(ngModel)]="newComment" placeholder="What did you like about this stay?"
+            class="w-full p-4 bg-neutral-50 dark:bg-slate-800 border border-transparent dark:border-slate-700 rounded-xl focus:bg-white dark:focus:bg-slate-700 focus:border-indigo-500 transition-all font-medium text-neutral-800 dark:text-slate-200 min-h-[100px] outline-none resize-none"></textarea>
+          <div class="flex justify-end">
+            <button (click)="submitReview()" [disabled]="isSubmittingReview() || !newComment().trim()"
+              class="px-6 py-2.5 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100 dark:shadow-none disabled:opacity-50">
+              {{ isSubmittingReview() ? 'Posting...' : 'Post Review' }}
+            </button>
+          </div>
         </div>
 
-        <!-- Review List -->
-        <div class="space-y-8">
-          <div *ngFor="let rev of reviews()" class="flex gap-6 animate-in fade-in slide-in-from-bottom-2">
-            <div class="w-14 h-14 bg-indigo-50 dark:bg-indigo-900/20 rounded-2xl flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-black text-xl shrink-0">
+        <!-- Review list -->
+        <div class="space-y-6">
+          <div *ngFor="let rev of reviews()" class="flex gap-5 animate-in fade-in slide-in-from-bottom-2">
+            <div class="w-12 h-12 bg-indigo-50 dark:bg-indigo-900/20 rounded-2xl flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-black text-xl shrink-0">
               {{ rev.studentName?.charAt(0) || 'S' }}
             </div>
-            <div class="space-y-2">
+            <div class="space-y-1">
               <div class="flex items-center gap-3">
                 <h5 class="font-bold text-neutral-800 dark:text-slate-200">{{ rev.studentName }}</h5>
                 <div class="flex items-center gap-0.5">
-                  <i *ngFor="let s of [1,2,3,4,5]" class="fas fa-star text-[10px]" [class.text-amber-500]="s <= rev.rating" [class.text-neutral-200]="s > rev.rating" [class.dark:text-slate-700]="s > rev.rating"></i>
+                  <i *ngFor="let s of [1,2,3,4,5]" class="fas fa-star text-[10px]"
+                    [class.text-amber-500]="s <= rev.rating"
+                    [class.text-neutral-200]="s > rev.rating"
+                    [class.dark:text-slate-700]="s > rev.rating"></i>
                 </div>
               </div>
-              <p class="text-neutral-600 dark:text-slate-400 leading-relaxed">{{ rev.comment }}</p>
-              <p class="text-[10px] text-neutral-400 dark:text-slate-500 font-bold uppercase tracking-widest pt-1">{{ rev.reviewDate | date:'longDate' }}</p>
+              <p class="text-neutral-600 dark:text-slate-400 leading-relaxed text-sm">{{ rev.comment }}</p>
+              <p class="text-[10px] text-neutral-400 dark:text-slate-500 font-bold uppercase tracking-widest">{{ rev.reviewDate | date:'longDate' }}</p>
             </div>
           </div>
-          
-          <div *ngIf="reviews().length === 0" class="text-center py-10 border-2 border-dashed border-neutral-100 dark:border-slate-800 rounded-[2.5rem]">
-            <p class="text-neutral-400 dark:text-slate-500 font-medium">No reviews yet. Be the first to share your thoughts!</p>
+          <div *ngIf="reviews().length === 0" class="text-center py-10 border-2 border-dashed border-neutral-100 dark:border-slate-800 rounded-2xl">
+            <p class="text-neutral-400 dark:text-slate-500 font-medium">No reviews yet. Be the first!</p>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Sticky Sidebar Widget -->
+    <!-- Right: Booking Sidebar -->
     <div class="relative">
-      <div class="sticky top-24 bg-white dark:bg-slate-900 p-8 rounded-[2.5rem] border border-neutral-100 dark:border-slate-800 shadow-2xl shadow-neutral-200 dark:shadow-none">
-        <div class="flex items-baseline gap-2 mb-8">
-          <span class="text-4xl font-black text-neutral-900 dark:text-slate-100">{{ item.price | number }}</span>
-          <span class="text-neutral-500 dark:text-slate-400 font-bold uppercase tracking-widest text-sm">EGP / Month</span>
+      <div class="sticky top-24 bg-white dark:bg-slate-900 p-8 rounded-[2rem] border border-neutral-100 dark:border-slate-800 shadow-2xl shadow-neutral-200 dark:shadow-none space-y-6">
+
+        <!-- Price -->
+        <div>
+          <span class="text-neutral-400 dark:text-slate-500 text-xs font-bold uppercase tracking-widest">Base monthly price</span>
+          <div class="flex items-baseline gap-2 mt-1">
+            <span class="text-4xl font-black text-neutral-900 dark:text-slate-100">{{ item.baseMonthlyPrice | number }}</span>
+            <span class="text-neutral-500 dark:text-slate-400 font-bold text-sm uppercase">EGP / mo</span>
+          </div>
+          <p *ngIf="item.price !== item.baseMonthlyPrice" class="text-xs text-neutral-400 mt-1">
+            Service price: <span class="font-bold text-neutral-600 dark:text-slate-300">{{ item.price | number }} EGP</span>
+          </p>
         </div>
 
-        <div class="space-y-6 mb-8">
-          <div class="p-4 bg-neutral-50 dark:bg-slate-800 rounded-2xl border border-neutral-100 dark:border-slate-700">
-            <label class="block text-[10px] font-bold text-neutral-400 dark:text-slate-500 uppercase tracking-widest mb-1">Select Room Type</label>
-            <select class="w-full bg-transparent font-bold text-neutral-800 dark:text-slate-200 focus:outline-none">
-              <option *ngFor="let room of item.rooms" [value]="room.id">{{ room.name }} ({{ room.price }} EGP)</option>
-            </select>
+        <!-- Quick Info -->
+        <div class="grid grid-cols-2 gap-3 py-4 border-y border-neutral-100 dark:border-slate-800">
+          <div class="text-center">
+            <p class="text-xl font-black text-neutral-900 dark:text-slate-100">{{ item.numberOfRooms }}</p>
+            <p class="text-[10px] font-bold text-neutral-400 uppercase tracking-wider">Rooms</p>
           </div>
-          
-          <div class="p-4 bg-neutral-50 dark:bg-slate-800 rounded-2xl border border-neutral-100 dark:border-slate-700">
-            <label class="block text-[10px] font-bold text-neutral-400 dark:text-slate-500 uppercase tracking-widest mb-1">Move-in Date</label>
-            <input type="date" class="w-full bg-transparent font-bold text-neutral-800 dark:text-slate-200 focus:outline-none" value="2026-05-01">
-          </div>
-
-          <div class="flex items-center gap-2 p-4 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800/30 rounded-2xl">
-            <i class="fas fa-check-circle text-emerald-500"></i>
-            <span class="text-emerald-700 dark:text-emerald-400 text-xs font-bold">Instantly Bookable</span>
+          <div class="text-center border-l border-neutral-100 dark:border-slate-800">
+            <p class="text-xl font-black text-neutral-900 dark:text-slate-100 capitalize">{{ genderLabel(item.genderAllowed) }}</p>
+            <p class="text-[10px] font-bold text-neutral-400 uppercase tracking-wider">Gender</p>
           </div>
         </div>
 
-        <button [routerLink]="['/student/booking/create', item.id]" class="w-full py-5 bg-indigo-600 text-white rounded-[1.5rem] font-bold text-lg hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-100 dark:shadow-none flex items-center justify-center gap-3 group">
-          Book This Choice
+        <!-- Availability -->
+        <div class="flex items-center gap-2 p-3 rounded-xl"
+          [class.bg-emerald-50]="item.isAvailable"
+          [class.dark:bg-emerald-900\/20]="item.isAvailable"
+          [class.border-emerald-100]="item.isAvailable"
+          [class.bg-neutral-50]="!item.isAvailable"
+          [class.dark:bg-slate-800]="!item.isAvailable">
+          <i [class]="item.isAvailable ? 'fas fa-check-circle text-emerald-500' : 'fas fa-times-circle text-neutral-400'"></i>
+          <span [class]="item.isAvailable ? 'text-emerald-700 dark:text-emerald-400 text-sm font-bold' : 'text-neutral-500 text-sm font-bold'">
+            {{ item.isAvailable ? 'Available Now' : 'Currently Unavailable' }}
+          </span>
+        </div>
+
+        <!-- CTA -->
+        <button *ngIf="item.isAvailable"
+          [routerLink]="['/student/booking/create', item.housingUnitId]"
+          class="w-full py-4 bg-indigo-600 text-white rounded-[1.5rem] font-bold text-base hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-100 dark:shadow-none flex items-center justify-center gap-3 group">
+          Book Now
           <i class="fas fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
         </button>
+        <button *ngIf="!item.isAvailable"
+          disabled
+          class="w-full py-4 bg-neutral-200 dark:bg-slate-800 text-neutral-400 dark:text-slate-600 rounded-[1.5rem] font-bold text-base cursor-not-allowed">
+          Not Available
+        </button>
 
-        <p class="text-center text-neutral-400 dark:text-slate-500 text-xs mt-6 px-4">You won't be charged yet. Your application will be sent to the landlord immediately.</p>
+        <p class="text-center text-neutral-400 dark:text-slate-500 text-xs px-4">
+          You won't be charged yet. Your application will be sent to the landlord.
+        </p>
       </div>
     </div>
   </div>

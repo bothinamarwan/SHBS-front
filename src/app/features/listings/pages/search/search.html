@@ -130,16 +130,22 @@
           <p class="text-neutral-500 text-sm animate-pulse" *ngIf="isLoading()">Searching…</p>
         </div>
 
-        <!-- Sort by -->
-        <div class="flex items-center gap-3" [formGroup]="filterForm">
-          <span class="text-xs font-bold text-neutral-400 uppercase">Sort by:</span>
-          <select formControlName="sortBy"
-            class="bg-white dark:bg-slate-900 border border-neutral-200 dark:border-slate-700 shadow-sm rounded-xl px-4 py-2 text-sm font-semibold text-neutral-700 dark:text-slate-300 focus:ring-2 focus:ring-indigo-500 transition-all cursor-pointer">
-            <option value="recommended">Recommended</option>
-            <option value="price-asc">Price: Low to High</option>
-            <option value="price-desc">Price: High to Low</option>
-            <option value="top-rated">Top Rated</option>
-          </select>
+        <!-- Sort by & Map Button -->
+        <div class="flex items-center gap-3">
+          <a routerLink="/listings/map"
+            class="px-4 py-2 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 text-sm font-bold rounded-xl hover:bg-indigo-100 transition-colors flex items-center gap-2">
+            <i class="fas fa-map-marked-alt"></i> View Map
+          </a>
+          <div class="flex items-center gap-3" [formGroup]="filterForm">
+            <span class="text-xs font-bold text-neutral-400 uppercase">Sort by:</span>
+            <select formControlName="sortBy"
+              class="bg-white dark:bg-slate-900 border border-neutral-200 dark:border-slate-700 shadow-sm rounded-xl px-4 py-2 text-sm font-semibold text-neutral-700 dark:text-slate-300 focus:ring-2 focus:ring-indigo-500 transition-all cursor-pointer">
+              <option value="recommended">Recommended</option>
+              <option value="price-asc">Price: Low to High</option>
+              <option value="price-desc">Price: High to Low</option>
+              <option value="top-rated">Top Rated</option>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -159,22 +165,22 @@
 
           <!-- Image -->
           <div class="relative h-52 overflow-hidden">
-            <img [src]="item.images[0]" [alt]="item.title"
-              class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
+            <img [src]="item.unitImageUrl || 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800'" [alt]="item.title"
+              class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+              onerror="this.src='https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800'">
             <div class="absolute top-4 left-4 flex flex-col gap-1.5">
               <span class="px-2.5 py-1 bg-white/90 backdrop-blur-md rounded-full text-indigo-600 text-[10px] font-extrabold shadow-sm uppercase tracking-wider">
-                {{ item.type }} room
+                {{ item.numberOfRooms }} Rooms
               </span>
-              <span *ngIf="item.gender !== 'mixed'"
-                [class.bg-rose-500]="item.gender === 'female'" [class.bg-indigo-500]="item.gender === 'male'"
+              <span *ngIf="item.genderAllowed !== 0"
+                [class.bg-rose-500]="item.genderAllowed === 2" [class.bg-indigo-500]="item.genderAllowed === 1"
                 class="px-2.5 py-1 text-white text-[10px] font-extrabold rounded-full shadow-sm uppercase tracking-wider">
-                {{ item.gender }} only
+                {{ item.genderAllowed === 1 ? 'Male only' : 'Female only' }}
               </span>
             </div>
-            <!-- Rating badge -->
             <div class="absolute top-4 right-4 flex items-center gap-1 bg-white/90 backdrop-blur-md px-2.5 py-1 rounded-full shadow-sm">
               <i class="fas fa-star text-amber-500 text-xs"></i>
-              <span class="text-amber-700 text-xs font-bold">{{ item.rating }}</span>
+              <span class="text-amber-700 text-xs font-bold">New</span>
             </div>
           </div>
 
@@ -187,29 +193,17 @@
               <i class="fas fa-map-marker-alt text-indigo-400 text-xs"></i> {{ item.area }}, {{ item.city }}
             </p>
 
-            <div class="flex flex-wrap gap-1.5 mb-5">
-              <span *ngFor="let f of item.facilities.slice(0,3)"
-                class="px-2 py-0.5 bg-neutral-50 dark:bg-slate-800 text-neutral-500 dark:text-slate-400 text-[10px] font-bold rounded-md uppercase tracking-tight">
-                {{ f }}
-              </span>
-              <span *ngIf="item.facilities.length > 3"
-                class="px-2 py-0.5 bg-neutral-50 dark:bg-slate-800 text-neutral-400 text-[10px] font-bold rounded-md">
-                +{{ item.facilities.length - 3 }}
-              </span>
-            </div>
-
             <div class="flex items-center justify-between pt-4 border-t border-neutral-50 dark:border-slate-800">
               <div>
                 <span class="text-neutral-400 text-[9px] font-bold uppercase tracking-wider block">Starting from</span>
                 <div class="flex items-baseline gap-1">
-                  <span class="text-xl font-black text-neutral-900 dark:text-slate-100">{{ item.price | number }}</span>
+                  <span class="text-xl font-black text-neutral-900 dark:text-slate-100">{{ item.baseMonthlyPrice || item.price | number }}</span>
                   <span class="text-neutral-400 font-bold text-[10px] uppercase">EGP/mo</span>
                 </div>
               </div>
-              <!-- Login-to-book CTA -->
-              <a routerLink="/auth/login"
+              <a [routerLink]="['/listings/housing', item.housingUnitId]"
                 class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-extrabold rounded-xl transition-colors shadow-md shadow-indigo-100">
-                Book Now
+                View Details
               </a>
             </div>
           </div>

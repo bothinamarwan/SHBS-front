@@ -3,7 +3,8 @@ import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../../../core/services/auth.service';
 import { HousingService } from '../../../../core/services/housing.service';
-import { Housing } from '../../../../core/models/housing.model';
+import { LandlordService } from '../../../../core/services/landlord.service';
+import { HousingUnit } from '../../../../core/models/housing.model';
 
 interface BookingActivity {
   id: string;
@@ -11,7 +12,7 @@ interface BookingActivity {
   property: string;
   room: string;
   date: string;
-  status: 'pending' | 'approved' | 'rejected' | 'cancelled';
+  bookingStatus: number;
 }
 
 @Component({
@@ -23,66 +24,51 @@ interface BookingActivity {
 export class LandlordDashboard implements OnInit {
   private authService = inject(AuthService);
   private housingService = inject(HousingService);
+  private landlordService = inject(LandlordService);
 
   user = this.authService.currentUser$;
   isLoading = signal(true);
 
-  myListings = signal<Housing[]>([]);
+  myListings = signal<HousingUnit[]>([]);
 
   // Aggregate metrics derived from listings
   totalListings = computed(() => this.myListings().length);
-  totalRooms = computed(() => this.myListings().reduce((acc, h) => acc + h.rooms.length, 0));
-  occupiedRooms = computed(() =>
-    this.myListings().reduce((acc, h) =>
-      acc + h.rooms.filter(r => r.availableBeds === 0).length, 0)
-  );
+  totalRooms = computed(() => this.myListings().reduce((acc, h) => acc + h.numberOfRooms, 0));
+  occupiedRooms = computed(() => 0); // Need an API for this
   occupancyRate = computed(() =>
     this.totalRooms() > 0
       ? Math.round((this.occupiedRooms() / this.totalRooms()) * 100)
       : 0
   );
   monthlyEarnings = computed(() =>
-    this.myListings().reduce((acc, h) => acc + h.price, 0) * 0.85
+    this.myListings().reduce((acc, h) => acc + (h.baseMonthlyPrice || h.price), 0) * 0.85
   );
-  pendingBookings = signal(3);
-  activeComplaints = signal(1);
+  pendingBookings = signal(0);
+  activeComplaints = signal(0);
 
-  // Mock recent booking activity
-  recentActivity = signal<BookingActivity[]>([
-    { id: 'BK-001', studentName: 'Ahmed Hassan', property: 'Premium Student Studio', room: 'Master Studio', date: '2026-06-17', status: 'pending' },
-    { id: 'BK-002', studentName: 'Sara Ali', property: 'Cozy Shared Suite', room: 'Twin Room', date: '2026-06-15', status: 'approved' },
-    { id: 'BK-003', studentName: 'Mohamed Khaled', property: 'Modern Student Hub', room: 'Deluxe Single', date: '2026-06-14', status: 'rejected' },
-    { id: 'BK-004', studentName: 'Nour Ibrahim', property: 'Premium Student Studio', room: 'Master Studio', date: '2026-06-12', status: 'approved' },
-  ]);
+  // Recent booking activity from API
+  recentActivity = signal<any[]>([]);
 
-  // Monthly earnings chart data (last 6 months)
-  chartData = [
-    { month: 'Jan', value: 12400 },
-    { month: 'Feb', value: 15800 },
-    { month: 'Mar', value: 14200 },
-    { month: 'Apr', value: 18900 },
-    { month: 'May', value: 17300 },
-    { month: 'Jun', value: 21600 },
-  ];
-
-  chartMax = Math.max(...this.chartData.map(d => d.value));
+  // No chart data — will be empty
+  chartData: { month: string; value: number }[] = [];
+  chartMax = 1;
 
   getBarHeight(value: number): number {
-    return Math.round((value / this.chartMax) * 100);
+    return this.chartMax > 0 ? Math.round((value / this.chartMax) * 100) : 0;
   }
 
   formatCurrency(amount: number): string {
     return new Intl.NumberFormat('en-EG', { style: 'currency', currency: 'EGP', maximumFractionDigits: 0 }).format(amount);
   }
 
-  getStatusClass(status: string): string {
-    const map: Record<string, string> = {
-      pending: 'status-badge--pending',
-      approved: 'status-badge--approved',
-      rejected: 'status-badge--rejected',
-      cancelled: 'status-badge--cancelled'
+  getStatusClass(status: number): string {
+    const map: Record<number, string> = {
+      0: 'status-badge--pending',
+      1: 'status-badge--approved',
+      2: 'status-badge--rejected',
+      3: 'status-badge--cancelled'
     };
-    return map[status] || '';
+    return map[status] || 'status-badge--pending';
   }
 
   currentLandlordId = computed(() => {
@@ -91,17 +77,49 @@ export class LandlordDashboard implements OnInit {
   });
 
   ngOnInit() {
-    // Load landlord's properties (filter by landlordId in a real app)
-    this.housingService.getHousings().subscribe({
+    const user = this.authService.currentUserValue;
+    const landlordId = user?.landlordId || user?.id;
+
+    if (landlordId) {
+      // Load real bookings
+      this.landlordService.getMyBookings().subscribe({
+        next: (bookings: any[]) => {
+          this.recentActivity.set(bookings.slice(0, 5));
+          this.pendingBookings.set(bookings.filter((b: any) => b.bookingStatus === 0).length);
+        },
+        error: () => {}
+      });
+    }
+
+    // Load landlord's own properties
+    this.housingService.getAll().subscribe({
       next: (housings) => {
-        // Use first 3 as "this landlord's" in mock scenario
-        this.myListings.set(housings.slice(0, 3));
+        this.myListings.set(housings);
         this.isLoading.set(false);
       },
       error: () => this.isLoading.set(false)
     });
+
+    // Load account status
+    this.landlordService.getAccountStatus().subscribe({
+      next: (statusData: any) => {
+        // Assume statusData contains a status property
+        if (statusData && statusData.status) {
+          const statusMap: Record<string, 'pending' | 'verified' | 'rejected'> = {
+            'verified': 'verified',
+            'approved': 'verified',
+            'pending': 'pending',
+            'rejected': 'rejected'
+          };
+          this.verificationStatus.set(statusMap[statusData.status.toLowerCase()] || 'pending');
+        } else if (statusData && statusData.isVerified) {
+          this.verificationStatus.set('verified');
+        }
+      },
+      error: (err) => console.error('Failed to get account status', err)
+    });
   }
 
-  // Verification status (mocked — would come from landlord profile)
+  // Verification status from landlord profile
   verificationStatus = signal<'pending' | 'verified' | 'rejected'>('pending');
 }

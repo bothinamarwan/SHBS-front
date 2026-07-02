@@ -1,4 +1,4 @@
-import { Component, signal, computed } from '@angular/core';
+import { Component, signal, computed, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 export type ComplaintStatus = 'open' | 'in-progress' | 'resolved';
@@ -26,39 +26,19 @@ type ComplaintFilter = 'all' | ComplaintStatus;
   imports: [CommonModule],
   templateUrl: './landlord-maintenance.html'
 })
-export class LandlordMaintenance {
+export class LandlordMaintenance implements OnInit {
 
   activeFilter = signal<ComplaintFilter>('all');
 
-  complaints = signal<LandlordComplaint[]>([
-    {
-      complaintId: 'CP-001', studentId: 'S3', studentName: 'Nour Ibrahim',
-      landlordId: 'L1', propertyTitle: 'Premium Student Studio', roomName: 'Master Studio',
-      description: 'The AC unit stopped working last week. The room is extremely hot and uninhabitable during the day.',
-      complaintStatus: 'open', createdDate: '2026-06-14', priority: 'high'
-    },
-    {
-      complaintId: 'CP-002', studentId: 'S5', studentName: 'Layla Mostafa',
-      landlordId: 'L1', propertyTitle: 'Premium Student Studio', roomName: 'Master Studio',
-      description: 'There is a water leak in the bathroom ceiling. Water is dripping onto the floor.',
-      complaintStatus: 'in-progress', createdDate: '2026-06-10', priority: 'high',
-      resolution: 'Plumber scheduled for June 20th. Water temporarily stopped.'
-    },
-    {
-      complaintId: 'CP-003', studentId: 'S2', studentName: 'Sara Ali',
-      landlordId: 'L1', propertyTitle: 'Cozy Shared Suite', roomName: 'Twin Room',
-      description: 'The WiFi router is not working properly. Connection drops every 30 minutes.',
-      complaintStatus: 'in-progress', createdDate: '2026-06-08', priority: 'medium'
-    },
-    {
-      complaintId: 'CP-004', studentId: 'S1', studentName: 'Ahmed Hassan',
-      landlordId: 'L1', propertyTitle: 'Premium Student Studio', roomName: 'Master Studio',
-      description: 'The front door lock is loose and sometimes doesn\'t lock properly from outside.',
-      complaintStatus: 'resolved', createdDate: '2026-05-28',
-      resolution: 'Lock replaced on June 2nd. Issue fully resolved.',
-      priority: 'medium'
-    },
-  ]);
+  // Complaints loaded from API
+  complaints = signal<LandlordComplaint[]>([]);
+  isLoading = signal(true);
+
+  ngOnInit() {
+    // Complaints come from the feedback/support API
+    // TODO: wire to your feedback service when endpoint is ready
+    this.isLoading.set(false);
+  }
 
   filters: { label: string; value: ComplaintFilter }[] = [
     { label: 'All', value: 'all' },

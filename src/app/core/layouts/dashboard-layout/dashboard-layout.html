@@ -31,6 +31,15 @@
       <a routerLink="/student/bookings" routerLinkActive="sidebar-link--active" class="sidebar-link group">
         <i class="fas fa-calendar-check sidebar-icon"></i><span>My Bookings</span>
       </a>
+      <a routerLink="/student/receipts" routerLinkActive="sidebar-link--active" class="sidebar-link group">
+        <i class="fas fa-receipt sidebar-icon"></i><span>My Receipts</span>
+      </a>
+      <a routerLink="/student/payments" routerLinkActive="sidebar-link--active" class="sidebar-link group">
+        <i class="fas fa-credit-card sidebar-icon"></i><span>Payment History</span>
+      </a>
+      <a routerLink="/student/verification" routerLinkActive="sidebar-link--active" class="sidebar-link group">
+        <i class="fas fa-id-card sidebar-icon"></i><span>Verification</span>
+      </a>
       <a routerLink="/student/wishlist" routerLinkActive="sidebar-link--active" class="sidebar-link group">
         <i class="fas fa-heart sidebar-icon"></i><span>Wishlist</span>
       </a>
@@ -59,6 +68,9 @@
       </a>
       <a routerLink="/landlord/listings" routerLinkActive="sidebar-link--active" class="sidebar-link group">
         <i class="fas fa-building sidebar-icon"></i><span>My Listings</span>
+      </a>
+      <a routerLink="/landlord/rooms" routerLinkActive="sidebar-link--active" class="sidebar-link group">
+        <i class="fas fa-door-open sidebar-icon"></i><span>My Rooms</span>
       </a>
 
       <p class="px-3 text-[10px] font-bold text-neutral-400 dark:text-slate-500 uppercase tracking-wider mb-3 mt-6">Bookings</p>
@@ -93,17 +105,20 @@
       <a routerLink="/admin/users" routerLinkActive="sidebar-link--active" class="sidebar-link group">
         <i class="fas fa-users sidebar-icon"></i><span>Users</span>
       </a>
-      <a routerLink="/admin/landlords" routerLinkActive="sidebar-link--active" class="sidebar-link group">
-        <i class="fas fa-id-badge sidebar-icon"></i><span>Landlords</span>
-      </a>
-      <a routerLink="/admin/listings" routerLinkActive="sidebar-link--active" class="sidebar-link group">
-        <i class="fas fa-building sidebar-icon"></i><span>Listings</span>
-      </a>
       <a routerLink="/admin/bookings" routerLinkActive="sidebar-link--active" class="sidebar-link group">
         <i class="fas fa-calendar-check sidebar-icon"></i><span>Bookings</span>
       </a>
+      <a routerLink="/admin/verifications" routerLinkActive="sidebar-link--active" class="sidebar-link group">
+        <i class="fas fa-shield-alt sidebar-icon"></i><span>Verifications</span>
+      </a>
+      <a routerLink="/admin/approvals" routerLinkActive="sidebar-link--active" class="sidebar-link group">
+        <i class="fas fa-check-double sidebar-icon"></i><span>Approvals</span>
+      </a>
       <a routerLink="/admin/complaints" routerLinkActive="sidebar-link--active" class="sidebar-link group">
         <i class="fas fa-exclamation-triangle sidebar-icon"></i><span>Complaints</span>
+      </a>
+      <a routerLink="/admin/reports" routerLinkActive="sidebar-link--active" class="sidebar-link group">
+        <i class="fas fa-chart-pie sidebar-icon"></i><span>Reports</span>
       </a>
     </nav>
 
@@ -152,29 +167,36 @@
         <div class="relative">
           <button (click)="isNotificationsOpen.set(!isNotificationsOpen())" class="topbar-icon-btn relative">
             <i class="fas fa-bell"></i>
-            <span class="notif-dot"></span>
+            <span *ngIf="unreadCount() > 0" class="absolute top-1.5 right-1.5 w-3.5 h-3.5 rounded-full bg-rose-500 border border-white dark:border-slate-900 flex items-center justify-center text-[9px] font-bold text-white">{{ unreadCount() > 9 ? '9+' : unreadCount() }}</span>
+            <span *ngIf="unreadCount() === 0" class="notif-dot"></span>
           </button>
 
           <div *ngIf="isNotificationsOpen()" class="dropdown-panel w-80 right-0 mt-2">
             <div class="flex items-center justify-between px-5 py-3 border-b border-neutral-100 dark:border-slate-800">
               <span class="text-sm font-bold text-neutral-800 dark:text-slate-100">Notifications</span>
-              <button class="text-[11px] font-semibold text-indigo-600 dark:text-indigo-400 hover:underline">Clear all</button>
+              <button (click)="markAllAsRead()" *ngIf="unreadCount() > 0" class="text-[11px] font-semibold text-indigo-600 dark:text-indigo-400 hover:underline">Mark all read</button>
             </div>
             <div class="max-h-72 overflow-y-auto">
-              <div class="px-5 py-4 hover:bg-neutral-50 dark:hover:bg-slate-800/50 cursor-pointer transition-colors border-b border-neutral-50 dark:border-slate-800/50">
+              
+              <div *ngIf="recentNotifications().length === 0" class="px-5 py-6 text-center">
+                <i class="fas fa-bell-slash text-2xl text-neutral-300 dark:text-slate-600 mb-2 block"></i>
+                <p class="text-xs font-medium text-neutral-500 dark:text-slate-400">No new notifications</p>
+              </div>
+
+              <div *ngFor="let n of recentNotifications()" (click)="markAsRead(n.notificationId)" class="px-5 py-4 hover:bg-neutral-50 dark:hover:bg-slate-800/50 cursor-pointer transition-colors border-b border-neutral-50 dark:border-slate-800/50">
                 <div class="flex items-start gap-3">
-                  <div class="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <i class="fas fa-check-circle text-emerald-600 dark:text-emerald-400 text-xs"></i>
+                  <div [class]="getNotificationBg(n.type)" class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <i [class]="getNotificationIcon(n.type)" class="text-xs"></i>
                   </div>
                   <div>
-                    <p class="text-sm font-semibold text-neutral-800 dark:text-slate-100">Booking Request!</p>
-                    <p class="text-xs text-neutral-500 dark:text-slate-400 mt-0.5">A student requested your Sunny Palace unit.</p>
-                    <span class="text-[10px] text-neutral-400 mt-1 block">2 mins ago</span>
+                    <p class="text-sm font-semibold text-neutral-800 dark:text-slate-100">{{ n.title }}</p>
+                    <p class="text-xs text-neutral-500 dark:text-slate-400 mt-0.5 line-clamp-2">{{ n.message }}</p>
+                    <span class="text-[10px] text-neutral-400 mt-1 block">{{ n.createdAt | date:'short' }}</span>
                   </div>
                 </div>
               </div>
             </div>
-            <div class="px-5 py-3 text-center border-t border-neutral-50 dark:border-slate-800">
+            <div (click)="viewAllNotifications()" class="px-5 py-3 text-center border-t border-neutral-50 dark:border-slate-800 bg-neutral-50/50 dark:bg-slate-800/20 hover:bg-neutral-100 dark:hover:bg-slate-800 transition-colors cursor-pointer">
               <span class="text-xs font-bold text-indigo-600 dark:text-indigo-400">View all notifications</span>
             </div>
           </div>

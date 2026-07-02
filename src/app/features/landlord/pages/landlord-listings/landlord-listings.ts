@@ -1,33 +1,42 @@
 import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormArray } from '@angular/forms';
-import { Housing, Room } from '../../../../core/models/housing.model';
+import { RouterModule } from '@angular/router';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import {
+  HousingUnit,
+  GenderAllowed,
+  CreateHousingUnitRequest,
+  UpdateHousingUnitRequest
+} from '../../../../core/models/housing.model';
 import { HousingService } from '../../../../core/services/housing.service';
-import { LandlordService } from '../../../../core/services/landlord.service';
 import { AuthService } from '../../../../core/services/auth.service';
+import * as L from 'leaflet';
 
 @Component({
   selector: 'app-landlord-listings',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule],
   templateUrl: './landlord-listings.html'
 })
 export class LandlordListings implements OnInit {
   private housingService = inject(HousingService);
-  private landlordService = inject(LandlordService);
   private authService = inject(AuthService);
   private fb = inject(FormBuilder);
 
   isLoading = signal(true);
-  listings = signal<Housing[]>([]);
+  listings = signal<HousingUnit[]>([]);
   isModalOpen = signal(false);
-  editingHousing = signal<Housing | null>(null);
+  editingHousing = signal<HousingUnit | null>(null);
   activeTab = signal(0);
   isSaving = signal(false);
   deleteConfirmId = signal<string | null>(null);
+  saveError = signal<string | null>(null);
 
-  // Facilities options
-  facilityOptions = ['WiFi', 'AC', 'Kitchen', 'Laundry', 'Gym', 'Security', 'Parking', 'Elevator', 'Balcony'];
+  // expose enum to template
+  GenderAllowed = GenderAllowed;
+
+  // Tabs
+  tabs = ['General Info', 'Location & Media', 'Rules & Pricing'];
 
   // ── Media state ──
   uploadedImages = signal<{ url: string; name: string; size: string }[]>([]);
@@ -142,194 +151,283 @@ export class LandlordListings implements OnInit {
   }
 
   housingForm: FormGroup = this.fb.group({
-    title: ['', [Validators.required, Validators.minLength(5)]],
-    description: ['', [Validators.required, Validators.minLength(20)]],
-    price: [null, [Validators.required, Validators.min(100)]],
-    type: ['single', Validators.required],
-    gender: ['mixed', Validators.required],
-    area: ['', Validators.required],
-    city: ['', Validators.required],
-    address: [''],
-    facilities: [[]],
-    rules: [''],
-    rooms: this.fb.array([this.createRoomGroup()])
+    title:            ['', [Validators.required, Validators.minLength(5)]],
+    description:      ['', [Validators.required, Validators.minLength(20)]],
+    address:          ['', Validators.required],
+    city:             ['', Validators.required],
+    area:             ['', Validators.required],
+    price:            [null, [Validators.required, Validators.min(0)]],
+    baseMonthlyPrice: [null, [Validators.required, Validators.min(0)]],
+    unitImageUrl:     [''],
+    videoUrl:         [''],
+    genderAllowed:    [GenderAllowed.Mixed, Validators.required],
+    rules:            [''],
+    location:         [''],
+    latitude:         [null],
+    longitude:        [null],
+    numberOfRooms:    [1, [Validators.required, Validators.min(1)]],
+    isAvailable:      [true]
   });
 
-  get roomsArray(): FormArray { return this.housingForm.get('rooms') as FormArray; }
-
-  createRoomGroup(): FormGroup {
-    return this.fb.group({
-      name: ['', Validators.required],
-      roomType: ['single'],
-      numberOfBeds: [1, [Validators.required, Validators.min(1)]],
-      capacity: [1, [Validators.min(1)]],
-      price: [null, [Validators.required, Validators.min(50)]],
-      availabilityStatus: ['available']
-    });
-  }
-
-  addRoom() { this.roomsArray.push(this.createRoomGroup()); }
-
-  removeRoom(index: number) {
-    if (this.roomsArray.length > 1) this.roomsArray.removeAt(index);
-  }
-
-  toggleFacility(facility: string) {
-    const current: string[] = this.housingForm.get('facilities')!.value || [];
-    const updated = current.includes(facility)
-      ? current.filter(f => f !== facility)
-      : [...current, facility];
-    this.housingForm.get('facilities')!.setValue(updated);
-  }
-
-  isFacilitySelected(facility: string): boolean {
-    return (this.housingForm.get('facilities')?.value || []).includes(facility);
-  }
-
-  tabs = ['General Info', 'Rooms', 'Rules & Facilities', 'Media'];
-
   ngOnInit() {
-    this.housingService.getHousings().subscribe({
+    const user = this.authService.currentUserValue;
+    this.landlordId = user?.landlordId || (user as any)?.landLordId || user?.id || '';
+
+    this.housingService.getAll().subscribe({
       next: (all) => {
-        this.listings.set(all.slice(0, 3)); // mock: first 3 belong to this landlord
+        // Only show units that belong to this landlord
+        this.listings.set(all.filter(u => !this.landlordId || u.landLordId === this.landlordId));
         this.isLoading.set(false);
       },
-      error: () => this.isLoading.set(false)
-    });
-  }
-
-  openAddModal() {
-    this.editingHousing.set(null);
-    this.housingForm.reset({
-      type: 'single', gender: 'mixed',
-      facilities: [], rooms: []
-    });
-    // Reset rooms array to one empty room
-    while (this.roomsArray.length) this.roomsArray.removeAt(0);
-    this.roomsArray.push(this.createRoomGroup());
-    this.activeTab.set(0);
-    this.uploadedImages.set([]);
-    this.uploadedVideo.set(null);
-    this.mediaError.set(null);
-    this.isModalOpen.set(true);
-  }
-
-  openEditModal(housing: Housing) {
-    this.editingHousing.set(housing);
-    // Clear rooms array
-    while (this.roomsArray.length) this.roomsArray.removeAt(0);
-    housing.rooms.forEach(room => {
-      this.roomsArray.push(this.fb.group({
-        name: [room.name, Validators.required],
-        roomType: [room.roomType],
-        numberOfBeds: [room.beds, [Validators.required, Validators.min(1)]],
-        capacity: [room.capacity || room.beds, [Validators.min(1)]],
-        price: [room.price, [Validators.required, Validators.min(50)]],
-        availabilityStatus: [room.availabilityStatus || 'available']
-      }));
-    });
-    this.housingForm.patchValue({
-      title: housing.title,
-      description: housing.description,
-      price: housing.price,
-      type: housing.type,
-      gender: housing.gender,
-      area: housing.area,
-      city: housing.city,
-      address: housing.address,
-      facilities: [...housing.facilities],
-      rules: housing.rules?.join(', ') || ''
-    });
-    this.activeTab.set(0);
-    this.uploadedImages.set(
-      (housing.images || []).map(url => ({ url, name: 'existing.jpg', size: '' }))
-    );
-    this.uploadedVideo.set(null);
-    this.mediaError.set(null);
-    this.isModalOpen.set(true);
-  }
-
-  closeModal() { this.isModalOpen.set(false); }
-
-  saveHousing() {
-    if (this.housingForm.invalid) {
-      this.housingForm.markAllAsTouched();
-      return;
-    }
-    this.isSaving.set(true);
-    const formVal = this.housingForm.value;
-    const payload = {
-      ...formVal,
-      rules: formVal.rules ? formVal.rules.split(',').map((r: string) => r.trim()) : [],
-      isAvailable: true,
-      rating: 0,
-      reviewsCount: 0,
-      images: this.uploadedImages().length > 0
-        ? this.uploadedImages().map(i => i.url)
-        : ['https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800'],
-    };
-
-    const editing = this.editingHousing();
-    const obs$ = editing
-      ? this.landlordService.editHousing(editing.id, payload)
-      : this.landlordService.addHousing(payload);
-
-    obs$.subscribe({
-      next: () => {
-        this.isSaving.set(false);
-        this.closeModal();
-        // Update local state
-        if (editing) {
-          this.listings.update(prev =>
-            prev.map(h => h.id === editing.id ? { ...h, ...payload } : h)
-          );
-        } else {
-          const newListing: Housing = {
-            id: 'L' + Date.now(),
-            ...payload,
-            rooms: formVal.rooms.map((r: any, i: number) => ({
-              id: 'r' + Date.now() + i,
-              name: r.name,
-              roomType: r.roomType,
-              beds: r.numberOfBeds,
-              capacity: r.capacity,
-              price: r.price,
-              availableBeds: r.numberOfBeds,
-              availabilityStatus: r.availabilityStatus
-            }))
-          };
-          this.listings.update(prev => [newListing, ...prev]);
-        }
-      },
       error: () => {
-        // Optimistic local update on API failure (mock)
-        this.isSaving.set(false);
-        this.closeModal();
+        this.housingService.getAll().subscribe({
+          next: (all) => { this.listings.set(all); this.isLoading.set(false); },
+          error: () => this.isLoading.set(false)
+        });
+        this.isLoading.set(false);
+      }
+    });
+
+    // Sync input fields with map pin if changed manually
+    this.housingForm.get('latitude')?.valueChanges.subscribe(lat => {
+      if (this.locationMarker && lat) {
+        const lng = this.housingForm.get('longitude')?.value;
+        if (lng) this.locationMarker.setLatLng([lat, lng]);
+      }
+    });
+    this.housingForm.get('longitude')?.valueChanges.subscribe(lng => {
+      if (this.locationMarker && lng) {
+        const lat = this.housingForm.get('latitude')?.value;
+        if (lat) this.locationMarker.setLatLng([lat, lng]);
       }
     });
   }
 
+  private landlordId = '';
+
+  openAddModal() {
+    console.log('openAddModal called');
+    this.editingHousing.set(null);
+    this.housingForm.reset({
+      genderAllowed: GenderAllowed.Mixed,
+      isAvailable: true,
+      numberOfRooms: 1,
+      price: null,
+      baseMonthlyPrice: null,
+      latitude: null,
+      longitude: null
+    });
+    this.activeTab.set(0);
+    this.uploadedImages.set([]);
+    this.uploadedVideo.set(null);
+    this.mediaError.set(null);
+    this.saveError.set(null);
+    this.isModalOpen.set(true);
+  }
+
+  private locationMap: L.Map | null = null;
+  private locationMarker: L.Marker | null = null;
+
+  switchTab(index: number) {
+    this.activeTab.set(index);
+    if (index === 1) {
+      // Small timeout to allow *ngIf to render the DOM elements first
+      setTimeout(() => this.initLocationMap(), 50);
+    }
+  }
+
+  initLocationMap() {
+    if (this.locationMap) {
+      this.locationMap.remove();
+      this.locationMap = null;
+    }
+    const mapEl = document.getElementById('locationPickerMap');
+    if (!mapEl) return;
+
+    // Use existing coords or default to Cairo
+    const lat = this.housingForm.get('latitude')?.value || 30.0444;
+    const lng = this.housingForm.get('longitude')?.value || 31.2357;
+
+    this.locationMap = L.map(mapEl).setView([lat, lng], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '© OpenStreetMap'
+    }).addTo(this.locationMap);
+
+    const iconRetinaUrl  = 'assets/leaflet/marker-icon-2x.png';
+    const iconUrl        = 'assets/leaflet/marker-icon.png';
+    const shadowUrl      = 'assets/leaflet/marker-shadow.png';
+    const DefaultIcon = L.icon({ iconRetinaUrl, iconUrl, shadowUrl, iconSize: [25, 41], iconAnchor: [12, 41] });
+
+    this.locationMarker = L.marker([lat, lng], { draggable: true, icon: DefaultIcon }).addTo(this.locationMap);
+
+    this.locationMarker.on('dragend', () => {
+      const pos = this.locationMarker!.getLatLng();
+      this.housingForm.patchValue({ latitude: pos.lat, longitude: pos.lng }, { emitEvent: false });
+    });
+
+    this.locationMap.on('click', (e: L.LeafletMouseEvent) => {
+      this.locationMarker!.setLatLng(e.latlng);
+      this.housingForm.patchValue({ latitude: e.latlng.lat, longitude: e.latlng.lng }, { emitEvent: false });
+    });
+
+    setTimeout(() => {
+      this.locationMap?.invalidateSize();
+    }, 100);
+  }
+
+  openEditModal(unit: HousingUnit) {
+    this.editingHousing.set(unit);
+    this.housingForm.patchValue({
+      title:            unit.title,
+      description:      unit.description,
+      address:          unit.address,
+      city:             unit.city,
+      area:             unit.area,
+      price:            unit.price,
+      baseMonthlyPrice: unit.baseMonthlyPrice,
+      unitImageUrl:     unit.unitImageUrl,
+      videoUrl:         unit.videoUrl,
+      genderAllowed:    unit.genderAllowed,
+      rules:            unit.rules,
+      location:         unit.location,
+      latitude:         unit.latitude,
+      longitude:        unit.longitude,
+      numberOfRooms:    unit.numberOfRooms,
+      isAvailable:      unit.isAvailable
+    });
+    this.activeTab.set(0);
+    this.uploadedImages.set(
+      unit.unitImageUrl ? [{ url: unit.unitImageUrl, name: 'image', size: '' }] : []
+    );
+    this.uploadedVideo.set(
+      unit.videoUrl ? { url: unit.videoUrl, name: 'video', size: '' } : null
+    );
+    this.mediaError.set(null);
+    this.saveError.set(null);
+    this.isModalOpen.set(true);
+  }
+
+  closeModal() { 
+    this.isModalOpen.set(false); 
+    if (this.locationMap) {
+      this.locationMap.remove();
+      this.locationMap = null;
+    }
+  }
+
+  saveHousing() {
+    if (this.housingForm.invalid) {
+      this.housingForm.markAllAsTouched();
+      this.saveError.set('Please fill out all required fields correctly. Check previous tabs for errors.');
+      return;
+    }
+    this.isSaving.set(true);
+    this.saveError.set(null);
+    const fv = this.housingForm.value;
+
+    // Use uploaded image URL if provided via file, else keep the URL field value
+    const imageUrl = this.uploadedImages().length > 0 && this.uploadedImages()[0].url.startsWith('data:')
+      ? '' // In a real app you'd upload to CDN first; for now skip data URIs
+      : (this.uploadedImages()[0]?.url || fv.unitImageUrl || '');
+    const videoUrl = this.uploadedVideo()?.url.startsWith('blob:')
+      ? ''
+      : (this.uploadedVideo()?.url || fv.videoUrl || '');
+
+    const editing = this.editingHousing();
+
+    if (editing) {
+      const req: UpdateHousingUnitRequest = {
+        housingUnitId:    editing.housingUnitId,
+        title:            fv.title,
+        description:      fv.description,
+        address:          fv.address,
+        city:             fv.city,
+        area:             fv.area,
+        price:            fv.price,
+        baseMonthlyPrice: fv.baseMonthlyPrice,
+        unitImageUrl:     imageUrl,
+        videoUrl:         videoUrl,
+        genderAllowed:    Number(fv.genderAllowed),
+        rules:            fv.rules || '',
+        location:         fv.location || '',
+        latitude:         fv.latitude || 0,
+        longitude:        fv.longitude || 0,
+        numberOfRooms:    fv.numberOfRooms,
+        isAvailable:      fv.isAvailable
+      };
+      this.housingService.update(req).subscribe({
+        next: (updated) => {
+          this.listings.update(prev =>
+            prev.map(h => h.housingUnitId === editing.housingUnitId ? updated : h)
+          );
+          this.isSaving.set(false);
+          this.closeModal();
+        },
+        error: (err) => {
+          this.saveError.set(err?.error?.message || 'Failed to update. Please try again.');
+          this.isSaving.set(false);
+        }
+      });
+    } else {
+      const req: CreateHousingUnitRequest = {
+        landLordId:       this.landlordId,
+        title:            fv.title,
+        description:      fv.description,
+        address:          fv.address,
+        city:             fv.city,
+        area:             fv.area,
+        price:            fv.price,
+        baseMonthlyPrice: fv.baseMonthlyPrice,
+        unitImageUrl:     imageUrl,
+        videoUrl:         videoUrl,
+        genderAllowed:    Number(fv.genderAllowed),
+        rules:            fv.rules || '',
+        location:         fv.location || '',
+        latitude:         fv.latitude || 0,
+        longitude:        fv.longitude || 0,
+        numberOfRooms:    fv.numberOfRooms,
+        isAvailable:      fv.isAvailable
+      };
+      this.housingService.create(req).subscribe({
+        next: (created) => {
+          this.listings.update(prev => [created, ...prev]);
+          this.isSaving.set(false);
+          this.closeModal();
+        },
+        error: (err) => {
+          this.saveError.set(err?.error?.message || 'Failed to create. Please try again.');
+          this.isSaving.set(false);
+        }
+      });
+    }
+  }
+
   confirmDelete(id: string) { this.deleteConfirmId.set(id); }
-  cancelDelete() { this.deleteConfirmId.set(null); }
+  cancelDelete()             { this.deleteConfirmId.set(null); }
 
   deleteHousing(id: string) {
-    this.landlordService.deleteHousing(id).subscribe({
-      complete: () => {},
-      error: () => {}
+    this.housingService.delete(id).subscribe({
+      next: () => {
+        this.listings.update(prev => prev.filter(h => h.housingUnitId !== id));
+      },
+      error: () => {
+        // Optimistic: remove locally even if server fails
+        this.listings.update(prev => prev.filter(h => h.housingUnitId !== id));
+      }
     });
-    // Always update local state
-    this.listings.update(prev => prev.filter(h => h.id !== id));
     this.deleteConfirmId.set(null);
   }
 
-  toggleAvailability(housing: Housing) {
-    this.landlordService.manageAvailability(housing.id, { isAvailable: !housing.isAvailable }).subscribe();
+  toggleAvailability(unit: HousingUnit) {
+    const req: UpdateHousingUnitRequest = {
+      ...unit,
+      housingUnitId: unit.housingUnitId,
+      isAvailable: !unit.isAvailable
+    };
+    this.housingService.update(req).subscribe();
     this.listings.update(prev =>
-      prev.map(h => h.id === housing.id ? { ...h, isAvailable: !h.isAvailable } : h)
+      prev.map(h => h.housingUnitId === unit.housingUnitId ? { ...h, isAvailable: !h.isAvailable } : h)
     );
-  }
-
-  getAvailableBeds(housing: Housing): number {
-    return housing.rooms.reduce((acc, r) => acc + r.availableBeds, 0);
   }
 }

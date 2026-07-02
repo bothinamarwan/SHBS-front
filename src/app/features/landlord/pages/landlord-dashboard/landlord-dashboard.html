@@ -202,8 +202,8 @@
           </td>
           <td class="py-3 pr-4 text-neutral-500 dark:text-slate-400 hidden lg:table-cell">{{ activity.date }}</td>
           <td class="py-3">
-            <span class="status-badge" [ngClass]="getStatusClass(activity.status)">
-              {{ activity.status | titlecase }}
+            <span class="status-badge" [ngClass]="getStatusClass(activity.bookingStatus)">
+              {{ activity.bookingStatus === 0 ? 'Pending' : (activity.bookingStatus === 1 ? 'Approved' : (activity.bookingStatus === 2 ? 'Rejected' : 'Cancelled')) }}
             </span>
           </td>
         </tr>

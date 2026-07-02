@@ -1,0 +1,59 @@
+<div class="min-h-[80vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 animate-in fade-in zoom-in-95 duration-500">
+  <div class="max-w-md w-full space-y-8 bg-white dark:bg-slate-900 p-10 rounded-[2.5rem] border border-neutral-100 dark:border-slate-800 shadow-2xl relative overflow-hidden">
+    
+    <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-indigo-500 to-blue-500"></div>
+
+    <div class="text-center">
+      <div class="w-16 h-16 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-2xl flex items-center justify-center mx-auto mb-6">
+        <i class="fas fa-credit-card text-2xl"></i>
+      </div>
+      <h2 class="text-3xl font-black text-neutral-800 dark:text-slate-100 tracking-tight">Checkout</h2>
+      <p class="mt-2 text-sm text-neutral-500 dark:text-slate-400">Complete your payment for booking <br/><span class="font-bold text-neutral-800 dark:text-slate-300">{{ bookingId() }}</span></p>
+    </div>
+
+    <!-- Error Alert -->
+    <div *ngIf="errorMessage()" class="bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 p-4 rounded-2xl text-sm flex items-start gap-3">
+      <i class="fas fa-exclamation-circle mt-0.5"></i>
+      <p class="font-medium">{{ errorMessage() }}</p>
+    </div>
+
+    <form [formGroup]="paymentForm" (ngSubmit)="submitPayment()" class="space-y-6">
+      <div class="space-y-4">
+        
+        <div>
+          <label class="block text-sm font-bold text-neutral-700 dark:text-slate-300 mb-1.5">Name on Card</label>
+          <input type="text" formControlName="customerName" class="w-full px-4 py-3 bg-neutral-50 dark:bg-slate-800/50 border border-neutral-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all dark:text-slate-100">
+          <p *ngIf="paymentForm.get('customerName')?.touched && paymentForm.get('customerName')?.invalid" class="text-xs text-rose-500 mt-1 font-medium">Name is required</p>
+        </div>
+
+        <div>
+          <label class="block text-sm font-bold text-neutral-700 dark:text-slate-300 mb-1.5">Email Address</label>
+          <input type="email" formControlName="customerEmail" class="w-full px-4 py-3 bg-neutral-50 dark:bg-slate-800/50 border border-neutral-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all dark:text-slate-100">
+          <p *ngIf="paymentForm.get('customerEmail')?.touched && paymentForm.get('customerEmail')?.invalid" class="text-xs text-rose-500 mt-1 font-medium">Valid email is required</p>
+        </div>
+
+        <div>
+          <label class="block text-sm font-bold text-neutral-700 dark:text-slate-300 mb-1.5">Phone Number</label>
+          <input type="tel" formControlName="customerPhone" class="w-full px-4 py-3 bg-neutral-50 dark:bg-slate-800/50 border border-neutral-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all dark:text-slate-100">
+          <p *ngIf="paymentForm.get('customerPhone')?.touched && paymentForm.get('customerPhone')?.invalid" class="text-xs text-rose-500 mt-1 font-medium">Phone number is required</p>
+        </div>
+
+      </div>
+
+      <div class="pt-4 border-t border-neutral-100 dark:border-slate-800">
+        <button type="submit" [disabled]="isProcessing()" class="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-black text-lg transition-all shadow-lg shadow-indigo-200 dark:shadow-none flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed">
+          <span *ngIf="!isProcessing()">Proceed to Pay</span>
+          <ng-container *ngIf="isProcessing()">
+            <i class="fas fa-circle-notch fa-spin"></i> Processing...
+          </ng-container>
+        </button>
+      </div>
+
+    </form>
+    
+    <div class="text-center">
+      <p class="text-xs text-neutral-400">Payments are processed securely via our gateway.</p>
+    </div>
+
+  </div>
+</div>

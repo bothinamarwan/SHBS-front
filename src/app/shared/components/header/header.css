@@ -227,6 +227,7 @@
   top: 72px;
   left: 16px;
   right: 16px;
+  pointer-events: auto;
   background: rgba(255, 255, 255, 0.96);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);

@@ -46,6 +46,13 @@
         <p>Sign up to get started — it's completely free</p>
       </div>
 
+      @if (errorMessage()) {
+        <div class="global-alert error-alert">
+          <span class="material-symbols-outlined">error</span>
+          <span>{{ errorMessage() }}</span>
+        </div>
+      }
+
       <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="auth-form" novalidate>
 
         <!-- Role Selector -->
@@ -115,6 +122,7 @@
               <span class="material-symbols-outlined">error</span>
               @if (email?.errors?.['required']) { Email is required. }
               @if (email?.errors?.['email']) { Enter a valid email address. }
+              @if (email?.errors?.['emailTaken']) { This email is already registered. }
             </span>
           }
         </div>
@@ -136,7 +144,7 @@
             <span class="field-error">
               <span class="material-symbols-outlined">error</span>
               @if (phone?.errors?.['required']) { Phone number is required. }
-              @if (phone?.errors?.['pattern']) { Enter a valid phone number (10–15 digits). }
+              @if (phone?.errors?.['pattern']) { Enter a valid Egyptian mobile number (11 digits, e.g. 01012345678). }
             </span>
           }
         </div>
@@ -170,7 +178,9 @@
             <span class="field-error">
               <span class="material-symbols-outlined">error</span>
               @if (password?.errors?.['required']) { Password is required. }
-              @if (password?.errors?.['minlength']) { Password must be at least 8 characters. }
+              @else if (password?.errors?.['minlength']) { Password must be at least 8 characters. }
+              @else if (password?.errors?.['pattern']) { Must contain uppercase, lowercase, number, and special character. }
+              @else if (password?.errors?.['serverError']) { {{ password?.errors?.['serverError'] }} }
             </span>
           }
         </div>
@@ -195,6 +205,15 @@
               @if (confirmPassword?.errors?.['mismatch']) { Passwords do not match. }
             </span>
           }
+        </div>
+
+        <!-- Profile Image -->
+        <div class="field-group">
+          <label for="profile-image">Profile Image (Optional)</label>
+          <div class="input-wrapper" style="padding-top: 8px; padding-bottom: 8px;">
+            <span class="material-symbols-outlined input-icon">account_circle</span>
+            <input id="profile-image" type="file" accept="image/*" (change)="onFileSelected($event)" style="padding-left: 2.5rem; width: 100%; border: none; background: transparent; cursor: pointer; color: #5a6b8c;" />
+          </div>
         </div>
 
         <!-- Student Specific Fields -->
@@ -353,7 +372,7 @@
 
         <!-- Social Buttons -->
         <div class="social-buttons">
-          <button type="button" class="btn-social" id="google-register">
+          <button type="button" class="btn-social" id="google-register" (click)="onGoogleLogin()">
             <svg width="20" height="20" viewBox="0 0 24 24">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
               <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
