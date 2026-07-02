@@ -127,9 +127,12 @@ export class AuthService {
     // Decode the JWT payload (no verify needed — server already verified)
     try {
       const payload = JSON.parse(atob(accessToken.split('.')[1]));
-      const roles: string[] = payload['role'] ?? payload['roles'] ?? [];
+      // .NET backends use the long WS-Federation claim URI for roles
+      const MS_ROLE_CLAIM = 'http://schemas.microsoft.com/ws/2008/06/identity/claims/role';
+      const rawRole = payload[MS_ROLE_CLAIM] ?? payload['role'] ?? payload['roles'] ?? null;
+      const roles: string[] = Array.isArray(rawRole) ? rawRole : rawRole ? [rawRole] : [];
       const email: string = payload['email'] ?? payload['sub'] ?? '';
-      const id: string = payload['nameid'] ?? payload['sub'] ?? '';
+      const id: string = payload['UserId'] ?? payload['nameid'] ?? payload['sub'] ?? '';
 
       const mappedUser: User = {
         id,
