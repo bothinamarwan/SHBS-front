@@ -95,7 +95,7 @@ export class AuthService {
   initiateGoogleLogin(): void {
     // Use the real backend URL directly (bypasses Angular proxy — needed for the
     // OAuth redirect chain to stay on the same origin as the backend).
-    window.location.href = 'http://unistay.tryasp.net/api/v1/Account/google-challenge';
+    window.location.href = 'https://unistay.tryasp.net/api/v1/Account/google-challenge';
   }
 
   /**

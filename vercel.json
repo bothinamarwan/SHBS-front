@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "http://unistay.tryasp.net/api/:path*"
+      "destination": "https://unistay.tryasp.net/api/:path*"
     },
     {
       "source": "/(.*)",
