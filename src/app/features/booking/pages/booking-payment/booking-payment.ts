@@ -4,6 +4,7 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angula
 import { ActivatedRoute, Router } from '@angular/router';
 import { BookingPaymentService } from '../../../../core/services/booking-payment.service';
 import { AuthService } from '../../../../core/services/auth.service';
+import { BookingPaymentResponse } from '../../../../core/models/booking-payment.model';
 
 @Component({
   selector: 'app-booking-payment',
@@ -43,7 +44,8 @@ export class BookingPaymentPage implements OnInit {
     if (user) {
       this.paymentForm.patchValue({
         customerName: user.name || '',
-        customerEmail: user.email || ''
+        customerEmail: user.email || '',
+        customerPhone: user.phone || ''
       });
     }
   }
@@ -63,15 +65,12 @@ export class BookingPaymentPage implements OnInit {
     };
 
     this.bookingPaymentService.initiate(req).subscribe({
-      next: (response) => {
-        if (response.paymentUrl) {
+      next: (response: BookingPaymentResponse) => {
+        if (response.success && response.paymentUrl) {
           window.location.href = response.paymentUrl;
         } else {
-          // If no redirect URL is provided, perhaps just simulate success for now
-          // or navigate to callback manually (depends on backend logic)
-          this.router.navigate(['/student/booking/payment-callback'], {
-            queryParams: { orderId: 'manual', transactionId: 'manual', isSuccess: true }
-          });
+          this.errorMessage.set(response.message || 'Failed to initiate payment. Please try again.');
+          this.isProcessing.set(false);
         }
       },
       error: (err) => {

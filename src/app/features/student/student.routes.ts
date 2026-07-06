@@ -65,6 +65,10 @@ export const studentRoutes: Routes = [
       {
         path: 'payments',
         loadComponent: () => import('../payments/pages/payment-history/payment-history').then(m => m.PaymentHistoryPage)
+      },
+      {
+        path: 'landlord-profile/:id',
+        loadComponent: () => import('./pages/landlord-profile/landlord-profile').then(m => m.LandlordProfile)
       }
     ]
   }

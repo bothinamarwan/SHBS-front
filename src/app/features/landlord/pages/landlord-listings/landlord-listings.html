@@ -75,7 +75,13 @@
       </div>
 
       <!-- Actions -->
-      <div class="flex items-center gap-2 mt-auto pt-4 border-t border-neutral-50 dark:border-slate-800">
+      <div class="flex items-center gap-2 mt-auto pt-4 border-t border-neutral-50 dark:border-slate-800 flex-wrap">
+        <!-- Manage Rooms & Beds -->
+        <a [routerLink]="['/landlord/listings', housing.housingUnitId, 'manage']"
+          (click)="$event.stopPropagation()"
+          class="w-full text-center text-xs font-bold py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition-colors flex items-center justify-center gap-1 mb-1">
+          <i class="fas fa-th-large"></i> Manage Rooms &amp; Beds
+        </a>
         <button (click)="$event.stopPropagation(); openEditModal(housing)"
           class="flex-1 text-xs font-semibold py-2 rounded-lg bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-colors">
           <i class="fas fa-edit mr-1"></i> Edit
@@ -314,135 +320,124 @@
         </div>
       </div>
 
-      <!-- ── Tab 3: Media ── -->
+      <!-- ── Tab 3: Rooms & Beds ── -->
       <div *ngIf="activeTab() === 3" class="space-y-5">
-
-        <!-- Error message -->
-        <div *ngIf="mediaError()" class="flex items-center gap-2 bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 text-xs font-semibold px-4 py-2.5 rounded-xl border border-rose-200 dark:border-rose-700/50">
-          <i class="fas fa-exclamation-circle"></i>
-          {{ mediaError() }}
-          <button type="button" (click)="mediaError.set(null)" class="ml-auto text-rose-400 hover:text-rose-600">
-            <i class="fas fa-times"></i>
-          </button>
-        </div>
-
-        <!-- ── Images Section ── -->
-        <div>
-          <div class="flex items-center justify-between mb-2">
-            <label class="lc-label mb-0">Property Images</label>
-            <span class="text-xs text-neutral-400">{{ uploadedImages().length }}/{{ MAX_IMAGES }} uploaded</span>
-          </div>
-
-          <!-- Drag & Drop Zone -->
-          <div *ngIf="uploadedImages().length < MAX_IMAGES"
-            class="upload-slot mb-3 transition-all duration-200"
-            [class.uploaded]="isDragOver()"
-            (dragover)="onDragOver($event)"
-            (dragleave)="onDragLeave()"
-            (drop)="onDrop($event)">
-            <input type="file" id="imageUpload" multiple accept=".jpg,.jpeg,.png,.webp"
-              class="hidden" (change)="onImageFilesSelected($event)" />
-            <label for="imageUpload" class="cursor-pointer flex flex-col items-center gap-2 py-2">
-              <div class="w-12 h-12 rounded-full bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center">
-                <i class="fas fa-images text-indigo-400 text-xl"></i>
-              </div>
-              <p class="text-sm font-semibold text-neutral-700 dark:text-slate-200">
-                {{ isDragOver() ? 'Drop images here!' : 'Drag & drop or click to upload' }}
-              </p>
-              <p class="text-xs text-neutral-400">JPG, PNG, WebP — up to {{ MAX_FILE_SIZE_MB }}MB each · Max {{ MAX_IMAGES }} photos</p>
-            </label>
-          </div>
-
-          <!-- Image Preview Grid -->
-          <div *ngIf="uploadedImages().length > 0"
-            class="grid grid-cols-2 sm:grid-cols-3 gap-3">
-            <div *ngFor="let img of uploadedImages(); let i = index"
-              class="relative group rounded-xl overflow-hidden aspect-video bg-neutral-100 dark:bg-slate-800 border border-neutral-100 dark:border-slate-700 shadow-sm">
-
-              <!-- Image -->
-              <img [src]="img.url" [alt]="img.name"
-                class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
-
-              <!-- First image badge -->
-              <span *ngIf="i === 0"
-                class="absolute top-2 left-2 text-[10px] font-bold bg-indigo-600 text-white px-2 py-0.5 rounded-full">
-                Cover
-              </span>
-
-              <!-- File info overlay -->
-              <div class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/70 to-transparent px-2 py-1.5">
-                <p class="text-white text-[10px] font-medium truncate">{{ img.name }}</p>
-                <p class="text-white/60 text-[9px]">{{ img.size }}</p>
-              </div>
-
-              <!-- Action bar (shown on hover) -->
-              <div class="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button type="button" (click)="moveImage(i, i - 1)" *ngIf="i > 0"
-                  title="Move left"
-                  class="w-6 h-6 rounded-full bg-black/50 backdrop-blur-sm text-white flex items-center justify-center hover:bg-black/70 transition-colors">
-                  <i class="fas fa-arrow-left text-[9px]"></i>
-                </button>
-                <button type="button" (click)="moveImage(i, i + 1)" *ngIf="i < uploadedImages().length - 1"
-                  title="Move right"
-                  class="w-6 h-6 rounded-full bg-black/50 backdrop-blur-sm text-white flex items-center justify-center hover:bg-black/70 transition-colors">
-                  <i class="fas fa-arrow-right text-[9px]"></i>
-                </button>
-                <button type="button" (click)="removeImage(i)"
-                  title="Remove image"
-                  class="w-6 h-6 rounded-full bg-rose-500/80 backdrop-blur-sm text-white flex items-center justify-center hover:bg-rose-600 transition-colors">
-                  <i class="fas fa-times text-[9px]"></i>
-                </button>
-              </div>
+        
+        <!-- When CREATING a new property, show the auto-create builder -->
+        <ng-container *ngIf="!editingHousing()">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-sm font-bold text-neutral-800 dark:text-slate-100">Configure Rooms &amp; Beds</p>
+              <p class="text-xs text-neutral-400 mt-0.5">Optional: set up rooms now, or do it later from "Manage Rooms &amp; Beds".</p>
             </div>
-
-            <!-- Add more slot -->
-            <label *ngIf="uploadedImages().length < MAX_IMAGES" for="imageUpload"
-              class="rounded-xl border-2 border-dashed border-indigo-200 dark:border-indigo-700/50 flex flex-col items-center justify-center gap-1 cursor-pointer aspect-video hover:border-indigo-400 hover:bg-indigo-50/30 dark:hover:bg-indigo-900/10 transition-all">
-              <i class="fas fa-plus text-indigo-400 text-lg"></i>
-              <span class="text-[10px] font-semibold text-indigo-400">Add More</span>
-            </label>
-          </div>
-        </div>
-
-        <!-- Divider -->
-        <div class="border-t border-neutral-100 dark:border-slate-700 pt-5">
-          <div class="flex items-center justify-between mb-2">
-            <label class="lc-label mb-0">
-              Property Video <span class="text-neutral-400 font-normal">(Optional)</span>
-            </label>
-            <span *ngIf="uploadedVideo()" class="text-xs text-emerald-500 font-semibold">✓ Video added</span>
+            <button type="button" (click)="addRoomConfig()"
+              class="text-xs font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 hover:bg-indigo-100 px-4 py-2 rounded-xl flex items-center gap-1.5 transition-colors">
+              <i class="fas fa-plus"></i> Add Room
+            </button>
           </div>
 
-          <!-- Video preview -->
-          <div *ngIf="uploadedVideo() as vid" class="relative rounded-xl overflow-hidden bg-black">
-            <video [src]="vid.url" controls class="w-full max-h-52 object-contain"></video>
-            <div class="flex items-center gap-3 px-4 py-2.5 bg-neutral-900/90">
-              <i class="fas fa-film text-indigo-400 text-xs"></i>
-              <div class="flex-1 min-w-0">
-                <p class="text-white text-xs font-semibold truncate">{{ vid.name }}</p>
-                <p class="text-white/50 text-[10px]">{{ vid.size }}</p>
-              </div>
-              <button type="button" (click)="removeVideo()"
-                class="text-rose-400 hover:text-rose-300 transition-colors flex-shrink-0">
-                <i class="fas fa-trash text-xs"></i>
+          <!-- Empty state -->
+          <div *ngIf="roomConfigs().length === 0"
+            class="flex flex-col items-center justify-center py-10 gap-3 bg-neutral-50 dark:bg-slate-800 rounded-2xl border border-dashed border-neutral-200 dark:border-slate-700">
+            <div class="w-14 h-14 rounded-2xl bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center">
+              <i class="fas fa-door-open text-2xl text-indigo-300 dark:text-indigo-600"></i>
+            </div>
+            <p class="text-sm font-semibold text-neutral-500 dark:text-slate-400">No rooms configured yet</p>
+            <p class="text-xs text-neutral-400 text-center max-w-xs">
+              Click "Add Room" to set up rooms now, or save the property and manage rooms later.
+            </p>
+            <button type="button" (click)="addRoomConfig()"
+              class="btn-primary text-xs mt-1">
+              <i class="fas fa-plus text-xs"></i> Add First Room
+            </button>
+          </div>
+
+          <!-- Room configs list -->
+          <div *ngFor="let rc of roomConfigs(); let i = index"
+            class="bg-neutral-50 dark:bg-slate-800 rounded-2xl p-4 border border-neutral-200 dark:border-slate-700 space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="text-sm font-bold text-neutral-800 dark:text-slate-100">
+                <i class="fas fa-door-open mr-2 text-indigo-400"></i>Room {{ i + 1 }}
+              </span>
+              <button type="button" (click)="removeRoomConfig(i)"
+                class="w-7 h-7 rounded-lg bg-rose-50 dark:bg-rose-900/20 text-rose-500 hover:bg-rose-100 flex items-center justify-center transition-colors">
+                <i class="fas fa-times text-xs"></i>
               </button>
             </div>
-          </div>
 
-          <!-- Video upload zone -->
-          <div *ngIf="!uploadedVideo()" class="upload-slot">
-            <input type="file" id="videoUpload" accept="video/mp4,video/webm,video/ogg"
-              class="hidden" (change)="onVideoFileSelected($event)" />
-            <label for="videoUpload" class="cursor-pointer flex flex-col items-center gap-2 py-2">
-              <div class="w-12 h-12 rounded-full bg-violet-50 dark:bg-violet-900/20 flex items-center justify-center">
-                <i class="fas fa-video text-violet-400 text-xl"></i>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="lc-label">Room Type</label>
+                <select [value]="rc.roomType" (change)="updateRoomConfig(i, 'roomType', $any($event.target).value)" class="lc-select">
+                  <option [value]="0">Single</option>
+                  <option [value]="1">Shared</option>
+                </select>
               </div>
-              <p class="text-sm font-semibold text-neutral-700 dark:text-slate-200">Upload a tour video</p>
-              <p class="text-xs text-neutral-400">MP4, WebM, OGG — up to 60MB · Helps students get a better feel</p>
-            </label>
-          </div>
-        </div>
+              <div>
+                <label class="lc-label">Price (EGP/mo)</label>
+                <input type="number" [value]="rc.price" (input)="updateRoomConfig(i, 'price', $any($event.target).value)"
+                  min="0" class="lc-input" placeholder="0" />
+              </div>
+            </div>
 
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="lc-label">Number of Beds</label>
+                <input type="number" [value]="rc.numberOfBeds" (input)="updateRoomConfig(i, 'numberOfBeds', $any($event.target).value)"
+                  min="1" class="lc-input" />
+              </div>
+              <div>
+                <label class="lc-label">Capacity (People)</label>
+                <input type="number" [value]="rc.capacity" (input)="updateRoomConfig(i, 'capacity', $any($event.target).value)"
+                  min="1" class="lc-input" />
+              </div>
+            </div>
+            <p class="text-xs text-slate-500 mt-2">Backend will auto-create beds and calculate price (room price / number of beds)</p>
+
+            <!-- Room summary chip -->
+            <div class="flex flex-wrap gap-2 pt-1">
+              <span class="text-[10px] font-bold bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 px-2 py-0.5 rounded-full">
+                {{ rc.roomType === 0 ? 'Single' : 'Shared' }}
+              </span>
+              <span class="text-[10px] font-bold bg-neutral-200 dark:bg-slate-700 text-neutral-600 dark:text-slate-300 px-2 py-0.5 rounded-full">
+                {{ rc.numberOfBeds }} bed(s) · Cap {{ rc.capacity }}
+              </span>
+              <span class="text-[10px] font-bold bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 px-2 py-0.5 rounded-full">
+                {{ rc.price | number }} EGP/mo
+              </span>
+            </div>
+          </div>
+
+          <!-- Summary -->
+          <div *ngIf="roomConfigs().length > 0"
+            class="flex items-center gap-4 p-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl border border-indigo-100 dark:border-indigo-700/30">
+            <i class="fas fa-info-circle text-indigo-500"></i>
+            <p class="text-xs text-indigo-700 dark:text-indigo-300 font-semibold">
+              {{ roomConfigs().length }} room(s) will be created and linked to this property after saving.
+            </p>
+          </div>
+        </ng-container>
+
+        <!-- When EDITING an existing property, prompt them to use the Property Manager -->
+        <ng-container *ngIf="editingHousing() as unit">
+          <div class="flex flex-col items-center justify-center py-10 px-4 gap-4 bg-indigo-50/50 dark:bg-slate-800 rounded-2xl border border-indigo-100 dark:border-slate-700">
+            <div class="w-16 h-16 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center">
+              <i class="fas fa-bed text-2xl text-indigo-500"></i>
+            </div>
+            <div class="text-center max-w-sm">
+              <h4 class="text-lg font-bold text-neutral-800 dark:text-slate-100">Manage Rooms & Beds</h4>
+              <p class="text-sm text-neutral-500 dark:text-slate-400 mt-2">
+                This property has already been created. To manage its existing rooms, toggle their availability, or add individual beds, please use the dedicated Property Manager.
+              </p>
+            </div>
+            <button type="button"
+              [routerLink]="['/landlord/listings', unit.housingUnitId || $any(unit).HousingUnitId || $any(unit).Id, 'manage']"
+              (click)="closeModal()"
+              class="btn-primary mt-2">
+              Go to Property Manager <i class="fas fa-arrow-right ml-2 text-xs"></i>
+            </button>
+          </div>
+        </ng-container>
       </div>
 
     </form>

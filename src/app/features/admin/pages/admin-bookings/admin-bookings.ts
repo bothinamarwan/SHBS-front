@@ -2,6 +2,8 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { BookingService } from '../../../../core/services/booking.service';
 import { Booking } from '../../../../core/models/booking.model';
+import { LandlordService } from '../../../../core/services/landlord.service';
+import { StudentService } from '../../../../core/services/student.service';
 import { finalize } from 'rxjs/operators';
 
 @Component({
@@ -12,6 +14,8 @@ import { finalize } from 'rxjs/operators';
 })
 export class AdminBookings implements OnInit {
   private bookingService = inject(BookingService);
+  private landlordService = inject(LandlordService);
+  private studentService = inject(StudentService);
 
   bookings = signal<Booking[]>([]);
   isLoading = signal(true);
@@ -29,17 +33,54 @@ export class AdminBookings implements OnInit {
     this.bookingService.getAll().pipe(
       finalize(() => this.isLoading.set(false))
     ).subscribe({
-      next: (res) => {
+      next: async (res) => {
+        let bookings: Booking[] = [];
         if (res && res.records) {
-          this.bookings.set(res.records);
+          bookings = res.records;
           this.totalRecords.set(res.totalRecords || res.records.length);
         } else if (Array.isArray(res)) {
-          this.bookings.set(res);
+          bookings = res;
           this.totalRecords.set(res.length);
         }
+
+        // Enrich bookings with landlord and student names
+        const enrichedBookings = await this.enrichBookingsWithNames(bookings);
+        this.bookings.set(enrichedBookings);
       },
       error: (err) => console.error('Error fetching bookings', err)
     });
+  }
+
+  private async enrichBookingsWithNames(bookings: Booking[]): Promise<Booking[]> {
+    const enriched = await Promise.all(bookings.map(async (booking) => {
+      // Fetch landlord name if landlordId exists
+      if (booking.landlordId && !booking.landlordName) {
+        try {
+          const landlord = await this.landlordService.getById(booking.landlordId).toPromise();
+          if (landlord) {
+            booking.landlordName = landlord.fullName;
+          }
+        } catch (e) {
+          console.error('Failed to fetch landlord name for booking:', booking.bookingId, e);
+        }
+      }
+
+      // Fetch student name if studentId exists
+      if (booking.studentId && !booking.studentName) {
+        try {
+          const student = await this.studentService.getStudentById(booking.studentId).toPromise();
+          if (student) {
+            booking.studentName = student.fullName;
+          }
+        } catch (e) {
+          console.error('Failed to fetch student name for booking:', booking.bookingId, e);
+        }
+      }
+
+      return booking;
+    }));
+
+    return enriched;
   }
 
   updateStatus(booking: Booking, status: number) {

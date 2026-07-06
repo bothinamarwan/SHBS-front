@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Room, CreateRoomRequest, UpdateRoomRequest } from '../models/room.model';
 
@@ -17,6 +17,11 @@ export class RoomService {
 
   getRoomById(id: string): Observable<Room> {
     return this.http.get<Room>(`${this.baseUrl}/GetById/${id}`);
+  }
+
+  getRoomsByHousingUnit(housingUnitId: string): Observable<Room[]> {
+    const params = new HttpParams().set('housingUnitId', housingUnitId);
+    return this.http.get<Room[]>(`${this.baseUrl}/GetAll`, { params });
   }
 
   createRoom(request: CreateRoomRequest): Observable<any> {

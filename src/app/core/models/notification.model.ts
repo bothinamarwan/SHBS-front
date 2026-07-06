@@ -3,7 +3,8 @@ export enum NotificationType {
   Booking = 1,
   Payment = 2,
   System = 3,
-  Admin = 4
+  Admin = 4,
+  Chat = 5
 }
 
 export interface Notification {

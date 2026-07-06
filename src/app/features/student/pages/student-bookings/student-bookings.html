@@ -1,1 +1,94 @@
-<p>student-bookings works!</p>
+<div class="mb-8">
+  <h1 class="text-2xl font-extrabold text-slate-900 dark:text-slate-100">My Bookings</h1>
+  <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
+    View and manage your accommodation bookings
+  </p>
+</div>
+
+<!-- Loading State -->
+<div *ngIf="isLoading()" class="flex flex-col items-center justify-center py-20">
+  <div class="w-10 h-10 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mb-4"></div>
+  <p class="text-sm text-slate-500 font-medium">Loading bookings...</p>
+</div>
+
+<!-- Main Content -->
+<div *ngIf="!isLoading()">
+
+  <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden mb-6">
+    <!-- Header -->
+    <div class="p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <i class="fas fa-calendar-check text-slate-400"></i>
+        <h2 class="font-bold text-slate-800 dark:text-slate-200">My Bookings</h2>
+        <span class="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-bold px-2.5 py-0.5 rounded-full">
+          {{ bookings().length }}
+        </span>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800">
+            <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Booking ID</th>
+            <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Dates</th>
+            <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Details</th>
+            <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-200 dark:divide-slate-800">
+
+          <tr *ngIf="bookings().length === 0">
+            <td colspan="4" class="px-6 py-10 text-center">
+              <div class="flex flex-col items-center justify-center text-slate-400">
+                <i class="fas fa-inbox text-3xl mb-3"></i>
+                <p class="text-sm font-medium">No bookings found</p>
+              </div>
+            </td>
+          </tr>
+
+          <tr *ngFor="let b of bookings()" class="hover:bg-slate-50 dark:hover:bg-slate-800/20 transition-colors">
+            <td class="px-6 py-4">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
+                  <i class="fas fa-file-contract"></i>
+                </div>
+                <div>
+                  <div class="font-bold text-slate-800 dark:text-slate-200 text-sm font-mono truncate max-w-[120px]" title="{{ b.bookingId }}">
+                    {{ b.bookingId.split('-')[0] }}...
+                  </div>
+                  <div class="text-xs text-slate-500 mt-0.5">Type: {{ b.bookingType }}</div>
+                </div>
+              </div>
+            </td>
+
+            <td class="px-6 py-4">
+              <div class="text-sm font-medium text-slate-700 dark:text-slate-300">{{ formatDate(b.startDate) }}</div>
+              <div class="text-xs text-slate-500 flex items-center gap-1 mt-0.5">
+                <i class="fas fa-arrow-right text-[10px]"></i> {{ formatDate(b.endDate) }}
+              </div>
+            </td>
+
+            <td class="px-6 py-4">
+              <div class="text-xs text-slate-500">Landlord: <span class="font-semibold text-slate-700 dark:text-slate-300">{{ b.landlordName || 'N/A' }}</span></div>
+              <div class="text-xs text-slate-500">Housing: <span class="font-mono" title="{{ b.housingUnitId }}">{{ b.housingUnitId?.split('-')?.[0] || 'N/A' }}</span></div>
+              <div class="text-xs font-semibold text-emerald-600 dark:text-emerald-400 mt-1">
+                EGP {{ b.totalPrice | number }}
+              </div>
+            </td>
+
+            <td class="px-6 py-4">
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold" [ngClass]="getStatusClass(b.bookingStatus)">
+                <i class="fas" [ngClass]="{'fa-clock': b.bookingStatus === 0, 'fa-check-circle': b.bookingStatus === 1, 'fa-times-circle': b.bookingStatus === 2 || b.bookingStatus === 3}"></i>
+                {{ getStatusLabel(b.bookingStatus) }}
+              </span>
+            </td>
+          </tr>
+
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>

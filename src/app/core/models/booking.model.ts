@@ -1,24 +1,51 @@
+export enum BookingType {
+  FullUnit = 0,
+  FullRoom = 1,
+  SingleBed = 2
+}
+
+export enum BookingStatus {
+  Pending = 0,
+  Approved = 1,
+  Rejected = 2,
+  Cancelled = 3,
+  Paid = 4
+}
+
+export interface BookingCreateRequest {
+  studentId: string;
+  bookingType: BookingType;
+  bedId?: string;
+  roomId?: string;
+  housingUnitId?: string;
+  startDate: string;
+  endDate: string;
+}
+
 export interface Booking {
   bookingId: string;
   studentId: string;
-  bookingType: number;
+  bookingType: BookingType;
   bedId?: string;
   roomId?: string;
   housingUnitId?: string;
   startDate: string;
   endDate: string;
   totalPrice: number;
-  bookingStatus: number; // 0=Pending, 1=Approved, 2=Rejected, 3=Cancelled, etc.
+  bookingStatus: BookingStatus;
   isDeleted: boolean;
-  commissionAmount: number;
+  commissionAmount?: number;
   contractId?: string;
   contractPdfUrl?: string;
   createdAt: string;
-  updatedAt: string;
-  
+  updatedAt?: string;
+
   // Optional UI-specific fields that might be populated later
   housingTitle?: string;
   roomName?: string;
+  landlordId?: string;
+  landlordName?: string;
+  studentName?: string;
 }
 
 export interface PaginatedBookings {

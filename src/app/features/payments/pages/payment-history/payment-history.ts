@@ -71,6 +71,24 @@ export class PaymentHistoryPage implements OnInit {
     this.selectedPayment.set(null);
   }
 
+  downloadReceipt(paymentId: string) {
+    this.paymentService.downloadReceipt(paymentId).subscribe({
+      next: (blob) => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `receipt-${paymentId}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      },
+      error: () => {
+        alert('Failed to download receipt. Please try again.');
+      }
+    });
+  }
+
   getStatusColor(status: PaymentStatus): string {
     switch (Number(status)) {
       case PaymentStatus.Completed: return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800';

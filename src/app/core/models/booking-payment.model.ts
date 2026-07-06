@@ -12,7 +12,11 @@ export interface PaymentCallbackRequest {
   isSuccess: boolean;
 }
 
-export interface InitiatePaymentResponse {
-  paymentUrl: string; // URL to redirect the user to
-  paymentId?: string; // Internal tracking ID if applicable
+export interface BookingPaymentResponse {
+  success: boolean;
+  message?: string;
+  paymentId?: string;
+  contractId?: string;
+  paymentUrl?: string;
+  contractPdfUrl?: string;
 }

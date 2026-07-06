@@ -25,4 +25,8 @@ export class PaymentHistoryService {
       .set('endDate', endDate);
     return this.http.get<PaymentHistory[]>(`${this.baseUrl}/range`, { params });
   }
+
+  downloadReceipt(paymentId: string): Observable<Blob> {
+    return this.http.get(`${this.baseUrl}/receipt/${paymentId}`, { responseType: 'blob' });
+  }
 }

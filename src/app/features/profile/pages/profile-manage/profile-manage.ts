@@ -56,6 +56,11 @@ export class ProfileManage implements OnInit {
   ngOnInit() {
     this.user.subscribe(u => {
       if (u) {
+        // Skip profile fetching for admin users
+        if (u.role === 'admin') {
+          return;
+        }
+
         // Basic info from login token
         this.profileForm.patchValue({
           name: u.name,
@@ -85,12 +90,12 @@ export class ProfileManage implements OnInit {
         } else {
           // Fetch detailed profile data from backend
           const sId = u.studentId || u.id;
-          if (sId && sId !== '1') {
+          if (sId && sId !== '1' && sId.length >= 36) {
             this.studentService.getStudentById(sId).subscribe({
               next: (data: any) => {
                 let dob = '';
                 if (data.dateOfBirth) {
-                  dob = data.dateOfBirth.split('T')[0]; 
+                  dob = data.dateOfBirth.split('T')[0];
                 }
 
                 this.profileForm.patchValue({

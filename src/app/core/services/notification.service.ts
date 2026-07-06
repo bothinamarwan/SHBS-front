@@ -38,4 +38,8 @@ export class NotificationService {
   markAllAsRead(): Observable<any> {
     return this.http.put(`${this.baseUrl}/mark-all-as-read`, {});
   }
+
+  create(notification: Omit<Notification, 'notificationId' | 'createdAt'>): Observable<Notification> {
+    return this.http.post<Notification>(this.baseUrl, notification);
+  }
 }

@@ -26,13 +26,13 @@
       <!-- Conversation list -->
       <div *ngFor="let conv of conversations()"
         (click)="selectConversation(conv)"
-        [class.bg-white]="selectedConversation()?.id === conv.id"
-        [class.dark:bg-slate-800]="selectedConversation()?.id === conv.id"
-        [class.shadow-sm]="selectedConversation()?.id === conv.id"
+        [class.bg-white]="selectedConversation()?.conversationId === conv.conversationId"
+        [class.dark:bg-slate-800]="selectedConversation()?.conversationId === conv.conversationId"
+        [class.shadow-sm]="selectedConversation()?.conversationId === conv.conversationId"
         class="p-4 flex gap-4 cursor-pointer hover:bg-white dark:hover:bg-slate-800 transition-all border-b border-neutral-50 dark:border-slate-800">
         <div class="relative">
           <div class="w-12 h-12 rounded-full bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-bold text-lg">
-            {{ conv.id.charAt(0).toUpperCase() || '#' }}
+            {{ getConversationInitial(conv) }}
           </div>
           <div *ngIf="conv.unreadCount && conv.unreadCount > 0"
                class="absolute -top-1 -right-1 w-5 h-5 bg-indigo-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-white dark:border-slate-900">
@@ -42,7 +42,7 @@
         <div class="flex-1 min-w-0">
           <div class="flex justify-between items-start mb-0.5">
             <h4 class="font-bold text-neutral-800 dark:text-slate-200 text-sm truncate">
-              {{ conv.housingUnitId || conv.bookingId || 'Conversation' }}
+              {{ getConversationTitle(conv) }}
             </h4>
             <span class="text-[10px] font-medium text-neutral-400 dark:text-slate-500">
               {{ conv.lastMessageTime ? (conv.lastMessageTime | date:'shortTime') : '' }}
@@ -61,11 +61,11 @@
       <header class="p-4 sm:p-6 border-b border-neutral-100 dark:border-slate-800 flex items-center justify-between">
         <div class="flex items-center gap-4">
           <div class="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-bold">
-            {{ conv.id.charAt(0).toUpperCase() || '#' }}
+            {{ getConversationInitial(conv) }}
           </div>
           <div>
             <h3 class="font-bold text-neutral-800 dark:text-slate-100 leading-none">
-              {{ conv.housingUnitId ? 'Housing Inquiry' : 'Booking Chat' }}
+              {{ getConversationTitle(conv) }}
             </h3>
             <span class="text-[10px] text-emerald-500 font-bold uppercase tracking-wider">Active</span>
           </div>

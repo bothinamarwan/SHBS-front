@@ -1,222 +1,139 @@
 <div class="max-w-4xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700">
-  <!-- Stepper -->
-  <div class="mb-12">
-    <div class="flex items-center justify-between relative">
-      <div class="absolute inset-0 top-5 h-0.5 bg-neutral-200 -z-10 mx-12">
-        <div class="bg-indigo-600 h-full transition-all duration-500" [style.width]="(currentStep() - 1) * 50 + '%'">
-        </div>
-      </div>
-      <div *ngFor="let s of [1,2,3]" [class.bg-indigo-600]="currentStep() >= s" [class.text-white]="currentStep() >= s"
-        [class.bg-white]="currentStep() < s" [class.border-neutral-200]="currentStep() < s"
-        class="w-10 h-10 rounded-full border-2 flex items-center justify-center font-bold transition-all duration-500 z-10 bg-white shadow-lg">
-        {{ s }}
-      </div>
-    </div>
-    <div class="flex justify-between mt-4 text-xs font-bold text-neutral-400 uppercase tracking-widest px-2 sm:px-0">
-      <span [class.text-indigo-600]="currentStep() >= 1">Selection</span>
-      <span [class.text-indigo-600]="currentStep() >= 2">Details</span>
-      <span [class.text-indigo-600]="currentStep() >= 3">Payment</span>
-    </div>
-  </div>
-
   <div class="bg-white rounded-[2.5rem] p-8 sm:p-12 border border-neutral-100 shadow-2xl shadow-neutral-200">
     <div *ngIf="housing() as item">
+      <h2 class="text-3xl font-black text-neutral-800 mb-2">Book {{ item.title }}</h2>
+      <p class="text-neutral-500 mb-8">Choose your booking option</p>
 
-      <!-- STEP 1: Room Selection -->
-      <div *ngIf="currentStep() === 1" class="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
-        <div>
-          <h2 class="text-3xl font-black text-neutral-800">Select your room</h2>
-          <p class="text-neutral-500 mt-2">Choose the best option for your stay at {{ item.title }}</p>
-        </div>
-
-        <div class="grid grid-cols-1 gap-4">
-          <div *ngFor="let room of roomsForHousing" (click)="toggleRoom(room)"
-            [class.border-indigo-600]="selectedRooms().includes(room)"
-            [class.bg-indigo-50]="selectedRooms().includes(room)"
-            class="p-6 border-2 border-neutral-100 rounded-2xl cursor-pointer hover:border-indigo-200 transition-all flex justify-between items-center group">
-            <div class="flex items-center gap-4">
-              <div
-                class="w-12 h-12 bg-neutral-100 rounded-xl flex items-center justify-center text-neutral-500 group-hover:bg-indigo-100 group-hover:text-indigo-600 transition-colors">
-                <i class="fas fa-bed"></i>
-              </div>
-              <div>
-                <h4 class="font-bold text-neutral-800">{{ room.name }}</h4>
-                <p class="text-xs text-neutral-500">{{ room.roomType | titlecase }} Room • {{ room.beds }} Bed(s)</p>
-              </div>
+      <!-- Booking Type Selection -->
+      <div class="mb-8">
+        <h4 class="font-bold text-neutral-800 mb-4">Booking Type</h4>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <button (click)="setBookingType(BookingType.FullUnit)"
+            [class.border-indigo-600]="bookingType() === BookingType.FullUnit"
+            [class.bg-indigo-50]="bookingType() === BookingType.FullUnit"
+            class="p-4 border-2 border-neutral-100 rounded-2xl cursor-pointer hover:border-indigo-200 transition-all">
+            <div class="text-center">
+              <i class="fas fa-building text-2xl text-indigo-600 mb-2"></i>
+              <h5 class="font-bold text-neutral-800">Full Unit</h5>
+              <p class="text-xs text-neutral-500">{{ item.baseMonthlyPrice || item.price }} EGP/mo</p>
             </div>
-            <div class="text-right">
-              <span class="text-xl font-black text-neutral-800 group-hover:text-indigo-600">{{ room.price | number
-                }}</span>
-              <span class="text-[10px] text-neutral-400 font-bold block">EGP / MO</span>
+          </button>
+          <button (click)="setBookingType(BookingType.FullRoom)"
+            [disabled]="rooms().length === 0"
+            [class.border-indigo-600]="bookingType() === BookingType.FullRoom"
+            [class.bg-indigo-50]="bookingType() === BookingType.FullRoom"
+            class="p-4 border-2 border-neutral-100 rounded-2xl cursor-pointer hover:border-indigo-200 transition-all disabled:opacity-50">
+            <div class="text-center">
+              <i class="fas fa-door-open text-2xl text-indigo-600 mb-2"></i>
+              <h5 class="font-bold text-neutral-800">Full Room</h5>
+              <p class="text-xs text-neutral-500">Select a room</p>
             </div>
-          </div>
-        </div>
-
-        <div class="pt-8 flex justify-end">
-          <button (click)="nextStep()" [disabled]="selectedRooms().length === 0"
-            class="px-12 py-4 bg-indigo-600 text-white rounded-2xl font-bold hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-100 disabled:opacity-50">
-            Continue
+          </button>
+          <button (click)="setBookingType(BookingType.SingleBed)"
+            [disabled]="rooms().length === 0"
+            [class.border-indigo-600]="bookingType() === BookingType.SingleBed"
+            [class.bg-indigo-50]="bookingType() === BookingType.SingleBed"
+            class="p-4 border-2 border-neutral-100 rounded-2xl cursor-pointer hover:border-indigo-200 transition-all disabled:opacity-50">
+            <div class="text-center">
+              <i class="fas fa-bed text-2xl text-indigo-600 mb-2"></i>
+              <h5 class="font-bold text-neutral-800">Single Bed</h5>
+              <p class="text-xs text-neutral-500">Select a bed</p>
+            </div>
           </button>
         </div>
       </div>
 
-      <!-- STEP 2: Booking Details -->
-      <form *ngIf="currentStep() === 2" [formGroup]="bookingForm" (ngSubmit)="nextStep()"
-        class="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
-        <div>
-          <h2 class="text-3xl font-black text-neutral-800">Booking Details</h2>
-          <p class="text-neutral-500 mt-2">When do you plan to move in?</p>
+      <!-- Room Selection -->
+      <div *ngIf="bookingType() !== BookingType.FullUnit" class="mb-8">
+        <h4 class="font-bold text-neutral-800 mb-4">Select a Room</h4>
+        <div class="grid grid-cols-1 gap-4">
+          <div *ngFor="let room of rooms()" (click)="selectRoom(room)"
+            [class.border-indigo-600]="selectedRoom()?.id === room.id || selectedRoom()?.roomId === room.roomId"
+            [class.bg-indigo-50]="selectedRoom()?.id === room.id || selectedRoom()?.roomId === room.roomId"
+            class="p-4 border-2 border-neutral-100 rounded-2xl cursor-pointer hover:border-indigo-200 transition-all">
+            <div class="flex justify-between items-center">
+              <div>
+                <h5 class="font-bold text-neutral-800">{{ room.roomType === 0 ? 'Single' : 'Shared' }} Room</h5>
+                <p class="text-xs text-neutral-500">{{ room.numberOfBeds }} Beds • Capacity {{ room.capacity }}</p>
+              </div>
+              <div class="text-right">
+                <span class="text-lg font-bold text-neutral-800">{{ room.price || $any(room).Price || 0 | number }} EGP/mo</span>
+                <p *ngIf="room.isAvailable" class="text-xs text-emerald-600 font-semibold">Available</p>
+                <p *ngIf="!room.isAvailable" class="text-xs text-rose-600 font-semibold">Not Available</p>
+              </div>
+            </div>
+          </div>
         </div>
+      </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-8">
+      <!-- Bed Selection -->
+      <div *ngIf="bookingType() === BookingType.SingleBed && selectedRoom()" class="mb-8">
+        <h4 class="font-bold text-neutral-800 mb-4">Select a Bed</h4>
+        <div class="grid grid-cols-2 gap-4">
+          <div *ngFor="let bed of beds()" (click)="selectBed(bed)"
+            [class.border-indigo-600]="selectedBed()?.bedId === bed.bedId"
+            [class.bg-indigo-50]="selectedBed()?.bedId === bed.bedId"
+            class="p-4 border-2 border-neutral-100 rounded-2xl cursor-pointer hover:border-indigo-200 transition-all">
+            <div class="flex justify-between items-center">
+              <h5 class="font-bold text-neutral-800">Bed {{ bed.bedNumber || $any(bed).BedNumber }}</h5>
+              <span class="text-lg font-bold text-neutral-800">{{ bed.calculatedPrice || $any(bed).CalculatedPrice || 0 | number }} EGP/mo</span>
+            </div>
+            <div class="mt-2">
+              <span *ngIf="bed.isAvailable" class="text-xs text-emerald-600 font-semibold">Available</span>
+              <span *ngIf="!bed.isAvailable" class="text-xs text-rose-600 font-semibold">Occupied</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Booking Details -->
+      <div class="mb-8">
+        <h4 class="font-bold text-neutral-800 mb-4">Booking Details</h4>
+        <form [formGroup]="bookingForm" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div class="space-y-2">
-            <label class="block text-[10px] font-bold text-neutral-400 uppercase tracking-widest px-2">Move-in
-              Date</label>
+            <label class="block text-[10px] font-bold text-neutral-400 uppercase tracking-widest">Move-in Date</label>
             <input type="date" formControlName="moveInDate"
               class="w-full px-6 py-4 bg-neutral-50 border border-transparent rounded-2xl font-bold text-neutral-800 focus:bg-white focus:border-indigo-500 transition-all">
           </div>
           <div class="space-y-2">
-            <label class="block text-[10px] font-bold text-neutral-400 uppercase tracking-widest px-2">Duration
-              (Months)</label>
+            <label class="block text-[10px] font-bold text-neutral-400 uppercase tracking-widest">Duration (Months)</label>
             <select formControlName="duration"
               class="w-full px-6 py-4 bg-neutral-50 border border-transparent rounded-2xl font-bold text-neutral-800 focus:bg-white focus:border-indigo-500 transition-all">
               <option [value]="3">3 Months</option>
               <option [value]="6">6 Months</option>
               <option [value]="9">9 Months</option>
-              <option [value]="12">12 Months (Full Year)</option>
+              <option [value]="12">12 Months</option>
             </select>
           </div>
-        </div>
+        </form>
+      </div>
 
-        <!-- Summary Table -->
-        <div class="p-8 bg-neutral-50 rounded-3xl border border-neutral-100">
-          <h4 class="font-bold text-neutral-800 mb-6 flex items-center gap-2">
-            <i class="fas fa-file-invoice-dollar text-indigo-600"></i>
-            Price Breakdown
-          </h4>
-          <div class="space-y-4">
-            <div class="flex justify-between text-sm">
-              <span class="text-neutral-500">Monthly Rent</span>
-              <span class="font-bold text-neutral-800">{{ calcTotal() / (bookingForm.get('duration')?.value || 12) | number }} EGP</span>
-            </div>
-            <div class="flex justify-between text-sm">
-              <span class="text-neutral-500">Service Fee (One-time)</span>
-              <span class="font-bold text-neutral-800">250 EGP</span>
-            </div>
-            <div class="flex justify-between text-sm">
-              <span class="text-neutral-500">Security Deposit (Refundable)</span>
-              <span class="font-bold text-neutral-800">{{ calcTotal() / (bookingForm.get('duration')?.value || 12) | number }} EGP</span>
-            </div>
-            <div class="pt-4 border-t border-neutral-200 flex justify-between items-center font-black">
-              <span class="text-neutral-800">Total Move-in Cost</span>
-              <span class="text-2xl text-indigo-600">{{ (calcTotal() / (bookingForm.get('duration')?.value || 12)) * 2 + 250 | number }} EGP</span>
-            </div>
+      <!-- Summary -->
+      <div class="p-6 bg-neutral-50 rounded-3xl border border-neutral-100 mb-8">
+        <h4 class="font-bold text-neutral-800 mb-4">Price Breakdown</h4>
+        <div class="space-y-2 text-sm">
+          <div class="flex justify-between">
+            <span class="text-neutral-500">Monthly Rent</span>
+            <span class="font-bold text-neutral-800">{{ totalPrice / (bookingForm.get('duration')?.value || 12) | number }} EGP</span>
           </div>
-        </div>
-
-        <div class="pt-8 flex justify-between">
-          <button (click)="prevStep()" type="button"
-            class="px-8 py-4 text-neutral-500 font-bold hover:text-neutral-800 transition-all">Back</button>
-          <button type="submit" [disabled]="bookingForm.invalid"
-            class="px-12 py-4 bg-indigo-600 text-white rounded-2xl font-bold hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-100 disabled:opacity-50">
-            Proceed to Checkout
-          </button>
-        </div>
-      </form>
-
-      <!-- STEP 3: Payment Mock -->
-      <div *ngIf="currentStep() === 3" class="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
-        <div>
-          <h2 class="text-3xl font-black text-neutral-800">Payment Selection</h2>
-          <p class="text-neutral-500 mt-2">Almost there! Select how you'd like to pay your deposit.</p>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div (click)="setPaymentMethod('card')" [class.border-indigo-600]="selectedPaymentMethod() === 'card'"
-            [class.bg-indigo-50/30]="selectedPaymentMethod() === 'card'"
-            class="p-6 border-2 border-neutral-100 rounded-2xl flex flex-col items-center gap-4 cursor-pointer transition-all">
-            <div class="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-sm">
-              <i class="fab fa-cc-visa text-2xl text-indigo-600"></i>
-            </div>
-            <h4 class="font-bold text-neutral-800 text-sm">Credit Card</h4>
+          <div class="flex justify-between">
+            <span class="text-neutral-500">Duration</span>
+            <span class="font-bold text-neutral-800">{{ bookingForm.get('duration')?.value }} months</span>
           </div>
-
-          <div (click)="setPaymentMethod('wallet')" [class.border-indigo-600]="selectedPaymentMethod() === 'wallet'"
-            [class.bg-indigo-50/30]="selectedPaymentMethod() === 'wallet'"
-            class="p-6 border-2 border-neutral-100 rounded-2xl flex flex-col items-center gap-4 cursor-pointer transition-all">
-            <div class="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-sm">
-              <i class="fas fa-wallet text-2xl text-emerald-600"></i>
-            </div>
-            <h4 class="font-bold text-neutral-800 text-sm">Smart Wallet</h4>
+          <div class="flex justify-between pt-2 border-t border-neutral-200 mt-2 font-black">
+            <span class="text-neutral-800">Total</span>
+            <span class="text-xl text-indigo-600">{{ totalPrice | number }} EGP</span>
           </div>
-
-          <div (click)="setPaymentMethod('cash')" [class.border-indigo-600]="selectedPaymentMethod() === 'cash'"
-            [class.bg-indigo-50/30]="selectedPaymentMethod() === 'cash'"
-            class="p-6 border-2 border-neutral-100 rounded-2xl flex flex-col items-center gap-4 cursor-pointer transition-all">
-            <div class="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-sm">
-              <i class="fas fa-money-bill-wave text-2xl text-amber-600"></i>
-            </div>
-            <h4 class="font-bold text-neutral-800 text-sm">Cash at Office</h4>
-          </div>
-        </div>
-
-        <!-- Card UI Mock (Only if Card selected) -->
-        <div *ngIf="selectedPaymentMethod() === 'card'"
-          class="p-8 bg-neutral-900 rounded-[2.5rem] text-white space-y-8 animate-in fade-in slide-in-from-top-4 duration-300">
-          <div class="flex justify-between items-start">
-            <i class="fas fa-microchip text-4xl text-amber-100/50"></i>
-            <i class="fab fa-cc-mastercard text-5xl opacity-40"></i>
-          </div>
-          <div class="space-y-2">
-            <label class="block text-[10px] font-bold text-white/40 uppercase tracking-widest">Cardholder Name</label>
-            <div class="text-xl font-bold">BOTHINA MARWAN</div>
-          </div>
-          <div class="flex justify-between items-end">
-            <div class="text-2xl font-mono tracking-widest text-white/90">**** **** **** 4242</div>
-            <div class="text-right">
-              <span class="block text-[10px] font-bold text-white/40 uppercase tracking-widest">Valid Thru</span>
-              <span class="font-bold">12 / 28</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Booking Summary (Step 3) -->
-        <div class="p-6 bg-neutral-50 rounded-3xl border border-neutral-100 space-y-4">
-          <div class="flex justify-between items-center pb-4 border-b border-neutral-200">
-            <h4 class="font-bold text-neutral-800">Final Summary</h4>
-            <span
-              class="px-3 py-1 bg-white border border-neutral-200 rounded-lg text-[10px] font-black text-neutral-500 uppercase">{{
-              selectedRooms().length }} Room(s)</span>
-          </div>
-          <div class="grid grid-cols-2 gap-4 text-sm">
-            <div>
-              <span class="block text-[10px] font-bold text-neutral-400 uppercase">Property</span>
-              <span class="font-bold text-neutral-800">{{ item.title }}</span>
-            </div>
-            <div>
-              <span class="block text-[10px] font-bold text-neutral-400 uppercase">Move-in Date</span>
-              <span class="font-bold text-neutral-800">{{ bookingForm.get('moveInDate')?.value | date:'mediumDate'
-                }}</span>
-            </div>
-          </div>
-          <div class="pt-4 flex justify-between items-center border-t border-neutral-200">
-            <span class="font-bold text-neutral-800">Total Deposit</span>
-            <span class="text-xl font-black text-indigo-600">{{ (calcTotal() / (bookingForm.get('duration')?.value || 12)) * 2 + 250 | number }}
-              EGP</span>
-          </div>
-        </div>
-
-        <div class="pt-8 flex justify-between">
-          <button (click)="prevStep()" type="button"
-            class="px-8 py-4 text-neutral-500 font-bold hover:text-neutral-800 transition-all">Back</button>
-          <button (click)="confirmBooking()" [disabled]="isLoading()"
-            class="px-12 py-4 bg-indigo-600 text-white rounded-2xl font-bold hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-100 flex items-center gap-2">
-            <span *ngIf="isLoading()" class="animate-spin"><i class="fas fa-circle-notch"></i></span>
-            {{ isLoading() ? 'Processing...' : 'Confirm & Pay' }}
-          </button>
         </div>
       </div>
 
+      <!-- Confirm Button -->
+      <button (click)="confirmBooking()"
+        [disabled]="bookingForm.invalid || isLoading() || (bookingType() === BookingType.FullRoom && !selectedRoom()) || (bookingType() === BookingType.SingleBed && !selectedBed())"
+        class="w-full px-12 py-4 bg-indigo-600 text-white rounded-2xl font-bold hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-100 disabled:opacity-50 flex items-center justify-center gap-2">
+        <span *ngIf="isLoading()" class="animate-spin"><i class="fas fa-circle-notch"></i></span>
+        {{ isLoading() ? 'Processing...' : 'Confirm & Proceed to Payment' }}
+      </button>
     </div>
   </div>
 </div>

@@ -18,6 +18,10 @@ export class ChatService {
     return this.http.get<Conversation[]>(`${this.baseUrl}/conversations/${bookingId}`);
   }
 
+  getMyConversations(): Observable<Conversation[]> {
+    return this.http.get<Conversation[]>(`${this.baseUrl}/conversations`);
+  }
+
   getConversationById(conversationId: string): Observable<Conversation> {
     return this.http.get<Conversation>(`${this.baseUrl}/by-id/${conversationId}`);
   }

@@ -21,7 +21,6 @@ export class StudentVerification {
 
   constructor() {
     this.verificationForm = this.fb.group({
-      facultyName: ['', Validators.required],
       universityName: ['', Validators.required],
       universityEmail: ['', [Validators.required, Validators.email]]
     });
@@ -37,6 +36,9 @@ export class StudentVerification {
   onSubmit() {
     if (this.verificationForm.invalid || !this.selectedFile()) {
       this.verificationForm.markAllAsTouched();
+      if (!this.selectedFile()) {
+        this.errorMessage.set('Please upload your ID card.');
+      }
       return;
     }
 
@@ -44,10 +46,14 @@ export class StudentVerification {
     this.errorMessage.set(null);
 
     const formData = new FormData();
-    formData.append('FacultyName', this.verificationForm.value.facultyName);
     formData.append('UniversityName', this.verificationForm.value.universityName);
     formData.append('UniversityEmail', this.verificationForm.value.universityEmail);
     formData.append('universityIdCard', this.selectedFile() as File);
+
+    console.log('FormData contents:');
+    formData.forEach((value, key) => {
+      console.log(`${key}:`, value);
+    });
 
     this.studentService.submitUniversityVerification(formData).subscribe({
       next: () => {
@@ -56,7 +62,13 @@ export class StudentVerification {
       },
       error: (err: any) => {
         this.isLoading.set(false);
-        this.errorMessage.set('Failed to submit verification. Please try again.');
+        const errors = err?.error?.errors;
+        if (errors) {
+          const errorMessages = Object.values(errors).flat().join(', ');
+          this.errorMessage.set(errorMessages || 'Failed to submit verification. Please try again.');
+        } else {
+          this.errorMessage.set(err?.error?.message || 'Failed to submit verification. Please try again.');
+        }
         console.error(err);
       }
     });

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { InitiatePaymentRequest, PaymentCallbackRequest, InitiatePaymentResponse } from '../models/booking-payment.model';
+import { InitiatePaymentRequest, PaymentCallbackRequest, BookingPaymentResponse } from '../models/booking-payment.model';
 
 @Injectable({
   providedIn: 'root'
@@ -11,8 +11,8 @@ export class BookingPaymentService {
 
   constructor(private http: HttpClient) {}
 
-  initiate(req: InitiatePaymentRequest): Observable<InitiatePaymentResponse> {
-    return this.http.post<InitiatePaymentResponse>(`${this.baseUrl}/initiate`, req);
+  initiate(req: InitiatePaymentRequest): Observable<BookingPaymentResponse> {
+    return this.http.post<BookingPaymentResponse>(`${this.baseUrl}/initiate`, req);
   }
 
   callback(req: PaymentCallbackRequest): Observable<any> {

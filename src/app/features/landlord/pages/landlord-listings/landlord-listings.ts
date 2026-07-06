@@ -9,8 +9,20 @@ import {
   UpdateHousingUnitRequest
 } from '../../../../core/models/housing.model';
 import { HousingService } from '../../../../core/services/housing.service';
+import { RoomService } from '../../../../core/services/room.service';
+import { BedService } from '../../../../core/services/bed.service';
 import { AuthService } from '../../../../core/services/auth.service';
+import { CreateRoomRequest } from '../../../../core/models/room.model';
+import { CreateBedRequest } from '../../../../core/models/bed.model';
 import * as L from 'leaflet';
+
+/** A room config entry in the "Add Property" modal */
+export interface RoomConfig {
+  roomType: 0 | 1;      // 0 = Single, 1 = Shared
+  numberOfBeds: number;
+  price: number;        // room price per month
+  capacity: number;
+}
 
 @Component({
   selector: 'app-landlord-listings',
@@ -19,6 +31,8 @@ import * as L from 'leaflet';
   templateUrl: './landlord-listings.html'
 })
 export class LandlordListings implements OnInit {
+  private roomService = inject(RoomService);
+  private bedService  = inject(BedService);
   private housingService = inject(HousingService);
   private authService = inject(AuthService);
   private fb = inject(FormBuilder);
@@ -36,7 +50,29 @@ export class LandlordListings implements OnInit {
   GenderAllowed = GenderAllowed;
 
   // Tabs
-  tabs = ['General Info', 'Location & Media', 'Rules & Pricing'];
+  tabs = ['General Info', 'Location & Media', 'Rules & Pricing', 'Rooms & Beds'];
+
+  // ── Room configs inside "Add Property" modal ──────────────────────────────
+  roomConfigs = signal<RoomConfig[]>([]);
+
+  addRoomConfig() {
+    this.roomConfigs.update(prev => [
+      ...prev,
+      { roomType: 0, numberOfBeds: 1, price: 0, capacity: 1 }
+    ]);
+  }
+
+  removeRoomConfig(index: number) {
+    this.roomConfigs.update(prev => prev.filter((_, i) => i !== index));
+  }
+
+  updateRoomConfig(index: number, field: keyof RoomConfig, value: any) {
+    this.roomConfigs.update(prev => {
+      const arr = [...prev];
+      arr[index] = { ...arr[index], [field]: Number(value) };
+      return arr;
+    });
+  }
 
   // ── Media state ──
   uploadedImages = signal<{ url: string; name: string; size: string }[]>([]);
@@ -222,6 +258,7 @@ export class LandlordListings implements OnInit {
     this.uploadedVideo.set(null);
     this.mediaError.set(null);
     this.saveError.set(null);
+    this.roomConfigs.set([]);  // reset room configs
     this.isModalOpen.set(true);
   }
 
@@ -386,12 +423,19 @@ export class LandlordListings implements OnInit {
         location:         fv.location || '',
         latitude:         fv.latitude || 0,
         longitude:        fv.longitude || 0,
-        numberOfRooms:    fv.numberOfRooms,
+        numberOfRooms:    fv.numberOfRooms || this.roomConfigs().length || 1,
         isAvailable:      fv.isAvailable
       };
       this.housingService.create(req).subscribe({
         next: (created) => {
           this.listings.update(prev => [created, ...prev]);
+          // Chain room + bed creation if landlord added room configs
+          const housingId = created.housingUnitId || (created as any).HousingUnitId || (created as any).id || (created as any).Id || (created as any).data?.housingUnitId;
+          if (housingId) {
+             this.createRoomsAndBeds(housingId);
+          } else {
+             console.error('Could not extract housing unit ID from create response:', created);
+          }
           this.isSaving.set(false);
           this.closeModal();
         },
@@ -400,6 +444,48 @@ export class LandlordListings implements OnInit {
           this.isSaving.set(false);
         }
       });
+    }
+  }
+
+  /** Create rooms after a new property is saved - backend will auto-create beds and calculate bed price */
+  private async createRoomsAndBeds(housingUnitId: string) {
+    console.log('createRoomsAndBeds called with housingUnitId:', housingUnitId);
+    const configs = this.roomConfigs();
+    console.log('Room configs:', configs);
+    if (!configs.length) {
+      console.log('No room configs to create');
+      return;
+    }
+
+    let hasError = false;
+    for (let i = 0; i < configs.length; i++) {
+      const cfg = configs[i];
+      console.log(`Creating room ${i + 1}:`, cfg);
+      const roomReq: CreateRoomRequest = {
+        housingUnitId,
+        roomType:     cfg.roomType,
+        numberOfBeds: cfg.numberOfBeds,
+        price:        cfg.price,
+        capacity:     cfg.capacity,
+        roomImageUrl: '',
+        isAvailable:  true
+      };
+      console.log('Room request payload:', roomReq);
+
+      try {
+        const room = await this.roomService.createRoom(roomReq).toPromise();
+        console.log('Room created successfully:', room);
+        console.log('Backend will automatically create beds and calculate bed price = room price / number of beds');
+      } catch (err: any) {
+        console.error('Failed to create room:', err);
+        console.error('Error details:', err?.error || err);
+        hasError = true;
+        this.saveError.set(`Failed to create room ${i + 1}: ${err?.error?.message || err?.message || 'Unknown error'}`);
+      }
+    }
+
+    if (hasError) {
+      console.error('Some rooms failed to create');
     }
   }
 

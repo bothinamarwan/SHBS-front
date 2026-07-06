@@ -268,8 +268,8 @@ export class AuthService {
   /**
    * POST /api/v1/Account/forgot-password
    */
-  forgotPassword(data: ForgotPasswordRequest): Observable<{ success: boolean; message: string }> {
-    return this.http.post<{ success: boolean; message: string }>(`${this.baseUrl}/forgot-password`, data);
+  forgotPassword(data: ForgotPasswordRequest): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}/forgot-password`, data);
   }
 
   /**

@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpParams, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import {
@@ -69,6 +69,8 @@ export class StudentService {
   }
 
   submitUniversityVerification(data: any): Observable<any> {
+    console.log('Submitting university verification to:', `${this.baseUrl}/SubmitUniversityVerification`);
+    console.log('FormData data:', data);
     return this.http.post(`${this.baseUrl}/SubmitUniversityVerification`, data);
   }
 

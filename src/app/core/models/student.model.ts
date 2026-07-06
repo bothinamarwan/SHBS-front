@@ -55,3 +55,10 @@ export interface MultiRoomBookingRequest {
   startDate: string;
   endDate: string;
 }
+
+export interface SubmitUniversityVerificationRequest {
+  facultyName: string;
+  universityName: string;
+  universityEmail: string;
+  universityIdCard: File;
+}

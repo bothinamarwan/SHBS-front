@@ -8,14 +8,20 @@ export interface ChatMessage {
 }
 
 export interface Conversation {
-  id: string;
-  bookingId?: string;
-  housingUnitId?: string;
+  conversationId: string;
+  bookingId?: string | null;
+  housingUnitId: string;
+  studentUserId: string;
+  landLordUserId: string;
+  createdAt: string;
+  // Optional fields for display
   participants?: string[];
   lastMessage?: string;
   lastMessageTime?: string;
-  createdAt?: string;
   unreadCount?: number;
+  // Participant names (if provided by backend)
+  studentName?: string;
+  landlordName?: string;
 }
 
 export interface InitiateChatRequest {

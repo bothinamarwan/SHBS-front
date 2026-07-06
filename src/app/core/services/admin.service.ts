@@ -43,11 +43,17 @@ export class AdminService {
   }
 
   reviewStudentVerification(studentId: string, request: ReviewVerificationRequest): Observable<any> {
-    return this.http.post(`${this.baseUrl}/verifications/${studentId}/review`, request);
+    // Wrap request in 'request' property since backend error says "The request field is required."
+    const payload = { request: request };
+    return this.http.post(`${this.baseUrl}/verifications/${studentId}/review`, payload);
   }
 
   getStudentIdCardUrl(studentId: string): string {
     return `${this.baseUrl}/verifications/${studentId}/id-card`;
+  }
+
+  getStudentIdCardBlob(studentId: string): Observable<Blob> {
+    return this.http.get(`${this.baseUrl}/verifications/${studentId}/id-card`, { responseType: 'blob' });
   }
 
   // ─── Landlord Verifications ────────────────────────────────────────────

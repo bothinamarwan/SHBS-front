@@ -80,21 +80,33 @@ export class AdminVerifications implements OnInit {
     this.actionInProgress.set(studentId + '_' + statusEnum);
     this.adminService.reviewStudentVerification(studentId, { newStatus: statusEnum }).subscribe({
       next: () => {
-        const labels: Record<number, string> = { 1: 'Approved', 2: 'Rejected', 3: 'Needs More Info sent' };
+        const labels: Record<number, string> = { 1: 'Approved', 2: 'Rejected' };
         this.showToast(labels[statusEnum] + ' successfully.', statusEnum === 1);
         this.actionInProgress.set(null);
         this.fetchData();
       },
-      error: () => {
-        this.showToast('Action failed. Please try again.', false);
+      error: (err) => {
+        console.error('Review student error:', err);
+        const errorMsg = err?.error?.message || (err?.error?.errors && Object.values(err.error.errors).join(', ')) || 'Action failed. Please try again.';
+        this.showToast(errorMsg, false);
         this.actionInProgress.set(null);
       }
     });
   }
 
   viewStudentIdCard(studentId: string) {
-    const url = this.adminService.getStudentIdCardUrl(studentId);
-    window.open(url, '_blank');
+    this.actionInProgress.set(`view_student_${studentId}`);
+    this.adminService.getStudentIdCardBlob(studentId).subscribe({
+      next: (blob) => {
+        const url = URL.createObjectURL(blob);
+        window.open(url, '_blank');
+        this.actionInProgress.set(null);
+      },
+      error: () => {
+        this.showToast('Failed to load student ID card. Make sure the backend endpoint exists.', false);
+        this.actionInProgress.set(null);
+      }
+    });
   }
 
   // ── Landlord Actions ──

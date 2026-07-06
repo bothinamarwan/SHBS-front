@@ -17,9 +17,19 @@ export const landlordRoutes: Routes = [
           import('./pages/landlord-listings/landlord-listings').then(m => m.LandlordListings)
       },
       {
+        path: 'listings/:id/manage',
+        loadComponent: () =>
+          import('./pages/landlord-property-manager/landlord-property-manager').then(m => m.LandlordPropertyManager)
+      },
+      {
         path: 'rooms',
         loadComponent: () =>
           import('./pages/landlord-rooms/landlord-rooms').then(m => m.LandlordRooms)
+      },
+      {
+        path: 'beds',
+        loadComponent: () =>
+          import('./pages/landlord-beds/landlord-beds').then(m => m.LandlordBeds)
       },
       {
         path: 'bookings',
