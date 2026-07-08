@@ -12,6 +12,7 @@ import { HousingService } from '../../../../core/services/housing.service';
 import { RoomService } from '../../../../core/services/room.service';
 import { BedService } from '../../../../core/services/bed.service';
 import { AuthService } from '../../../../core/services/auth.service';
+import { BookingService } from '../../../../core/services/booking.service';
 import { CreateRoomRequest } from '../../../../core/models/room.model';
 import { CreateBedRequest } from '../../../../core/models/bed.model';
 import * as L from 'leaflet';
@@ -35,6 +36,7 @@ export class LandlordListings implements OnInit {
   private bedService  = inject(BedService);
   private housingService = inject(HousingService);
   private authService = inject(AuthService);
+  private bookingService = inject(BookingService);
   private fb = inject(FormBuilder);
 
   isLoading = signal(true);
@@ -493,16 +495,35 @@ export class LandlordListings implements OnInit {
   cancelDelete()             { this.deleteConfirmId.set(null); }
 
   deleteHousing(id: string) {
-    this.housingService.delete(id).subscribe({
-      next: () => {
-        this.listings.update(prev => prev.filter(h => h.housingUnitId !== id));
+    // Check if property has any bookings before deletion
+    this.bookingService.getAll().subscribe({
+      next: (response) => {
+        const bookings = Array.isArray(response) ? response : (response?.records || []);
+        const hasBookings = bookings.some((b: any) => b.housingUnitId === id);
+
+        if (hasBookings) {
+          alert('Cannot delete this property because it has active bookings. Please cancel all bookings first.');
+          this.deleteConfirmId.set(null);
+          return;
+        }
+
+        // Proceed with deletion if no bookings
+        this.housingService.delete(id).subscribe({
+          next: () => {
+            this.listings.update(prev => prev.filter(h => h.housingUnitId !== id));
+            this.deleteConfirmId.set(null);
+          },
+          error: () => {
+            alert('Failed to delete property. Please try again.');
+            this.deleteConfirmId.set(null);
+          }
+        });
       },
       error: () => {
-        // Optimistic: remove locally even if server fails
-        this.listings.update(prev => prev.filter(h => h.housingUnitId !== id));
+        alert('Failed to check for bookings. Please try again.');
+        this.deleteConfirmId.set(null);
       }
     });
-    this.deleteConfirmId.set(null);
   }
 
   toggleAvailability(unit: HousingUnit) {
