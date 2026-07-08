@@ -69,6 +69,12 @@ export class LandlordBookings implements OnInit {
   closeDetail() { this.isDetailOpen.set(false); }
 
   approveBooking(booking: Booking & { studentName?: string; propertyTitle?: string }) {
+    // Only allow approval if payment has been completed (status 4 = Paid)
+    if (booking.bookingStatus !== 4) {
+      alert('Cannot approve booking: Payment has not been completed yet.');
+      return;
+    }
+
     this.actionLoading.set(booking.bookingId + '_approve');
     this.bookingService.update({
       bookingId: booking.bookingId,

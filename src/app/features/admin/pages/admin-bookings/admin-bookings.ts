@@ -84,6 +84,12 @@ export class AdminBookings implements OnInit {
   }
 
   updateStatus(booking: Booking, status: number) {
+    // Prevent approval (status 1) unless payment is completed (status 4)
+    if (status === 1 && booking.bookingStatus !== 4) {
+      alert('Cannot approve booking: Payment has not been completed yet.');
+      return;
+    }
+
     if (confirm(`Are you sure you want to change this booking's status?`)) {
       this.bookingService.update({
         bookingId: booking.bookingId,
