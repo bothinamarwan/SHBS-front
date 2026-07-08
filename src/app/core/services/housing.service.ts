@@ -20,7 +20,9 @@ export class HousingService {
 
   /** GET /api/HousingUnit/GetAll */
   getAll(): Observable<HousingUnit[]> {
-    return this.http.get<any>(`${this.baseUrl}/GetAll`).pipe(
+    return this.http.get<any>(`${this.baseUrl}/GetAll`, {
+      params: { pageSize: 1000, pageIndex: 0 }
+    }).pipe(
       map(res => {
         if (Array.isArray(res)) return res;
         return res?.records || [];
