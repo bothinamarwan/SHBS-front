@@ -1,6 +1,6 @@
 {
   "buildCommand": "ng build",
-  "outputDirectory": "dist/SHBS-1/browser",
+  "outputDirectory": "dist/SHBS-1",
   "routes": [
     { "src": "/api/(.*)", "dest": "/api/[...path]" },
     { "handle": "filesystem" },
