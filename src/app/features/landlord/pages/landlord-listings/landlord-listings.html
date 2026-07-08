@@ -93,7 +93,10 @@
           {{ housing.isAvailable ? 'Deactivate' : 'Activate' }}
         </button>
         <button (click)="$event.stopPropagation(); confirmDelete(housing.housingUnitId)"
-          class="w-8 h-8 rounded-lg bg-rose-50 dark:bg-rose-900/20 text-rose-500 hover:bg-rose-100 transition-colors flex items-center justify-center flex-shrink-0">
+          [disabled]="hasBookings(housing.housingUnitId)"
+          [class.opacity-50]="hasBookings(housing.housingUnitId)"
+          [class.cursor-not-allowed]="hasBookings(housing.housingUnitId)"
+          class="w-8 h-8 rounded-lg bg-rose-50 dark:bg-rose-900/20 text-rose-500 hover:bg-rose-100 transition-colors flex items-center justify-center flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed">
           <i class="fas fa-trash text-xs"></i>
         </button>
       </div>

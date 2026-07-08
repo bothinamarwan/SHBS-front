@@ -41,6 +41,7 @@ export class LandlordListings implements OnInit {
 
   isLoading = signal(true);
   listings = signal<HousingUnit[]>([]);
+  propertiesWithBookings = signal<Set<string>>(new Set());
   isModalOpen = signal(false);
   editingHousing = signal<HousingUnit | null>(null);
   activeTab = signal(0);
@@ -216,6 +217,8 @@ export class LandlordListings implements OnInit {
         // Only show units that belong to this landlord
         this.listings.set(all.filter(u => !this.landlordId || u.landLordId === this.landlordId));
         this.isLoading.set(false);
+        // Check which properties have bookings
+        this.loadPropertiesWithBookings();
       },
       error: () => {
         this.housingService.getAll().subscribe({
@@ -242,6 +245,29 @@ export class LandlordListings implements OnInit {
   }
 
   private landlordId = '';
+
+  loadPropertiesWithBookings() {
+    this.bookingService.getAll().subscribe({
+      next: (response) => {
+        const bookings = Array.isArray(response) ? response : (response?.records || []);
+        const propertyIds = new Set<string>();
+        bookings.forEach((b: any) => {
+          if (b.housingUnitId) {
+            propertyIds.add(b.housingUnitId);
+          }
+        });
+        this.propertiesWithBookings.set(propertyIds);
+      },
+      error: () => {
+        // If we can't load bookings, assume no restrictions
+        this.propertiesWithBookings.set(new Set());
+      }
+    });
+  }
+
+  hasBookings(housingUnitId: string): boolean {
+    return this.propertiesWithBookings().has(housingUnitId);
+  }
 
   openAddModal() {
     console.log('openAddModal called');
