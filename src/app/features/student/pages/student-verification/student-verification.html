@@ -4,13 +4,42 @@
     Please provide your university details and upload a valid student ID card to get verified.
   </p>
 
-  <div *ngIf="isSuccess()" class="p-6 bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl border border-emerald-100 dark:border-emerald-800 text-center">
+  <!-- Approved Status -->
+  <div *ngIf="verificationStatus() === 2" class="p-6 bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl border border-emerald-100 dark:border-emerald-800 text-center">
+    <span class="material-symbols-outlined text-4xl text-emerald-500 mb-2">check_circle</span>
+    <h3 class="text-xl font-bold text-emerald-800 dark:text-emerald-400 mb-2">Account Successfully Approved</h3>
+    <p class="text-emerald-600 dark:text-emerald-300">Your university verification has been approved by the admin. You can now book accommodations.</p>
+  </div>
+
+  <!-- Rejected Status -->
+  <div *ngIf="verificationStatus() === 3" class="p-6 bg-rose-50 dark:bg-rose-900/20 rounded-2xl border border-rose-100 dark:border-rose-800 text-center">
+    <span class="material-symbols-outlined text-4xl text-rose-500 mb-2">cancel</span>
+    <h3 class="text-xl font-bold text-rose-800 dark:text-rose-400 mb-2">Verification Rejected</h3>
+    <p class="text-rose-600 dark:text-rose-300">Your verification was rejected. Please contact support or resubmit with correct documents.</p>
+  </div>
+
+  <!-- Pending Status -->
+  <div *ngIf="verificationStatus() === 1" class="p-6 bg-amber-50 dark:bg-amber-900/20 rounded-2xl border border-amber-100 dark:border-amber-800 text-center">
+    <span class="material-symbols-outlined text-4xl text-amber-500 mb-2">pending</span>
+    <h3 class="text-xl font-bold text-amber-800 dark:text-amber-400 mb-2">Verification Under Review</h3>
+    <p class="text-amber-600 dark:text-amber-300">Your verification documents have been submitted and are being reviewed by the admin.</p>
+  </div>
+
+  <!-- Submitted Successfully Message -->
+  <div *ngIf="isSuccess() && verificationStatus() === null" class="p-6 bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl border border-emerald-100 dark:border-emerald-800 text-center">
     <span class="material-symbols-outlined text-4xl text-emerald-500 mb-2">check_circle</span>
     <h3 class="text-xl font-bold text-emerald-800 dark:text-emerald-400 mb-2">Submitted Successfully</h3>
     <p class="text-emerald-600 dark:text-emerald-300">Your verification documents have been submitted and are under review.</p>
   </div>
 
-  <form *ngIf="!isSuccess()" [formGroup]="verificationForm" (ngSubmit)="onSubmit()" class="bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-sm border border-neutral-100 dark:border-slate-800 space-y-6">
+  <!-- Loading Status Check -->
+  <div *ngIf="isCheckingStatus()" class="p-6 bg-slate-50 dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 text-center">
+    <span class="material-symbols-outlined text-4xl text-slate-500 mb-2 animate-spin">progress_activity</span>
+    <p class="text-slate-600 dark:text-slate-300">Checking your verification status...</p>
+  </div>
+
+  <!-- Verification Form (shown only when not submitted/approved/rejected) -->
+  <form *ngIf="!isSuccess() && verificationStatus() === null && !isCheckingStatus()" [formGroup]="verificationForm" (ngSubmit)="onSubmit()" class="bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-sm border border-neutral-100 dark:border-slate-800 space-y-6">
     <div *ngIf="errorMessage()" class="p-4 bg-rose-50 text-rose-600 rounded-xl text-sm font-medium">
       {{ errorMessage() }}
     </div>

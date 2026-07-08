@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { StudentService } from '../../../../core/services/student.service';
@@ -9,7 +9,7 @@ import { StudentService } from '../../../../core/services/student.service';
   imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './student-verification.html'
 })
-export class StudentVerification {
+export class StudentVerification implements OnInit {
   private fb = inject(FormBuilder);
   private studentService = inject(StudentService);
 
@@ -18,11 +18,32 @@ export class StudentVerification {
   isLoading = signal(false);
   isSuccess = signal(false);
   errorMessage = signal<string | null>(null);
+  verificationStatus = signal<number | null>(null); // 0=NotSubmitted, 1=Pending, 2=Approved, 3=Rejected
+  isCheckingStatus = signal(false);
 
   constructor() {
     this.verificationForm = this.fb.group({
       universityName: ['', Validators.required],
       universityEmail: ['', [Validators.required, Validators.email]]
+    });
+  }
+
+  ngOnInit() {
+    this.checkVerificationStatus();
+  }
+
+  checkVerificationStatus() {
+    this.isCheckingStatus.set(true);
+    this.studentService.getMyVerificationStatus().subscribe({
+      next: (res: any) => {
+        this.isCheckingStatus.set(false);
+        this.verificationStatus.set(res?.universityVerificationStatus ?? null);
+        console.log('Verification status:', this.verificationStatus());
+      },
+      error: (err) => {
+        this.isCheckingStatus.set(false);
+        console.error('Failed to check verification status:', err);
+      }
     });
   }
 
@@ -59,6 +80,7 @@ export class StudentVerification {
       next: () => {
         this.isLoading.set(false);
         this.isSuccess.set(true);
+        this.checkVerificationStatus();
       },
       error: (err: any) => {
         this.isLoading.set(false);

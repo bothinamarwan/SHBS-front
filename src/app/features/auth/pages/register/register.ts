@@ -144,6 +144,9 @@ export class Register {
       };
     }
 
+    console.log('Registering as:', isStudent ? 'student' : 'landlord');
+    console.log('Payload:', payload);
+
     const register$ = isStudent
       ? this.authService.registerStudent(payload)
       : this.authService.registerLandlord(payload);

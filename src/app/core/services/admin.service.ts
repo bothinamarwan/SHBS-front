@@ -43,9 +43,11 @@ export class AdminService {
   }
 
   reviewStudentVerification(studentId: string, request: ReviewVerificationRequest): Observable<any> {
-    // Wrap request in 'request' property since backend error says "The request field is required."
-    const payload = { request: request };
-    return this.http.post(`${this.baseUrl}/verifications/${studentId}/review`, payload);
+    // Send request directly as JSON body (not wrapped in 'request' property)
+    console.log('reviewStudentVerification - URL:', `${this.baseUrl}/verifications/${studentId}/review`);
+    console.log('reviewStudentVerification - Request body:', request);
+    console.log('reviewStudentVerification - Request body JSON:', JSON.stringify(request));
+    return this.http.post(`${this.baseUrl}/verifications/${studentId}/review`, request);
   }
 
   getStudentIdCardUrl(studentId: string): string {

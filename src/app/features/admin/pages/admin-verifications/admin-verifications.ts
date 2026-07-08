@@ -43,7 +43,10 @@ export class AdminVerifications implements OnInit {
     this.isLoading.set(true);
     if (this.activeTab() === 'students') {
       this.adminService.getPendingStudentVerifications(this.pageNumber(), this.pageSize()).subscribe({
-        next: (res: any) => this.handleResponse(res),
+        next: (res: any) => {
+          console.log('Pending student verifications response:', res);
+          this.handleResponse(res);
+        },
         error: () => this.isLoading.set(false)
       });
     } else {
@@ -77,16 +80,18 @@ export class AdminVerifications implements OnInit {
 
   // ── Student Actions ──
   reviewStudent(studentId: string, statusEnum: number) {
+    console.log('reviewStudent called with studentId:', studentId, 'statusEnum:', statusEnum);
     this.actionInProgress.set(studentId + '_' + statusEnum);
     this.adminService.reviewStudentVerification(studentId, { newStatus: statusEnum }).subscribe({
       next: () => {
-        const labels: Record<number, string> = { 1: 'Approved', 2: 'Rejected' };
-        this.showToast(labels[statusEnum] + ' successfully.', statusEnum === 1);
+        const labels: Record<number, string> = { 2: 'Approved', 3: 'Rejected' };
+        this.showToast(labels[statusEnum] + ' successfully.', statusEnum === 2);
         this.actionInProgress.set(null);
         this.fetchData();
       },
       error: (err) => {
         console.error('Review student error:', err);
+        console.error('Student ID that failed:', studentId);
         const errorMsg = err?.error?.message || (err?.error?.errors && Object.values(err.error.errors).join(', ')) || 'Action failed. Please try again.';
         this.showToast(errorMsg, false);
         this.actionInProgress.set(null);

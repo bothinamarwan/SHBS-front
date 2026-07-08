@@ -64,8 +64,11 @@ export class BookingPaymentPage implements OnInit {
       ...this.paymentForm.value
     };
 
+    console.log('Payment request payload:', req);
+
     this.bookingPaymentService.initiate(req).subscribe({
       next: (response: BookingPaymentResponse) => {
+        console.log('Payment response:', response);
         if (response.success && response.paymentUrl) {
           window.location.href = response.paymentUrl;
         } else {
@@ -74,6 +77,7 @@ export class BookingPaymentPage implements OnInit {
         }
       },
       error: (err) => {
+        console.error('Payment error:', err);
         this.errorMessage.set(err?.error?.message || 'Failed to initiate payment. Please try again.');
         this.isProcessing.set(false);
       }

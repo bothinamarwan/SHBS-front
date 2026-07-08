@@ -50,25 +50,58 @@ export class BookingCreate implements OnInit {
   get totalPrice(): number {
     const months = this.bookingForm.get('duration')?.value || 0;
     let basePrice = 0;
+    console.log('Calculating totalPrice - bookingType:', this.bookingType());
+    console.log('Calculating totalPrice - housing:', this.housing());
+    console.log('Calculating totalPrice - selectedRoom:', this.selectedRoom());
+    console.log('Calculating totalPrice - selectedBed:', this.selectedBed());
+    console.log('Calculating totalPrice - months:', months);
+
     if (this.bookingType() === BookingType.FullUnit && this.housing()) {
       basePrice = this.housing()!.baseMonthlyPrice || this.housing()!.price || (this.housing() as any).Price || 0;
+      console.log('FullUnit basePrice:', basePrice);
     } else if (this.bookingType() === BookingType.FullRoom && this.selectedRoom()) {
       basePrice = this.selectedRoom()!.price || (this.selectedRoom() as any).Price || 0;
+      console.log('FullRoom basePrice:', basePrice);
     } else if (this.bookingType() === BookingType.SingleBed && this.selectedBed()) {
       basePrice = this.selectedBed()!.calculatedPrice || (this.selectedBed() as any).CalculatedPrice || 0;
+      console.log('SingleBed basePrice:', basePrice);
     }
-    return basePrice * months;
+    const total = basePrice * months;
+    console.log('Final totalPrice:', total);
+    return total;
   }
 
   ngOnInit() {
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
-      this.housingService.getDetailsById(id).subscribe(data => {
+      this.housingService.getDetailsById(id).subscribe((data: any) => {
         if (data) {
           this.housing.set(data);
-          this.roomService.getRoomsByHousingUnit(id).subscribe(rooms => {
-            this.rooms.set(rooms || []);
-          });
+          console.log('Housing data loaded:', data);
+          console.log('Housing rooms field:', data.rooms);
+          console.log('Is rooms an array?', Array.isArray(data.rooms));
+          // Use rooms from housing response if available, otherwise fetch separately
+          if (data.rooms && Array.isArray(data.rooms)) {
+            console.log('Using rooms from housing response:', data.rooms);
+            // Log each room's availability
+            data.rooms.forEach((room: any, index: number) => {
+              console.log(`Room ${index}:`, {
+                id: room.id || room.roomId,
+                roomType: room.roomType,
+                price: room.price,
+                isAvailable: room.isAvailable
+              });
+            });
+            this.rooms.set(data.rooms);
+            console.log('Rooms signal set to:', this.rooms());
+          } else {
+            console.log('Rooms not in housing response, fetching separately');
+            this.roomService.getRoomsByHousingUnit(id).subscribe((rooms: any) => {
+              console.log('Rooms response:', rooms);
+              this.rooms.set(Array.isArray(rooms) ? rooms : (rooms?.records || []));
+              console.log('Rooms signal set to:', this.rooms());
+            });
+          }
         }
       });
     }
@@ -87,13 +120,20 @@ export class BookingCreate implements OnInit {
   }
 
   selectRoom(room: RoomModel) {
+    console.log('selectRoom called with room:', room);
+    console.log('Current selectedRoom:', this.selectedRoom());
     if (this.selectedRoom()?.id === room.id || this.selectedRoom()?.roomId === room.roomId) {
+      console.log('Deselecting room');
       this.selectedRoom.set(null);
       this.beds.set([]);
     } else {
+      console.log('Selecting room:', room);
       this.selectedRoom.set(room);
-      this.bedService.getBedsByRoom(room.id || room.roomId || '').subscribe(beds => {
-        this.beds.set(beds || []);
+      const roomId = room.id || room.roomId || '';
+      console.log('Fetching beds for roomId:', roomId);
+      this.bedService.getBedsByRoom(roomId).subscribe((beds: any) => {
+        console.log('Beds response:', beds);
+        this.beds.set(Array.isArray(beds) ? beds : (beds?.records || []));
       });
     }
   }
@@ -108,8 +148,11 @@ export class BookingCreate implements OnInit {
 
   confirmBooking() {
     this.isLoading.set(true);
-    const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+    const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
     const sId = currentUser.studentId || currentUser.id || (currentUser as any)?.studentId || '3fa85f64-5717-4562-b3fc-2c963f66afa6';
+
+    console.log('Current user from localStorage:', currentUser);
+    console.log('Student ID being used:', sId);
 
     const moveIn = new Date(this.bookingForm.value.moveInDate);
     const months = this.bookingForm.value.duration || 12;
@@ -130,6 +173,8 @@ export class BookingCreate implements OnInit {
     } else if (this.bookingType() === BookingType.SingleBed && this.selectedBed()) {
       payload.bedId = this.selectedBed()!.bedId;
     }
+
+    console.log('Booking payload:', payload);
 
     this.bookingService.create(payload).subscribe({
       next: (res) => {

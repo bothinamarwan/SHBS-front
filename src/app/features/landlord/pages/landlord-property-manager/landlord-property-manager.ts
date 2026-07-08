@@ -85,14 +85,14 @@ export class LandlordPropertyManager implements OnInit {
   }
 
   loadRooms(housingUnitId: string) {
-    this.roomService.getRoomsByHousingUnit(housingUnitId).subscribe({
-      next: (rooms) => {
-        // Sort rooms by type then price
-        this.rooms.set(rooms);
-        this.isLoading.set(false);
-      },
-      error: () => { this.isLoading.set(false); }
-    });
+    this.roomService.getRoomsByHousingUnit(housingUnitId).subscribe((rooms: any) => {
+      console.log('Rooms response:', rooms);
+      // Handle paginated response or plain array
+      const roomsArray = Array.isArray(rooms) ? rooms : (rooms?.records || []);
+      // Sort rooms by type then price
+      this.rooms.set(roomsArray);
+      this.isLoading.set(false);
+    }, (error) => { this.isLoading.set(false); });
   }
 
   loadBedsForRoom(roomId: string) {
@@ -231,7 +231,7 @@ export class LandlordPropertyManager implements OnInit {
       };
       this.roomService.createRoom(req).subscribe({
         next: (created: any) => {
-          this.rooms.update(prev => [...prev, created]);
+          this.rooms.update(prev => Array.isArray(prev) ? [...prev, created] : [created]);
           this.isSavingRoom.set(false);
           this.closeRoomModal();
           this.showSuccess('Room added successfully.');

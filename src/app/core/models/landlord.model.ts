@@ -1,15 +1,20 @@
 export interface Landlord {
   landlordId: string;
-  fullName: string;
+  userId?: string;
+  fullName?: string;
   companyName?: string;
-  nationalID: string;
-  propertyOwnershipProof: string; // URL or reference to proof document
-  verificationStatus: 'pending' | 'verified' | 'rejected';
+  nationalID?: string;
+  nationalId?: string;
+  propertyOwnershipProof?: string; // URL or reference to proof document
+  verificationStatus?: 'pending' | 'verified' | 'rejected' | 'Approved';
   email?: string;
   phoneNumber?: string;
   isVerified?: boolean;
   nationalIdImageUrl?: string;
   housingUnitDocumentationUrl?: string;
+  propertyOwnerShipProof?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface CreateLandlordRequest {

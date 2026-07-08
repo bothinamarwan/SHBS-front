@@ -18,7 +18,7 @@ export interface PaginatedResponse<T> {
 }
 
 export interface ReviewVerificationRequest {
-  newStatus: number; // 0 = Pending, 1 = Approved, 2 = Rejected, 3 = NeedsMoreInfo
+  newStatus: number; // 0 = NotSubmitted, 1 = Pending, 2 = Approved, 3 = Rejected
 }
 
 export interface UpdateLandlordVerificationStatusRequest {

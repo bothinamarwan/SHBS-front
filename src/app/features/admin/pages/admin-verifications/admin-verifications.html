@@ -101,15 +101,15 @@
 
             <!-- 2 action buttons -->
             <div class="grid grid-cols-2 gap-2 mt-auto">
+              <button (click)="reviewStudent(item.studentId, 3)"
+                      [disabled]="isActionLoading(item.studentId + '_3')"
+                      class="flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-rose-200 dark:border-rose-800 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/20 font-semibold text-xs transition-all disabled:opacity-50">
+                <i class="fas" [ngClass]="isActionLoading(item.studentId + '_3') ? 'fa-spinner fa-spin' : 'fa-times'"></i> Reject
+              </button>
               <button (click)="reviewStudent(item.studentId, 2)"
                       [disabled]="isActionLoading(item.studentId + '_2')"
-                      class="flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-rose-200 dark:border-rose-800 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/20 font-semibold text-xs transition-all disabled:opacity-50">
-                <i class="fas" [ngClass]="isActionLoading(item.studentId + '_2') ? 'fa-spinner fa-spin' : 'fa-times'"></i> Reject
-              </button>
-              <button (click)="reviewStudent(item.studentId, 1)"
-                      [disabled]="isActionLoading(item.studentId + '_1')"
                       class="flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-semibold text-xs transition-all shadow-md shadow-emerald-500/20 disabled:opacity-50">
-                <i class="fas" [ngClass]="isActionLoading(item.studentId + '_1') ? 'fa-spinner fa-spin' : 'fa-check'"></i> Approve
+                <i class="fas" [ngClass]="isActionLoading(item.studentId + '_2') ? 'fa-spinner fa-spin' : 'fa-check'"></i> Approve
               </button>
             </div>
           </div>

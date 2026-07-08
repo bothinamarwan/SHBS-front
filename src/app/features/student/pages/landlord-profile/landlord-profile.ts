@@ -17,7 +17,7 @@ export class LandlordProfile implements OnInit {
   private landlordService = inject(LandlordService);
   private housingService = inject(HousingService);
 
-  landlord = signal<Landlord | null>(null);
+  landlordId = signal<string | null>(null);
   properties = signal<HousingUnit[]>([]);
   isLoading = signal(true);
   errorMessage = signal<string | null>(null);
@@ -28,25 +28,12 @@ export class LandlordProfile implements OnInit {
   ngOnInit() {
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
-      this.loadLandlordData(id);
+      this.landlordId.set(id);
+      this.loadProperties(id);
     } else {
       this.errorMessage.set('Invalid landlord ID');
       this.isLoading.set(false);
     }
-  }
-
-  private loadLandlordData(id: string) {
-    this.landlordService.getById(id).subscribe({
-      next: (data) => {
-        this.landlord.set(data);
-        this.loadProperties(id);
-      },
-      error: (err) => {
-        console.error('Failed to load landlord', err);
-        this.errorMessage.set('Could not load landlord profile.');
-        this.isLoading.set(false);
-      }
-    });
   }
 
   private loadProperties(landlordId: string) {
@@ -62,10 +49,5 @@ export class LandlordProfile implements OnInit {
         this.isLoading.set(false);
       }
     });
-  }
-
-  getLandlordName(l: any): string {
-    if (!l) return 'Unknown Landlord';
-    return l.fullName || l.name || (l.firstName ? `${l.firstName} ${l.lastName || ''}`.trim() : 'Unknown Landlord');
   }
 }
