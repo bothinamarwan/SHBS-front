@@ -1,0 +1,102 @@
+<div class="mb-8">
+  <h1 class="text-2xl font-extrabold text-slate-900 dark:text-slate-100">Lease Contract</h1>
+  <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
+    Review and sign your lease agreement
+  </p>
+</div>
+
+<!-- Loading State -->
+<div *ngIf="isLoading()" class="flex flex-col items-center justify-center py-20">
+  <div class="w-10 h-10 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mb-4"></div>
+  <p class="text-sm text-slate-500 font-medium">Loading contract...</p>
+</div>
+
+<!-- Main Content -->
+<div *ngIf="!isLoading() && contract()">
+  
+  <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden mb-6">
+    <!-- Header -->
+    <div class="p-5 border-b border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row gap-4 items-center justify-between">
+      <div class="flex items-center gap-2">
+        <i class="fas fa-file-contract text-slate-400"></i>
+        <h2 class="font-bold text-slate-800 dark:text-slate-200">Contract Details</h2>
+      </div>
+      <button (click)="downloadContract()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center gap-2">
+        <i class="fas fa-download"></i>
+        Download PDF
+      </button>
+    </div>
+
+    <!-- Contract Info -->
+    <div class="p-5 space-y-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Contract ID</label>
+          <div class="text-sm font-mono text-slate-900 dark:text-slate-100">{{ contract()?.contractId }}</div>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Booking ID</label>
+          <div class="text-sm font-mono text-slate-900 dark:text-slate-100">{{ contract()?.bookingId }}</div>
+        </div>
+      </div>
+
+      <div *ngIf="contract()?.contractPdfUrl" class="p-4 bg-slate-50 dark:bg-slate-800 rounded-lg">
+        <label class="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-2">Contract PDF</label>
+        <a [href]="contract()?.contractPdfUrl" target="_blank" class="text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 text-sm font-medium">
+          <i class="fas fa-external-link-alt mr-1"></i>
+          View Contract Document
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Signing Section -->
+  <div *ngIf="!contractSigned()" class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+    <div class="p-5 border-b border-slate-200 dark:border-slate-800">
+      <h2 class="font-bold text-slate-800 dark:text-slate-200">Sign Contract</h2>
+      <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
+        Please provide your signed PDF URL to complete the contract signing process.
+      </p>
+    </div>
+
+    <div class="p-5">
+      <form [formGroup]="signatureForm" (ngSubmit)="signContract()">
+        <div class="mb-4">
+          <label for="signedPdfUrl" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+            Signed PDF URL <span class="text-rose-500">*</span>
+          </label>
+          <input type="url" id="signedPdfUrl" formControlName="signedPdfUrl"
+                 class="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                 placeholder="https://example.com/signed-contract.pdf">
+          <div *ngIf="signatureForm.get('signedPdfUrl')?.invalid && signatureForm.get('signedPdfUrl')?.touched" 
+               class="mt-1 text-xs text-rose-500">
+            Please enter a valid URL
+          </div>
+        </div>
+
+        <button type="submit" [disabled]="isSigning()"
+                class="w-full px-4 py-3 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2">
+          <i *ngIf="isSigning()" class="fas fa-spinner fa-spin"></i>
+          <i *ngIf="!isSigning()" class="fas fa-signature"></i>
+          {{ isSigning() ? 'Signing...' : 'Sign Contract' }}
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Success State -->
+  <div *ngIf="contractSigned()" class="bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl border border-emerald-200 dark:border-emerald-800 p-6">
+    <div class="flex items-center gap-3">
+      <div class="w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-900/50 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+        <i class="fas fa-check-circle text-xl"></i>
+      </div>
+      <div>
+        <h3 class="font-bold text-emerald-900 dark:text-emerald-100">Contract Signed Successfully</h3>
+        <p class="text-sm text-emerald-700 dark:text-emerald-300 mt-1">
+          Your contract has been signed. Waiting for landlord signature.
+        </p>
+      </div>
+    </div>
+  </div>
+
+</div>

@@ -1,0 +1,33 @@
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { Contract, StudentSignatureRequest, LandlordSignatureRequest, AdminApprovalRequest, AdminRejectionRequest } from '../models/contract.model';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class ContractService {
+  private baseUrl = '/api/contracts';
+
+  constructor(private http: HttpClient) {}
+
+  getById(id: string): Observable<Contract> {
+    return this.http.get<Contract>(`${this.baseUrl}/${id}`);
+  }
+
+  studentSign(id: string, req: StudentSignatureRequest): Observable<Contract> {
+    return this.http.post<Contract>(`${this.baseUrl}/${id}/signatures/student`, req);
+  }
+
+  landlordSign(id: string, req: LandlordSignatureRequest): Observable<Contract> {
+    return this.http.post<Contract>(`${this.baseUrl}/${id}/signatures/owner`, req);
+  }
+
+  adminApprove(id: string, req: AdminApprovalRequest): Observable<Contract> {
+    return this.http.post<Contract>(`${this.baseUrl}/${id}/admin/approve`, req);
+  }
+
+  adminReject(id: string, req: AdminRejectionRequest): Observable<Contract> {
+    return this.http.post<Contract>(`${this.baseUrl}/${id}/admin/reject`, req);
+  }
+}

@@ -85,26 +85,19 @@
 
     <!-- Quick Actions Overlay -->
     <div class="p-4 bg-neutral-50 dark:bg-slate-800/50 border-t border-neutral-100 dark:border-slate-800 flex justify-end gap-2 relative z-10">
-      <button *ngIf="booking.bookingStatus === 0"
-              (click)="approveBooking(booking); $event.stopPropagation()"
-              [disabled]="actionLoading() !== null"
-              class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition-colors flex items-center justify-center disabled:opacity-50" title="Approve">
-        <i *ngIf="isActionLoading(booking.bookingId, 'approve')" class="fas fa-spinner fa-spin"></i>
-        <i *ngIf="!isActionLoading(booking.bookingId, 'approve')" class="fas fa-check"></i>
-      </button>
-
-      <button *ngIf="booking.bookingStatus === 0"
-              (click)="rejectBooking(booking); $event.stopPropagation()"
-              [disabled]="actionLoading() !== null"
-              class="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 hover:bg-rose-100 transition-colors flex items-center justify-center disabled:opacity-50" title="Reject">
-        <i *ngIf="isActionLoading(booking.bookingId, 'reject')" class="fas fa-spinner fa-spin"></i>
-        <i *ngIf="!isActionLoading(booking.bookingId, 'reject')" class="fas fa-times"></i>
-      </button>
-
-      <button *ngIf="booking.bookingStatus === 1"
+      <!-- Sign Contract button for landlord when waiting for landlord signature -->
+      <button *ngIf="booking.bookingStatus === 8"
         (click)="openContractModal(booking)"
         class="text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg transition-colors ml-auto">
         <i class="fas fa-file-contract mr-1"></i> Sign Lease Contract
+      </button>
+
+      <!-- Cancel button for cancellable statuses -->
+      <button *ngIf="[1,2,3,6,7,8,9].includes(booking.bookingStatus)"
+              (click)="cancelBooking(booking.bookingId); $event.stopPropagation()"
+              [disabled]="actionLoading() !== null"
+              class="w-10 h-10 rounded-xl bg-slate-50 text-slate-500 hover:bg-rose-50 hover:text-rose-600 transition-colors flex items-center justify-center disabled:opacity-50" title="Cancel Booking">
+        <i class="fas fa-times"></i>
       </button>
     </div>
   </div>
@@ -159,15 +152,7 @@
       </div>
 
       <div class="flex gap-3 pt-6 border-t border-neutral-100 dark:border-slate-800">
-        <button *ngIf="b.bookingStatus === 0" (click)="approveBooking(b)" [disabled]="actionLoading() !== null"
-          class="flex-1 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-bold transition-colors disabled:opacity-50">
-          <i *ngIf="isActionLoading(b.bookingId, 'approve')" class="fas fa-spinner fa-spin mr-1"></i> Approve
-        </button>
-        <button *ngIf="b.bookingStatus === 0" (click)="rejectBooking(b)" [disabled]="actionLoading() !== null"
-          class="flex-1 py-3 bg-rose-50 text-rose-600 hover:bg-rose-100 rounded-xl font-bold transition-colors disabled:opacity-50">
-          <i *ngIf="isActionLoading(b.bookingId, 'reject')" class="fas fa-spinner fa-spin mr-1"></i> Reject
-        </button>
-        <button *ngIf="b.bookingStatus === 1" (click)="openContractModal(b)" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold transition-colors shadow-lg shadow-indigo-200 dark:shadow-none">
+        <button *ngIf="b.bookingStatus === 8" (click)="openContractModal(b)" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold transition-colors shadow-lg shadow-indigo-200 dark:shadow-none">
           Sign Contract
         </button>
       </div>
