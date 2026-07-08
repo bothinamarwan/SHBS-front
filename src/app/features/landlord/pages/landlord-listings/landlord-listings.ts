@@ -13,6 +13,7 @@ import { RoomService } from '../../../../core/services/room.service';
 import { BedService } from '../../../../core/services/bed.service';
 import { AuthService } from '../../../../core/services/auth.service';
 import { BookingService } from '../../../../core/services/booking.service';
+import { LandlordService } from '../../../../core/services/landlord.service';
 import { CreateRoomRequest } from '../../../../core/models/room.model';
 import { CreateBedRequest } from '../../../../core/models/bed.model';
 import * as L from 'leaflet';
@@ -37,11 +38,13 @@ export class LandlordListings implements OnInit {
   private housingService = inject(HousingService);
   private authService = inject(AuthService);
   private bookingService = inject(BookingService);
+  private landlordService = inject(LandlordService);
   private fb = inject(FormBuilder);
 
   isLoading = signal(true);
   listings = signal<HousingUnit[]>([]);
   propertiesWithBookings = signal<Set<string>>(new Set());
+  isLandlordVerified = signal(false);
   isModalOpen = signal(false);
   editingHousing = signal<HousingUnit | null>(null);
   activeTab = signal(0);
@@ -212,6 +215,9 @@ export class LandlordListings implements OnInit {
     const user = this.authService.currentUserValue;
     this.landlordId = user?.landlordId || (user as any)?.landLordId || user?.id || '';
 
+    // Check landlord verification status
+    this.checkLandlordVerification();
+
     this.housingService.getAll().subscribe({
       next: (all) => {
         // Only show units that belong to this landlord
@@ -246,6 +252,27 @@ export class LandlordListings implements OnInit {
 
   private landlordId = '';
 
+  checkLandlordVerification() {
+    if (!this.landlordId) {
+      this.isLandlordVerified.set(false);
+      return;
+    }
+
+    this.landlordService.getById(this.landlordId).subscribe({
+      next: (landlord) => {
+        // Check if landlord is verified (verificationStatus is 'verified' or 'Approved')
+        const isVerified = landlord.verificationStatus === 'verified' ||
+                          landlord.verificationStatus === 'Approved' ||
+                          landlord.isVerified === true;
+        this.isLandlordVerified.set(isVerified);
+      },
+      error: () => {
+        // If we can't check verification, assume not verified
+        this.isLandlordVerified.set(false);
+      }
+    });
+  }
+
   loadPropertiesWithBookings() {
     this.bookingService.getAll().subscribe({
       next: (response) => {
@@ -270,6 +297,11 @@ export class LandlordListings implements OnInit {
   }
 
   openAddModal() {
+    if (!this.isLandlordVerified()) {
+      alert('Your account must be verified by admin before you can add properties. Please complete your verification and wait for approval.');
+      return;
+    }
+
     console.log('openAddModal called');
     this.editingHousing.set(null);
     this.housingForm.reset({
