@@ -188,7 +188,22 @@ export class LandlordVerification implements OnInit {
         },
         error: (err: any) => {
           console.error('File upload failed:', err);
-          alert(`Failed to upload ${doc.label}`);
+          let errorMessage = `Failed to upload ${doc.label}`;
+
+          // Extract validation errors from backend response
+          if (err.error && err.error.errors) {
+            const validationErrors = err.error.errors;
+            const errorMessages = Object.values(validationErrors).flat();
+            if (errorMessages.length > 0) {
+              errorMessage += `: ${errorMessages.join(', ')}`;
+            }
+          } else if (err.error && err.error.message) {
+            errorMessage += `: ${err.error.message}`;
+          } else if (err.message) {
+            errorMessage += `: ${err.message}`;
+          }
+
+          alert(errorMessage);
           this.isUploading.set(null);
         }
       });
