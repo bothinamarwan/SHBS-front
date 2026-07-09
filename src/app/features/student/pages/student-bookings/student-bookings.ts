@@ -25,7 +25,8 @@ export class StudentBookings implements OnInit {
 
   fetchMyBookings() {
     this.isLoading.set(true);
-    this.bookingService.getBookings().pipe(
+    // Use getAll() instead of getBookings() to get consistent data with admin
+    this.bookingService.getAll().pipe(
       finalize(() => this.isLoading.set(false))
     ).subscribe({
       next: async (res: any) => {
@@ -37,7 +38,14 @@ export class StudentBookings implements OnInit {
           bookings = res.records;
         }
 
-        console.log('Parsed bookings:', bookings);
+        // Filter bookings for current student
+        const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
+        const studentId = user?.studentId || user?.id;
+        if (studentId) {
+          bookings = bookings.filter(b => b.studentId === studentId);
+        }
+
+        console.log('Filtered bookings for student:', bookings);
         bookings.forEach(b => {
           const statusNum = typeof b.bookingStatus === 'string' ? parseInt(b.bookingStatus) : b.bookingStatus;
           console.log(`Booking ${b.bookingId}: rawStatus=${b.bookingStatus} (${typeof b.bookingStatus}), parsedStatus=${statusNum}, label=${this.getStatusLabel(statusNum)}`);
