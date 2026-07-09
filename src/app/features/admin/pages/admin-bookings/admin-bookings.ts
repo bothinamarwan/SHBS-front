@@ -37,6 +37,8 @@ export class AdminBookings implements OnInit {
 
   fetchBookings() {
     this.isLoading.set(true);
+    // Clear existing bookings to force refresh
+    this.bookings.set([]);
     // Since we don't have paging parameters in the signature yet, we'll just call getAll() and handle response format
     this.bookingService.getAll().pipe(
       finalize(() => this.isLoading.set(false))
