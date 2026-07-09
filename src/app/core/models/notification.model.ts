@@ -1,18 +1,22 @@
 export enum NotificationType {
-  General = 0,
-  Booking = 1,
-  Payment = 2,
-  System = 3,
-  Admin = 4,
-  Chat = 5
+  General = 'General',
+  Booking = 'Booking',
+  Payment = 'Payment',
+  System = 'System',
+  Admin = 'Admin',
+  Complaint = 'Complaint',
+  Review = 'Review'
 }
 
 export interface Notification {
   notificationId: string;
-  userId?: string;
-  title: string;
+  userId: string;
   message: string;
-  type: NotificationType;
-  isRead: boolean;
+  type: string;
+  isSeen: boolean;
   createdAt: string;
+}
+
+export interface UpdateNotificationRequest {
+  isSeen: boolean;
 }

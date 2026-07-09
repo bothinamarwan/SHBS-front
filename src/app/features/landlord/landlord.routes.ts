@@ -59,7 +59,7 @@ export const landlordRoutes: Routes = [
       {
         path: 'notifications',
         loadComponent: () => 
-          import('../notifications/pages/notification-page/notification-page').then(m => m.NotificationPage)
+          import('./pages/landlord-notifications/landlord-notifications').then(m => m.LandlordNotifications)
       },
       {
         path: 'complaints',

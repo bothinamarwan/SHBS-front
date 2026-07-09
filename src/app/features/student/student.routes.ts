@@ -48,7 +48,7 @@ export const studentRoutes: Routes = [
       },
       {
         path: 'notifications',
-        loadComponent: () => import('../notifications/pages/notification-page/notification-page').then(m => m.NotificationPage)
+        loadComponent: () => import('./pages/student-notifications/student-notifications').then(m => m.StudentNotifications)
       },
       {
         path: 'complaint',

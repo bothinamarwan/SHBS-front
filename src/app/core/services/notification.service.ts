@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Notification } from '../models/notification.model';
+import { Notification, UpdateNotificationRequest } from '../models/notification.model';
 
 @Injectable({
   providedIn: 'root'
@@ -19,27 +19,28 @@ export class NotificationService {
     return this.http.get<Notification>(`${this.baseUrl}/${id}`);
   }
 
-  getUnreadCount(): Observable<number> {
-    return this.http.get<number>(`${this.baseUrl}/count/unread`);
+  getByUserId(userId: string): Observable<Notification[]> {
+    return this.http.get<Notification[]>(`${this.baseUrl}/user/${userId}`);
   }
 
-  filterByType(type: number): Observable<Notification[]> {
-    return this.http.get<Notification[]>(`${this.baseUrl}/filter/by-type/${type}`);
+  getUnseenCount(): Observable<number> {
+    return this.http.get<number>(`${this.baseUrl}/count/unseen`);
   }
 
-  getAdminPending(): Observable<Notification[]> {
-    return this.http.get<Notification[]>(`${this.baseUrl}/admin/pending`);
+  markAsSeen(id: string): Observable<Notification> {
+    const request: UpdateNotificationRequest = { isSeen: true };
+    return this.http.put<Notification>(`${this.baseUrl}/${id}`, request);
   }
 
-  markAsRead(id: string): Observable<any> {
-    return this.http.put(`${this.baseUrl}/${id}/mark-as-read`, {});
-  }
-
-  markAllAsRead(): Observable<any> {
-    return this.http.put(`${this.baseUrl}/mark-all-as-read`, {});
+  markAllAsSeen(userId: string): Observable<any> {
+    return this.http.put(`${this.baseUrl}/user/${userId}/mark-all-seen`, {});
   }
 
   create(notification: Omit<Notification, 'notificationId' | 'createdAt'>): Observable<Notification> {
     return this.http.post<Notification>(this.baseUrl, notification);
+  }
+
+  delete(id: string): Observable<any> {
+    return this.http.delete(`${this.baseUrl}/${id}`);
   }
 }

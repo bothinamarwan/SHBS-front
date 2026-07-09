@@ -192,7 +192,7 @@
                     <i [class]="getNotificationIcon(n.type)" class="text-xs"></i>
                   </div>
                   <div>
-                    <p class="text-sm font-semibold text-neutral-800 dark:text-slate-100">{{ n.title }}</p>
+                    <p class="text-sm font-semibold text-neutral-800 dark:text-slate-100">{{ n.type }}</p>
                     <p class="text-xs text-neutral-500 dark:text-slate-400 mt-0.5 line-clamp-2">{{ n.message }}</p>
                     <span class="text-[10px] text-neutral-400 mt-1 block">{{ n.createdAt | date:'short' }}</span>
                   </div>

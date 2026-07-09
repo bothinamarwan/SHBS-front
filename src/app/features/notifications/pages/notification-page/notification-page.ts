@@ -18,7 +18,7 @@ export class NotificationPage implements OnInit {
   isLoading = signal(true);
   
   isAdmin = signal(false);
-  activeTab = signal<'all' | 'unread' | 'pending'>('all');
+  activeTab = signal<'all' | 'unread'>('all');
 
   ngOnInit() {
     const role = this.authService.currentUserValue?.role;
@@ -29,67 +29,83 @@ export class NotificationPage implements OnInit {
   loadNotifications() {
     this.isLoading.set(true);
 
-    if (this.activeTab() === 'pending' && this.isAdmin()) {
-      this.notificationService.getAdminPending().subscribe({
-        next: (data) => {
-          this.notifications.set(data);
+    const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
+    const userId = user?.studentId || user?.landlordId || user?.adminId || user?.id;
+
+    if (userId) {
+      this.notificationService.getByUserId(userId).subscribe({
+        next: (response: Notification[]) => {
+          const data: Notification[] = Array.isArray(response) ? response : (response as any)?.data || (response as any)?.items || (response as any)?.$values || [];
+          let filtered = data;
+          if (this.activeTab() === 'unread') {
+            filtered = data.filter(n => !n.isSeen);
+          }
+          this.notifications.set(filtered);
           this.isLoading.set(false);
         },
         error: () => this.isLoading.set(false)
       });
-      return;
+    } else {
+      this.notificationService.getAll().subscribe({
+        next: (response: Notification[]) => {
+          const data: Notification[] = Array.isArray(response) ? response : (response as any)?.data || (response as any)?.items || (response as any)?.$values || [];
+          let filtered = data;
+          if (this.activeTab() === 'unread') {
+            filtered = data.filter(n => !n.isSeen);
+          }
+          this.notifications.set(filtered);
+          this.isLoading.set(false);
+        },
+        error: () => this.isLoading.set(false)
+      });
     }
-
-    this.notificationService.getAll().subscribe({
-      next: (response: any) => {
-        const data: Notification[] = Array.isArray(response) ? response : (response?.data || response?.items || response?.$values || []);
-        let filtered = data;
-        if (this.activeTab() === 'unread') {
-          filtered = data.filter(n => !n.isRead);
-        }
-        this.notifications.set(filtered);
-        this.isLoading.set(false);
-      },
-      error: () => this.isLoading.set(false)
-    });
   }
 
-  setTab(tab: 'all' | 'unread' | 'pending') {
+  setTab(tab: 'all' | 'unread') {
     this.activeTab.set(tab);
     this.loadNotifications();
   }
 
   markAsRead(n: Notification) {
-    if (n.isRead) return;
-    this.notificationService.markAsRead(n.notificationId).subscribe(() => {
+    if (n.isSeen) return;
+    this.notificationService.markAsSeen(n.notificationId).subscribe(() => {
       this.notifications.update(prev => 
-        prev.map(x => x.notificationId === n.notificationId ? { ...x, isRead: true } : x)
+        prev.map(x => x.notificationId === n.notificationId ? { ...x, isSeen: true } : x)
       );
     });
   }
 
   markAllAsRead() {
-    this.notificationService.markAllAsRead().subscribe(() => {
-      this.notifications.update(prev => prev.map(x => ({ ...x, isRead: true })));
-    });
+    const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
+    const userId = user?.studentId || user?.landlordId || user?.adminId || user?.id;
+    
+    if (userId) {
+      this.notificationService.markAllAsSeen(userId).subscribe(() => {
+        this.notifications.update(prev => prev.map(x => ({ ...x, isSeen: true })));
+      });
+    }
   }
 
-  getNotificationIcon(type: NotificationType): string {
-    switch (Number(type)) {
-      case NotificationType.Booking: return 'fas fa-calendar-check text-emerald-600 dark:text-emerald-400';
-      case NotificationType.Payment: return 'fas fa-receipt text-indigo-600 dark:text-indigo-400';
-      case NotificationType.Admin: return 'fas fa-shield-alt text-rose-600 dark:text-rose-400';
-      case NotificationType.System: return 'fas fa-cog text-neutral-600 dark:text-neutral-400';
+  getNotificationIcon(type: string): string {
+    switch (type) {
+      case 'Booking': return 'fas fa-calendar-check text-emerald-600 dark:text-emerald-400';
+      case 'Payment': return 'fas fa-receipt text-indigo-600 dark:text-indigo-400';
+      case 'Admin': return 'fas fa-shield-alt text-rose-600 dark:text-rose-400';
+      case 'System': return 'fas fa-cog text-neutral-600 dark:text-neutral-400';
+      case 'Complaint': return 'fas fa-exclamation-triangle text-amber-600 dark:text-amber-400';
+      case 'Review': return 'fas fa-star text-yellow-600 dark:text-yellow-400';
       default: return 'fas fa-info-circle text-blue-600 dark:text-blue-400';
     }
   }
 
-  getNotificationBg(type: NotificationType): string {
-    switch (Number(type)) {
-      case NotificationType.Booking: return 'bg-emerald-100 dark:bg-emerald-900/30';
-      case NotificationType.Payment: return 'bg-indigo-100 dark:bg-indigo-900/30';
-      case NotificationType.Admin: return 'bg-rose-100 dark:bg-rose-900/30';
-      case NotificationType.System: return 'bg-neutral-100 dark:bg-neutral-900/30';
+  getNotificationBg(type: string): string {
+    switch (type) {
+      case 'Booking': return 'bg-emerald-100 dark:bg-emerald-900/30';
+      case 'Payment': return 'bg-indigo-100 dark:bg-indigo-900/30';
+      case 'Admin': return 'bg-rose-100 dark:bg-rose-900/30';
+      case 'System': return 'bg-neutral-100 dark:bg-neutral-900/30';
+      case 'Complaint': return 'bg-amber-100 dark:bg-amber-900/30';
+      case 'Review': return 'bg-yellow-100 dark:bg-yellow-900/30';
       default: return 'bg-blue-100 dark:bg-blue-900/30';
     }
   }

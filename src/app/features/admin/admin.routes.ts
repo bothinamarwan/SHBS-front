@@ -7,7 +7,7 @@ import { AdminReports } from './pages/admin-reports/admin-reports';
 import { AdminApprovals } from './pages/admin-approvals/admin-approvals';
 import { AdminBookings } from './pages/admin-bookings/admin-bookings';
 import { AdminReceipts } from './pages/admin-receipts/admin-receipts';
-import { NotificationPage } from '../notifications/pages/notification-page/notification-page';
+import { AdminNotifications } from './pages/admin-notifications/admin-notifications';
 
 export const adminRoutes: Routes = [
   { path: '', component: AdminDashboard },
@@ -18,5 +18,5 @@ export const adminRoutes: Routes = [
   { path: 'reports', component: AdminReports },
   { path: 'bookings', component: AdminBookings },
   { path: 'receipts', component: AdminReceipts },
-  { path: 'notifications', component: NotificationPage },
+  { path: 'notifications', component: AdminNotifications },
 ];

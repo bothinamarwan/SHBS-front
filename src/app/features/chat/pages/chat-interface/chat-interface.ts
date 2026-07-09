@@ -179,10 +179,9 @@ export class ChatInterface implements OnInit {
 
     const notification: Omit<Notification, 'notificationId' | 'createdAt'> = {
       userId: recipientId,
-      title: 'New Message',
       message: messageContent.length > 50 ? messageContent.substring(0, 50) + '...' : messageContent,
-      type: NotificationType.Chat,
-      isRead: false
+      type: 'General',
+      isSeen: false
     };
 
     this.notificationService.create(notification).subscribe({
