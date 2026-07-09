@@ -1,9 +1,8 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule } from '@angular/forms';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { BookingService } from '../../../../core/services/booking.service';
 import { ContractService } from '../../../../core/services/contract.service';
+import { AuthService } from '../../../../core/services/auth.service';
 import { Booking } from '../../../../core/models/booking.model';
 import { LandlordService } from '../../../../core/services/landlord.service';
 import { StudentService } from '../../../../core/services/student.service';
@@ -12,7 +11,7 @@ import { finalize } from 'rxjs/operators';
 @Component({
   selector: 'app-admin-bookings',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule],
   templateUrl: './admin-bookings.html'
 })
 export class AdminBookings implements OnInit {
@@ -20,7 +19,7 @@ export class AdminBookings implements OnInit {
   private landlordService = inject(LandlordService);
   private studentService = inject(StudentService);
   private contractService = inject(ContractService);
-  private fb = inject(FormBuilder);
+  private authService = inject(AuthService);
 
   bookings = signal<Booking[]>([]);
   isLoading = signal(true);
@@ -31,13 +30,6 @@ export class AdminBookings implements OnInit {
   isUploadModalOpen = signal(false);
   selectedBookingId = signal<string | null>(null);
   selectedFile = signal<File | null>(null);
-  uploadForm: FormGroup;
-
-  constructor() {
-    this.uploadForm = this.fb.group({
-      adminUserId: ['', Validators.required]
-    });
-  }
 
   ngOnInit() {
     this.fetchBookings();
@@ -173,7 +165,6 @@ export class AdminBookings implements OnInit {
   openUploadModal(bookingId: string) {
     this.selectedBookingId.set(bookingId);
     this.isUploadModalOpen.set(true);
-    this.uploadForm.reset();
     this.selectedFile.set(null);
   }
 
@@ -197,26 +188,24 @@ export class AdminBookings implements OnInit {
   }
 
   uploadContract() {
-    if (this.uploadForm.invalid || !this.selectedFile()) {
-      this.uploadForm.markAllAsTouched();
-      if (!this.selectedFile()) {
-        alert('Please select a PDF file');
-      }
+    if (!this.selectedFile()) {
+      alert('Please select a PDF file');
       return;
     }
 
     const bookingId = this.selectedBookingId();
     if (!bookingId) return;
 
-    const formData = new FormData();
-    formData.append('bookingId', bookingId);
-    formData.append('contractPdf', this.selectedFile()!);
-    formData.append('adminUserId', this.uploadForm.value.adminUserId);
+    const currentUser = this.authService.currentUserValue;
+    if (!currentUser || !currentUser.id) {
+      alert('Admin user ID not found. Please log in again.');
+      return;
+    }
 
     this.contractService.adminUploadContract({
       bookingId: bookingId,
       contractPdf: this.selectedFile()!,
-      adminUserId: this.uploadForm.value.adminUserId
+      adminUserId: currentUser.id
     }).subscribe({
       next: (contract) => {
         alert('Contract uploaded successfully and sent to landlord and student');
