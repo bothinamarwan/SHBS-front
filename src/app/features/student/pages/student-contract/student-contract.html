@@ -40,9 +40,9 @@
         </div>
       </div>
 
-      <div *ngIf="contract()?.contractPdfUrl" class="p-4 bg-slate-50 dark:bg-slate-800 rounded-lg">
+      <div *ngIf="contract()?.originalContractPdfPath" class="p-4 bg-slate-50 dark:bg-slate-800 rounded-lg">
         <label class="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-2">Contract PDF</label>
-        <a [href]="contract()?.contractPdfUrl" target="_blank" class="text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 text-sm font-medium">
+        <a [href]="contract()?.originalContractPdfPath" target="_blank" class="text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 text-sm font-medium">
           <i class="fas fa-external-link-alt mr-1"></i>
           View Contract Document
         </a>

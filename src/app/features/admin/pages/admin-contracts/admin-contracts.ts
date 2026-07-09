@@ -72,12 +72,12 @@ export class AdminContracts implements OnInit {
 
     this.contractService.adminApprove(contractId, req).subscribe({
       next: () => {
-        // Update booking status to APPROVED (10)
+        // Update booking status to APPROVED (6)
         this.bookingService.update({
           bookingId: bookingId,
           startDate: '', // Will be filled by backend
           endDate: '',   // Will be filled by backend
-          bookingStatus: 10
+          bookingStatus: 6
         }).subscribe({
           next: () => {
             alert('Contract approved successfully. Amount transferred to landlord.');
@@ -115,12 +115,12 @@ export class AdminContracts implements OnInit {
 
     this.contractService.adminReject(contractId, req).subscribe({
       next: () => {
-        // Update booking status to REJECTED (13)
+        // Update booking status to REJECTED (7)
         this.bookingService.update({
           bookingId: bookingId,
           startDate: '', // Will be filled by backend
           endDate: '',   // Will be filled by backend
-          bookingStatus: 13
+          bookingStatus: 7
         }).subscribe({
           next: () => {
             alert('Contract rejected. Amount transferred back to student.');

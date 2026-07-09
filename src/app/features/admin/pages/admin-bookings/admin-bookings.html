@@ -82,7 +82,7 @@
 
             <td class="px-6 py-4">
               <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold" [ngClass]="getStatusClass(b.bookingStatus)">
-                <i class="fas" [ngClass]="{'fa-clock': b.bookingStatus === 0, 'fa-pen': b.bookingStatus === 1, 'fa-spinner': b.bookingStatus === 2, 'fa-check': b.bookingStatus === 3, 'fa-eye': b.bookingStatus === 4, 'fa-file': b.bookingStatus === 5, 'fa-users': b.bookingStatus === 6, 'fa-hourglass': b.bookingStatus === 7, 'fa-user': b.bookingStatus === 8, 'fa-gavel': b.bookingStatus === 9, 'fa-check-circle': b.bookingStatus === 10, 'fa-home': b.bookingStatus === 11, 'fa-flag-checkered': b.bookingStatus === 12, 'fa-times-circle': b.bookingStatus === 13, 'fa-ban': b.bookingStatus === 14, 'fa-exclamation-triangle': b.bookingStatus === 15, 'fa-star': b.bookingStatus === 16}"></i>
+                <i class="fas" [ngClass]="{'fa-clock': b.bookingStatus === 0, 'fa-file': b.bookingStatus === 1, 'fa-pen': b.bookingStatus === 2, 'fa-signature': b.bookingStatus === 3, 'fa-user-pen': b.bookingStatus === 4, 'fa-search': b.bookingStatus === 5, 'fa-check-double': b.bookingStatus === 6, 'fa-times-circle': b.bookingStatus === 7, 'fa-ban': b.bookingStatus === 8}"></i>
                 {{ getStatusLabel(b.bookingStatus) }}
               </span>
             </td>
@@ -90,10 +90,10 @@
             <td class="px-6 py-4 text-right">
               <div class="flex items-center justify-end gap-2">
                 <!-- Status Actions - Admin can approve/reject bookings in UNDER_REVIEW status -->
-                <button *ngIf="b.bookingStatus === 9" (click)="updateStatus(b, 10)" class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition-colors" title="Approve">
+                <button *ngIf="b.bookingStatus === 5" (click)="updateStatus(b, 6)" class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition-colors" title="Approve">
                   <i class="fas fa-check"></i>
                 </button>
-                <button *ngIf="b.bookingStatus === 9" (click)="updateStatus(b, 13)" class="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 transition-colors" title="Reject">
+                <button *ngIf="b.bookingStatus === 5" (click)="updateStatus(b, 7)" class="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 transition-colors" title="Reject">
                   <i class="fas fa-times"></i>
                 </button>
                 <!-- Cancel completely -->

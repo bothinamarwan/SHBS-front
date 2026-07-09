@@ -5,23 +5,15 @@ export enum BookingType {
 }
 
 export enum BookingStatus {
-  Pending = 0,                    // legacy / initial state (unused in new flow)
-  PendingPayment = 1,              // booking created, awaiting payment
-  PaymentProcessing = 2,          // Paymob payment link opened
-  Paid = 3,                       // payment confirmed, contract being generated (legacy)
-  PendingContract = 4,             // (reserved)
-  ContractGenerated = 5,           // (reserved)
-  WaitingBothSignatures = 6,      // contract generated, neither party has signed yet
-  WaitingStudentSignature = 7,     // landlord signed, waiting for student
-  WaitingLandlordSignature = 8,    // student signed, waiting for landlord
-  UnderReview = 9,                // both signed, awaiting admin decision
-  Approved = 10,                   // admin approved → escrow released to landlord
-  Active = 11,                     // (reserved)
-  Completed = 12,                  // tenancy completed
-  Rejected = 13,                   // admin rejected → escrow refunded to student
-  Cancelled = 14,                  // cancelled by student or landlord before approval
-  Expired = 15,                    // signatures not completed within 7 days
-  SuccessfullyConfirmed = 16      // (reserved)
+  PendingPayment = 0,              // booking created, awaiting payment
+  WaitingForContract = 1,          // payment completed, waiting for admin to upload contract
+  WaitingForSignatures = 2,        // contract uploaded by admin, waiting for signatures
+  WaitingForStudentSignature = 3,  // landlord signed, waiting for student signature
+  WaitingForLandlordSignature = 4, // student signed, waiting for landlord signature
+  WaitingForAdminApproval = 5,     // both parties signed, waiting for admin final decision
+  Approved = 6,                    // admin approved → escrow released to landlord
+  Rejected = 7,                    // admin rejected → escrow refunded to student
+  Cancelled = 8                    // cancelled by student or landlord before approval
 }
 
 export interface BookingCreateRequest {
@@ -48,7 +40,7 @@ export interface Booking {
   isDeleted: boolean;
   commissionAmount?: number;
   contractId?: string;
-  contractPdfUrl?: string;
+  originalContractPdfPath?: string;
   createdAt: string;
   updatedAt?: string;
 

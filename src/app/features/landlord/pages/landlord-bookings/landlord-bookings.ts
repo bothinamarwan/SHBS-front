@@ -29,13 +29,14 @@ export class LandlordBookings implements OnInit {
 
   filters: { label: string; value: BookingFilter }[] = [
     { label: 'All', value: 'all' },
-    { label: 'Pending Payment', value: 1 },
-    { label: 'Waiting Signatures', value: 6 },
-    { label: 'Waiting Student', value: 7 },
-    { label: 'Under Review', value: 9 },
-    { label: 'Approved', value: 10 },
-    { label: 'Rejected', value: 13 },
-    { label: 'Cancelled', value: 14 },
+    { label: 'Pending Payment', value: 0 },
+    { label: 'Waiting for Contract', value: 1 },
+    { label: 'Waiting for Signatures', value: 2 },
+    { label: 'Waiting for Landlord Signature', value: 4 },
+    { label: 'Waiting for Admin Approval', value: 5 },
+    { label: 'Approved', value: 6 },
+    { label: 'Rejected', value: 7 },
+    { label: 'Cancelled', value: 8 },
   ];
 
   filteredBookings = computed(() => {
@@ -84,7 +85,7 @@ export class LandlordBookings implements OnInit {
       this.bookingService.cancel(id).subscribe({
         next: () => {
           this.allBookings.update(prev =>
-            prev.map(b => b.bookingId === id ? { ...b, bookingStatus: 14 } : b)
+            prev.map(b => b.bookingId === id ? { ...b, bookingStatus: 8 } : b)
           );
           this.actionLoading.set(null);
         },
@@ -127,11 +128,11 @@ export class LandlordBookings implements OnInit {
         this.contractSigned.set(true);
 
         // Update booking status based on contract status
-        // If contract status is WAITING_STUDENT_SIGNATURE (1) → booking status 7
-        // If contract status is WAITING_ADMIN_REVIEW (3) → booking status 9
-        let newBookingStatus = 7; // Default to WAITING_STUDENT_SIGNATURE
-        if (updatedContract.status === 3) {
-          newBookingStatus = 9; // UNDER_REVIEW
+        // If contract status is WAITING_STUDENT_SIGNATURE (2) → booking status 3
+        // If contract status is WAITING_ADMIN_APPROVAL (4) → booking status 5
+        let newBookingStatus = 3; // Default to WAITING_STUDENT_SIGNATURE
+        if (updatedContract.status === 4) {
+          newBookingStatus = 5; // WAITING_ADMIN_APPROVAL
         }
 
         // Update booking status via booking service
@@ -168,43 +169,27 @@ export class LandlordBookings implements OnInit {
       0: 'status-badge--pending',
       1: 'status-badge--pending',
       2: 'status-badge--under-review',
-      3: 'status-badge--approved',
-      4: 'status-badge--pending',
-      5: 'status-badge--pending',
-      6: 'status-badge--under-review',
-      7: 'status-badge--under-review',
-      8: 'status-badge--under-review',
-      9: 'status-badge--under-review',
-      10: 'status-badge--approved',
-      11: 'status-badge--approved',
-      12: 'status-badge--approved',
-      13: 'status-badge--rejected',
-      14: 'status-badge--cancelled',
-      15: 'status-badge--cancelled',
-      16: 'status-badge--approved'
+      3: 'status-badge--under-review',
+      4: 'status-badge--under-review',
+      5: 'status-badge--under-review',
+      6: 'status-badge--approved',
+      7: 'status-badge--rejected',
+      8: 'status-badge--cancelled'
     };
     return map[status] || '';
   }
 
   getStatusLabel(status: number): string {
     const map: Record<number, string> = {
-      0: 'Pending',
-      1: 'Pending Payment',
-      2: 'Payment Processing',
-      3: 'Paid',
-      4: 'Pending Contract',
-      5: 'Contract Generated',
-      6: 'Waiting Signatures',
-      7: 'Waiting Your Signature',
-      8: 'Waiting Student',
-      9: 'Under Review',
-      10: 'Approved',
-      11: 'Active',
-      12: 'Completed',
-      13: 'Rejected',
-      14: 'Cancelled',
-      15: 'Expired',
-      16: 'Confirmed'
+      0: 'Pending Payment',
+      1: 'Waiting for Contract',
+      2: 'Waiting for Signatures',
+      3: 'Waiting for Student Signature',
+      4: 'Waiting for Landlord Signature',
+      5: 'Waiting for Admin Approval',
+      6: 'Approved',
+      7: 'Rejected',
+      8: 'Cancelled'
     };
     return map[status] || 'Unknown';
   }

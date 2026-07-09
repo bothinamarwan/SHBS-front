@@ -16,7 +16,9 @@ export interface BookingPaymentResponse {
   success: boolean;
   message?: string;
   paymentId?: string;
+  bookingId?: string;
   contractId?: string;
+  escrowId?: string;
   paymentUrl?: string;
   contractPdfUrl?: string;
 }

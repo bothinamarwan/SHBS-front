@@ -1,22 +1,30 @@
 export interface Contract {
   contractId: string;
   bookingId: string;
-  contractPdfUrl?: string;
-  studentSignedPdfUrl?: string;
-  landlordSignedPdfUrl?: string;
+  contractNumber: string;
+  originalContractPdfPath?: string;
+  studentSignedContractPath?: string;
+  landlordSignedContractPath?: string;
+  isStudentSigned: boolean;
+  isLandlordSigned: boolean;
+  isAdminApproved: boolean;
+  studentSignedAt?: string;
+  landlordSignedAt?: string;
+  adminApprovedAt?: string;
+  adminNotes?: string;
   status: ContractStatus;
   createdAt: string;
-  updatedAt: string;
 }
 
 export enum ContractStatus {
-  GENERATED = 0,              // Contract generated after payment
-  WAITING_STUDENT_SIGNATURE = 1,
-  WAITING_LANDLORD_SIGNATURE = 2,
-  WAITING_ADMIN_REVIEW = 3,  // Both signed, waiting for admin
-  APPROVED = 4,              // Admin approved
-  REJECTED = 5,              // Admin rejected
-  EXPIRED = 6                // Not signed within 7 days
+  WaitingForUpload = 0,          // payment completed, waiting for admin to upload contract
+  WaitingForSignatures = 1,      // contract uploaded by admin, waiting for signatures
+  WaitingForStudentSignature = 2, // landlord signed, waiting for student signature
+  WaitingForLandlordSignature = 3, // student signed, waiting for landlord signature
+  WaitingForAdminApproval = 4,   // both parties signed, waiting for admin final decision
+  Approved = 5,                  // admin approved → escrow released to landlord
+  Rejected = 6,                  // admin rejected → escrow refunded to student
+  Archived = 7                   // booking completed or cancelled
 }
 
 export interface StudentSignatureRequest {

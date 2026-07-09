@@ -93,23 +93,15 @@ export class StudentBookings implements OnInit {
   getStatusLabel(status: number | string): string {
     const statusNum = typeof status === 'string' ? parseInt(status) : status;
     const map: Record<number, string> = {
-      0: 'Pending',
-      1: 'Pending Payment',
-      2: 'Payment Processing',
-      3: 'Paid',
-      4: 'Pending Contract',
-      5: 'Contract Generated',
-      6: 'Waiting Signatures',
-      7: 'Waiting Your Signature',
-      8: 'Waiting Landlord',
-      9: 'Under Review',
-      10: 'Approved',
-      11: 'Active',
-      12: 'Completed',
-      13: 'Rejected',
-      14: 'Cancelled',
-      15: 'Expired',
-      16: 'Confirmed'
+      0: 'Pending Payment',
+      1: 'Waiting for Contract',
+      2: 'Waiting for Signatures',
+      3: 'Waiting for Student Signature',
+      4: 'Waiting for Landlord Signature',
+      5: 'Waiting for Admin Approval',
+      6: 'Approved',
+      7: 'Rejected',
+      8: 'Cancelled'
     };
     return map[statusNum] || 'Unknown';
   }
@@ -120,20 +112,12 @@ export class StudentBookings implements OnInit {
       0: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400',
       1: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
       2: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
-      3: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
-      4: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400',
-      5: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400',
-      6: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400',
-      7: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
-      8: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
-      9: 'bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400',
-      10: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
-      11: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
-      12: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
-      13: 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400',
-      14: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400',
-      15: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400',
-      16: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
+      3: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400',
+      4: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
+      5: 'bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400',
+      6: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
+      7: 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400',
+      8: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400'
     };
     return map[statusNum] || 'bg-slate-100 text-slate-700';
   }
@@ -142,22 +126,14 @@ export class StudentBookings implements OnInit {
     const statusNum = typeof status === 'string' ? parseInt(status) : status;
     const map: Record<number, string> = {
       0: 'fa-clock',
-      1: 'fa-credit-card',
-      2: 'fa-spinner fa-spin',
-      3: 'fa-check-circle',
-      4: 'fa-file',
-      5: 'fa-file-signature',
-      6: 'fa-pen',
-      7: 'fa-signature',
-      8: 'fa-user-pen',
-      9: 'fa-search',
-      10: 'fa-check-double',
-      11: 'fa-house',
-      12: 'fa-flag-checkered',
-      13: 'fa-times-circle',
-      14: 'fa-ban',
-      15: 'fa-clock',
-      16: 'fa-check-circle'
+      1: 'fa-file',
+      2: 'fa-pen',
+      3: 'fa-signature',
+      4: 'fa-user-pen',
+      5: 'fa-search',
+      6: 'fa-check-double',
+      7: 'fa-times-circle',
+      8: 'fa-ban'
     };
     return map[statusNum] || 'fa-question-circle';
   }

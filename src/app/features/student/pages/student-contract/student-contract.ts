@@ -82,11 +82,11 @@ export class StudentContract implements OnInit {
         this.contract.set(updatedContract);
 
         // Update booking status based on contract status
-        // If contract status is WAITING_LANDLORD_SIGNATURE (2) → booking status 8
-        // If contract status is WAITING_ADMIN_REVIEW (3) → booking status 9
-        let newBookingStatus = 8; // Default to WAITING_LANDLORD_SIGNATURE
-        if (updatedContract.status === 3) {
-          newBookingStatus = 9; // UNDER_REVIEW
+        // If contract status is WAITING_LANDLORD_SIGNATURE (3) → booking status 4
+        // If contract status is WAITING_ADMIN_APPROVAL (4) → booking status 5
+        let newBookingStatus = 4; // Default to WAITING_LANDLORD_SIGNATURE
+        if (updatedContract.status === 4) {
+          newBookingStatus = 5; // WAITING_ADMIN_APPROVAL
         }
 
         // Update booking status via booking service
@@ -120,7 +120,7 @@ export class StudentContract implements OnInit {
   }
 
   downloadContract() {
-    const pdfUrl = this.contract()?.contractPdfUrl;
+    const pdfUrl = this.contract()?.originalContractPdfPath;
     if (pdfUrl) {
       window.open(pdfUrl, '_blank');
     }

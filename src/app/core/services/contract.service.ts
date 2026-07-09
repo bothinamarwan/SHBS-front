@@ -20,7 +20,7 @@ export class ContractService {
   }
 
   landlordSign(id: string, req: LandlordSignatureRequest): Observable<Contract> {
-    return this.http.post<Contract>(`${this.baseUrl}/${id}/signatures/owner`, req);
+    return this.http.post<Contract>(`${this.baseUrl}/${id}/signatures/landlord`, req);
   }
 
   adminApprove(id: string, req: AdminApprovalRequest): Observable<Contract> {
