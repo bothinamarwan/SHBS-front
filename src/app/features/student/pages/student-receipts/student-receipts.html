@@ -108,7 +108,7 @@
           </div>
           
           <!-- Escrow Transaction Details -->
-          <div *ngIf="receipt?.escrowTransaction" class="mt-6 p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl border border-emerald-100 dark:border-emerald-800/30">
+          <div *ngIf="receipt?.escrowTransaction; let escrow" class="mt-6 p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl border border-emerald-100 dark:border-emerald-800/30">
             <div class="flex items-center gap-2 mb-3">
               <i class="fas fa-shield-alt text-emerald-600 dark:text-emerald-400"></i>
               <span class="font-bold text-slate-800 dark:text-white">Escrow Transaction</span>
@@ -116,18 +116,18 @@
             <div class="space-y-2 text-xs">
               <div class="flex justify-between">
                 <span class="text-slate-500 dark:text-slate-400">Transaction ID:</span>
-                <span class="font-mono text-slate-700 dark:text-slate-300">{{ receipt.escrowTransaction?.transactionId?.substring(0, 12) }}...</span>
+                <span class="font-mono text-slate-700 dark:text-slate-300">{{ escrow.transactionId ? (escrow.transactionId.substring(0, 12) + '...') : '---' }}</span>
               </div>
               <div class="flex justify-between">
                 <span class="text-slate-500 dark:text-slate-400">Status:</span>
-                <span class="font-semibold text-emerald-600 dark:text-emerald-400">{{ receipt.escrowTransaction?.status }}</span>
+                <span class="font-semibold text-emerald-600 dark:text-emerald-400">{{ escrow.status || '---' }}</span>
               </div>
               <div class="flex justify-between">
                 <span class="text-slate-500 dark:text-slate-400">Transaction Date:</span>
-                <span class="text-slate-700 dark:text-slate-300">{{ receipt.escrowTransaction?.transactionDate | date:'short' }}</span>
+                <span class="text-slate-700 dark:text-slate-300">{{ escrow.transactionDate ? (escrow.transactionDate | date:'short') : '---' }}</span>
               </div>
               <div class="pt-2 border-t border-emerald-200 dark:border-emerald-800/50 mt-2">
-                <p class="text-slate-600 dark:text-slate-400 italic">{{ receipt.escrowTransaction?.description }}</p>
+                <p class="text-slate-600 dark:text-slate-400 italic">{{ escrow.description || '---' }}</p>
               </div>
             </div>
           </div>
