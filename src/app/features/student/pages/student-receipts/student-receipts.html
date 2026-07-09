@@ -37,9 +37,14 @@
                 {{ receipt?.date | date:'mediumDate' }}
               </td>
               <td class="px-6 py-4">
-                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300">
-                  {{ receipt?.type }}
-                </span>
+                <div class="flex flex-col gap-1">
+                  <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300">
+                    {{ receipt?.type }}
+                  </span>
+                  <span *ngIf="receipt?.escrowTransaction" class="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">
+                    <i class="fas fa-shield-alt mr-1"></i> Escrow Protected
+                  </span>
+                </div>
               </td>
               <td class="px-6 py-4 font-bold text-slate-800 dark:text-slate-100">
                 ${{ receipt?.amount | number:'1.2-2' }}
@@ -75,6 +80,9 @@
           </div>
           <h2 class="text-3xl font-bold text-slate-800 dark:text-white">${{ receipt?.amount | number:'1.2-2' }}</h2>
           <p class="text-sm text-slate-500 dark:text-slate-400 font-medium">{{ receipt?.status || 'Paid' }}</p>
+          <div *ngIf="receipt?.escrowTransaction" class="mt-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 text-xs font-semibold">
+            <i class="fas fa-shield-alt"></i> Escrow Protected
+          </div>
         </div>
         
         <div class="space-y-4 text-sm">
@@ -97,6 +105,31 @@
           <div class="flex justify-between py-3 border-b border-slate-100 dark:border-slate-800/50" *ngIf="receipt?.description">
             <span class="text-slate-500 dark:text-slate-400">Description</span>
             <span class="font-semibold text-slate-800 dark:text-white">{{ receipt?.description }}</span>
+          </div>
+          
+          <!-- Escrow Transaction Details -->
+          <div *ngIf="receipt?.escrowTransaction" class="mt-6 p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl border border-emerald-100 dark:border-emerald-800/30">
+            <div class="flex items-center gap-2 mb-3">
+              <i class="fas fa-shield-alt text-emerald-600 dark:text-emerald-400"></i>
+              <span class="font-bold text-slate-800 dark:text-white">Escrow Transaction</span>
+            </div>
+            <div class="space-y-2 text-xs">
+              <div class="flex justify-between">
+                <span class="text-slate-500 dark:text-slate-400">Transaction ID:</span>
+                <span class="font-mono text-slate-700 dark:text-slate-300">{{ receipt.escrowTransaction?.transactionId?.substring(0, 12) }}...</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-slate-500 dark:text-slate-400">Status:</span>
+                <span class="font-semibold text-emerald-600 dark:text-emerald-400">{{ receipt.escrowTransaction?.status }}</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-slate-500 dark:text-slate-400">Transaction Date:</span>
+                <span class="text-slate-700 dark:text-slate-300">{{ receipt.escrowTransaction?.transactionDate | date:'short' }}</span>
+              </div>
+              <div class="pt-2 border-t border-emerald-200 dark:border-emerald-800/50 mt-2">
+                <p class="text-slate-600 dark:text-slate-400 italic">{{ receipt.escrowTransaction?.description }}</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>

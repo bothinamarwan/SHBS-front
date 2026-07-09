@@ -181,9 +181,11 @@ export class BookingCreate implements OnInit {
         this.isLoading.set(false);
         const bookingId = res.bookingId || (res as any).BookingId || (res as any).id || (res as any).Id;
         if (bookingId) {
+          // Redirect to payment page which will generate receipt after payment
           this.router.navigate(['/student/booking/pay/', bookingId]);
         } else {
-          this.router.navigate(['/student/bookings'], { queryParams: { success: true } });
+          // If no payment needed, redirect to receipts to view the generated receipt
+          this.router.navigate(['/student/receipts']);
         }
       },
       error: (err) => {

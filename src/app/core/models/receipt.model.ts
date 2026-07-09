@@ -11,6 +11,19 @@ export interface Receipt {
   paymentMethod?: string;
   studentName?: string;
   landlordName?: string;
+  bookingId?: string;
+  housingUnitId?: string;
+  escrowTransaction?: EscrowTransaction;
+}
+
+export interface EscrowTransaction {
+  transactionId: string;
+  fromBalance: string; // Student balance ID
+  toBalance: string; // Admin balance ID
+  amount: number;
+  status: string; // "Completed", "Pending", "Failed"
+  transactionDate: string;
+  description: string;
 }
 
 export interface FinancialSummary {
