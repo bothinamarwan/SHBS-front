@@ -202,34 +202,43 @@ export class AdminBookings implements OnInit {
       return;
     }
 
-    // First update booking status to Waiting for Contract (1)
-    this.bookingService.update({
-      bookingId: bookingId,
-      startDate: '', // Will be filled by backend
-      endDate: '',   // Will be filled by backend
-      bookingStatus: 1
-    }).subscribe({
-      next: () => {
-        // Then upload the contract
-        this.contractService.adminUploadContract({
+    // First get the existing booking to preserve dates
+    this.bookingService.getById(bookingId).subscribe({
+      next: (existingBooking) => {
+        // Then update booking status to Waiting for Contract (1)
+        this.bookingService.update({
           bookingId: bookingId,
-          contractPdf: this.selectedFile()!,
-          adminUserId: currentUser.id
+          startDate: existingBooking.startDate,
+          endDate: existingBooking.endDate,
+          bookingStatus: 1
         }).subscribe({
-          next: (contract) => {
-            alert('Contract uploaded successfully and sent to landlord and student');
-            this.closeUploadModal();
-            this.fetchBookings();
+          next: () => {
+            // Then upload the contract
+            this.contractService.adminUploadContract({
+              bookingId: bookingId,
+              contractPdf: this.selectedFile()!,
+              adminUserId: currentUser.id
+            }).subscribe({
+              next: (contract) => {
+                alert('Contract uploaded successfully and sent to landlord and student');
+                this.closeUploadModal();
+                this.fetchBookings();
+              },
+              error: (err) => {
+                console.error('Error uploading contract:', err);
+                alert('Failed to upload contract. Please try again.');
+              }
+            });
           },
           error: (err) => {
-            console.error('Error uploading contract:', err);
-            alert('Failed to upload contract. Please try again.');
+            console.error('Error updating booking status:', err);
+            alert('Failed to update booking status. Please try again.');
           }
         });
       },
       error: (err) => {
-        console.error('Error updating booking status:', err);
-        alert('Failed to update booking status. Please try again.');
+        console.error('Error fetching booking details:', err);
+        alert('Failed to fetch booking details. Please try again.');
       }
     });
   }
