@@ -44,19 +44,10 @@ export class BookingPaymentCallbackPage implements OnInit {
         console.log('Payment callback response:', res);
         if (req.isSuccess) {
           this.status.set('success');
-          // Redirect to contract page after successful payment
-          // Backend should return contractId in response
-          const contractId = res?.contractId || res?.data?.contractId;
-          if (contractId) {
-            setTimeout(() => {
-              this.router.navigate(['/student/contract', contractId]);
-            }, 2000);
-          } else {
-            // Fallback to bookings page if no contract ID
-            setTimeout(() => {
-              this.router.navigate(['/student/bookings']);
-            }, 2000);
-          }
+          // Redirect to receipts page after successful payment to view the receipt
+          setTimeout(() => {
+            this.router.navigate(['/student/receipts']);
+          }, 2000);
         } else {
           this.status.set('error');
           this.errorMessage.set('The payment was declined or failed.');
