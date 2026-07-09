@@ -127,8 +127,8 @@
         </div>
 
         <!-- Write a Review -->
-        <div class="p-6 bg-white dark:bg-slate-900 border border-neutral-100 dark:border-slate-800 rounded-2xl shadow-xl shadow-neutral-50 dark:shadow-none space-y-4">
-          <h4 class="font-bold text-neutral-800 dark:text-slate-200">Share your experience</h4>
+        <div *ngIf="!hasReviewed() || isEditingReview()" class="p-6 bg-white dark:bg-slate-900 border border-neutral-100 dark:border-slate-800 rounded-2xl shadow-xl shadow-neutral-50 dark:shadow-none space-y-4">
+          <h4 class="font-bold text-neutral-800 dark:text-slate-200">{{ isEditingReview() ? 'Edit your review' : 'Share your experience' }}</h4>
           <div class="flex items-center gap-3">
             <span class="text-xs font-bold text-neutral-400 uppercase tracking-widest">Rate:</span>
             <div class="flex gap-1">
@@ -139,12 +139,27 @@
           </div>
           <textarea [(ngModel)]="newComment" placeholder="What did you like about this stay?"
             class="w-full p-4 bg-neutral-50 dark:bg-slate-800 border border-transparent dark:border-slate-700 rounded-xl focus:bg-white dark:focus:bg-slate-700 focus:border-indigo-500 transition-all font-medium text-neutral-800 dark:text-slate-200 min-h-[100px] outline-none resize-none"></textarea>
-          <div class="flex justify-end">
+          <div class="flex justify-end gap-3">
+            <button *ngIf="isEditingReview()" (click)="cancelEditReview()"
+              class="px-6 py-2.5 bg-neutral-200 dark:bg-slate-700 text-neutral-700 dark:text-slate-300 rounded-xl font-bold hover:bg-neutral-300 dark:hover:bg-slate-600 transition-all">
+              Cancel
+            </button>
             <button (click)="submitReview()" [disabled]="isSubmittingReview() || !newComment().trim()"
               class="px-6 py-2.5 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100 dark:shadow-none disabled:opacity-50">
-              {{ isSubmittingReview() ? 'Posting...' : 'Post Review' }}
+              {{ isSubmittingReview() ? (isEditingReview() ? 'Updating...' : 'Posting...') : (isEditingReview() ? 'Update Review' : 'Post Review') }}
             </button>
           </div>
+        </div>
+
+        <!-- Already reviewed message -->
+        <div *ngIf="hasReviewed() && !isEditingReview()" class="p-6 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800/30 rounded-2xl flex items-center justify-between">
+          <div>
+            <h4 class="font-bold text-indigo-800 dark:text-indigo-400">You have already reviewed this property</h4>
+            <p class="text-indigo-600 dark:text-indigo-300 text-sm mt-1">You can edit or delete your review below.</p>
+          </div>
+          <button (click)="editReview(currentUserReview()!)" class="px-4 py-2 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-all text-sm">
+            Edit Review
+          </button>
         </div>
 
         <!-- Review list -->
@@ -153,14 +168,24 @@
             <div class="w-12 h-12 bg-indigo-50 dark:bg-indigo-900/20 rounded-2xl flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-black text-xl shrink-0">
               {{ rev.studentName?.charAt(0) || 'S' }}
             </div>
-            <div class="space-y-1">
-              <div class="flex items-center gap-3">
-                <h5 class="font-bold text-neutral-800 dark:text-slate-200">{{ rev.studentName }}</h5>
-                <div class="flex items-center gap-0.5">
-                  <i *ngFor="let s of [1,2,3,4,5]" class="fas fa-star text-[10px]"
-                    [class.text-amber-500]="s <= rev.rating"
-                    [class.text-neutral-200]="s > rev.rating"
-                    [class.dark:text-slate-700]="s > rev.rating"></i>
+            <div class="flex-1 space-y-1">
+              <div class="flex items-center justify-between gap-3">
+                <div class="flex items-center gap-3">
+                  <h5 class="font-bold text-neutral-800 dark:text-slate-200">{{ rev.studentName }}</h5>
+                  <div class="flex items-center gap-0.5">
+                    <i *ngFor="let s of [1,2,3,4,5]" class="fas fa-star text-[10px]"
+                      [class.text-amber-500]="s <= rev.rating"
+                      [class.text-neutral-200]="s > rev.rating"
+                      [class.dark:text-slate-700]="s > rev.rating"></i>
+                  </div>
+                </div>
+                <div *ngIf="isOwnReview(rev)" class="flex gap-2">
+                  <button (click)="editReview(rev)" class="text-xs font-bold text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300">
+                    <i class="fas fa-edit mr-1"></i>Edit
+                  </button>
+                  <button (click)="deleteReview(rev.reviewId)" class="text-xs font-bold text-rose-600 hover:text-rose-700 dark:text-rose-400 dark:hover:text-rose-300">
+                    <i class="fas fa-trash mr-1"></i>Delete
+                  </button>
                 </div>
               </div>
               <p class="text-neutral-600 dark:text-slate-400 leading-relaxed text-sm">{{ rev.comment }}</p>
