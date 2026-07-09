@@ -1,6 +1,9 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { BookingService } from '../../../../core/services/booking.service';
+import { ContractService } from '../../../../core/services/contract.service';
 import { Booking } from '../../../../core/models/booking.model';
 import { LandlordService } from '../../../../core/services/landlord.service';
 import { StudentService } from '../../../../core/services/student.service';
@@ -9,19 +12,32 @@ import { finalize } from 'rxjs/operators';
 @Component({
   selector: 'app-admin-bookings',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './admin-bookings.html'
 })
 export class AdminBookings implements OnInit {
   private bookingService = inject(BookingService);
   private landlordService = inject(LandlordService);
   private studentService = inject(StudentService);
+  private contractService = inject(ContractService);
+  private fb = inject(FormBuilder);
 
   bookings = signal<Booking[]>([]);
   isLoading = signal(true);
   currentPage = signal(1);
   pageSize = signal(10);
   totalRecords = signal(0);
+  
+  isUploadModalOpen = signal(false);
+  selectedBookingId = signal<string | null>(null);
+  selectedFile = signal<File | null>(null);
+  uploadForm: FormGroup;
+
+  constructor() {
+    this.uploadForm = this.fb.group({
+      adminUserId: ['', Validators.required]
+    });
+  }
 
   ngOnInit() {
     this.fetchBookings();
@@ -151,6 +167,66 @@ export class AdminBookings implements OnInit {
       year: 'numeric',
       month: 'short',
       day: 'numeric'
+    });
+  }
+
+  openUploadModal(bookingId: string) {
+    this.selectedBookingId.set(bookingId);
+    this.isUploadModalOpen.set(true);
+    this.uploadForm.reset();
+    this.selectedFile.set(null);
+  }
+
+  closeUploadModal() {
+    this.isUploadModalOpen.set(false);
+    this.selectedBookingId.set(null);
+    this.selectedFile.set(null);
+  }
+
+  onFileSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files[0]) {
+      const file = input.files[0];
+      if (file.type === 'application/pdf') {
+        this.selectedFile.set(file);
+      } else {
+        alert('Please select a PDF file');
+        this.selectedFile.set(null);
+      }
+    }
+  }
+
+  uploadContract() {
+    if (this.uploadForm.invalid || !this.selectedFile()) {
+      this.uploadForm.markAllAsTouched();
+      if (!this.selectedFile()) {
+        alert('Please select a PDF file');
+      }
+      return;
+    }
+
+    const bookingId = this.selectedBookingId();
+    if (!bookingId) return;
+
+    const formData = new FormData();
+    formData.append('bookingId', bookingId);
+    formData.append('contractPdf', this.selectedFile()!);
+    formData.append('adminUserId', this.uploadForm.value.adminUserId);
+
+    this.contractService.adminUploadContract({
+      bookingId: bookingId,
+      contractPdf: this.selectedFile()!,
+      adminUserId: this.uploadForm.value.adminUserId
+    }).subscribe({
+      next: (contract) => {
+        alert('Contract uploaded successfully and sent to landlord and student');
+        this.closeUploadModal();
+        this.fetchBookings();
+      },
+      error: (err) => {
+        console.error('Error uploading contract:', err);
+        alert('Failed to upload contract. Please try again.');
+      }
     });
   }
 }
