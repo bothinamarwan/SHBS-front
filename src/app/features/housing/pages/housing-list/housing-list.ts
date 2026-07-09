@@ -88,7 +88,7 @@ export class HousingList implements OnInit {
     let results = [...this.allHousings()];
 
     if (f.city) {
-      results = results.filter(h => h.city.toLowerCase().includes(f.city.toLowerCase()));
+      results = results.filter(h => h.city?.toLowerCase().includes(f.city.toLowerCase()));
     }
     if (f.gender !== '' && f.gender !== null) {
       const genderNum = Number(f.gender);
@@ -103,10 +103,10 @@ export class HousingList implements OnInit {
     if (f.search) {
       const q = f.search.toLowerCase();
       results = results.filter(h =>
-        h.title.toLowerCase().includes(q) ||
-        h.area.toLowerCase().includes(q) ||
-        h.city.toLowerCase().includes(q) ||
-        h.address.toLowerCase().includes(q)
+        h.title?.toLowerCase().includes(q) ||
+        h.area?.toLowerCase().includes(q) ||
+        h.city?.toLowerCase().includes(q) ||
+        h.address?.toLowerCase().includes(q)
       );
     }
 
