@@ -43,7 +43,12 @@ export class StudentReceipts implements OnInit {
     this.selectedReceipt.set(null);
   }
 
-  downloadReceipt(receiptId: string, receiptNumber: string) {
+  downloadReceipt(receiptId: string | undefined, receiptNumber: string | undefined) {
+    if (!receiptId || !receiptNumber) {
+      console.error('Missing receipt ID or number');
+      return;
+    }
+
     this.receiptService.downloadReceipt(receiptId).subscribe({
       next: (blob) => {
         const url = window.URL.createObjectURL(blob);
