@@ -46,7 +46,7 @@ export class ContractService {
   adminUploadContract(req: AdminContractUploadRequest): Observable<Contract> {
     const formData = new FormData();
     formData.append('bookingId', req.bookingId);
-    formData.append('contractPdf', req.contractPdf);
+    formData.append('contractFile', req.contractPdf);
     formData.append('adminUserId', req.adminUserId);
     return this.http.post<Contract>(`/api/Admin/bookings/${req.bookingId}/upload-contract`, formData);
   }
