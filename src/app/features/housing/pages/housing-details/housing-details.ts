@@ -71,7 +71,18 @@ export class HousingDetails implements OnInit {
       rating: this.newRating()
     }).subscribe({
       next: (rev) => {
-        this.reviews.update(prev => [rev, ...prev]);
+        console.log('Review submitted successfully:', rev);
+        // Ensure the response has the expected structure before adding
+        const reviewToAdd: Review = {
+          reviewId: rev.reviewId,
+          studentId: rev.studentId,
+          housingUnitId: rev.housingUnitId || id,
+          rating: rev.rating,
+          comment: rev.comment,
+          createdAt: rev.createdAt,
+          studentName: rev.studentName || 'You'
+        };
+        this.reviews.update(prev => [reviewToAdd, ...prev]);
         this.newComment.set('');
         this.isSubmittingReview.set(false);
       },
