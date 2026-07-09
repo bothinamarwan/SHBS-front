@@ -39,7 +39,8 @@ export class StudentBookings implements OnInit {
 
         console.log('Parsed bookings:', bookings);
         bookings.forEach(b => {
-          console.log(`Booking ${b.bookingId}: status=${b.bookingStatus}, label=${this.getStatusLabel(b.bookingStatus)}`);
+          const statusNum = typeof b.bookingStatus === 'string' ? parseInt(b.bookingStatus) : b.bookingStatus;
+          console.log(`Booking ${b.bookingId}: rawStatus=${b.bookingStatus} (${typeof b.bookingStatus}), parsedStatus=${statusNum}, label=${this.getStatusLabel(statusNum)}`);
         });
 
         // Enrich bookings with landlord names
@@ -81,7 +82,8 @@ export class StudentBookings implements OnInit {
     return enriched;
   }
 
-  getStatusLabel(status: number): string {
+  getStatusLabel(status: number | string): string {
+    const statusNum = typeof status === 'string' ? parseInt(status) : status;
     const map: Record<number, string> = {
       0: 'Pending',
       1: 'Pending Payment',
@@ -101,10 +103,11 @@ export class StudentBookings implements OnInit {
       15: 'Expired',
       16: 'Confirmed'
     };
-    return map[status] || 'Unknown';
+    return map[statusNum] || 'Unknown';
   }
 
-  getStatusClass(status: number): string {
+  getStatusClass(status: number | string): string {
+    const statusNum = typeof status === 'string' ? parseInt(status) : status;
     const map: Record<number, string> = {
       0: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400',
       1: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
@@ -124,7 +127,7 @@ export class StudentBookings implements OnInit {
       15: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400',
       16: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
     };
-    return map[status] || 'bg-slate-100 text-slate-700';
+    return map[statusNum] || 'bg-slate-100 text-slate-700';
   }
 
   formatDate(dateString: string): string {
