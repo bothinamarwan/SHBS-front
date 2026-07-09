@@ -60,6 +60,11 @@ export const landlordRoutes: Routes = [
         path: 'notifications',
         loadComponent: () => 
           import('../notifications/pages/notification-page/notification-page').then(m => m.NotificationPage)
+      },
+      {
+        path: 'complaints',
+        loadComponent: () =>
+          import('./pages/landlord-complaints/landlord-complaints').then(m => m.LandlordComplaints)
       }
     ]
   }

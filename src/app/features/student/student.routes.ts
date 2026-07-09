@@ -52,7 +52,7 @@ export const studentRoutes: Routes = [
       },
       {
         path: 'complaint',
-        loadComponent: () => import('./pages/complaint-form/complaint-form').then(m => m.ComplaintForm)
+        loadComponent: () => import('./pages/student-complaints/student-complaints').then(m => m.StudentComplaints)
       },
       {
         path: 'verification',

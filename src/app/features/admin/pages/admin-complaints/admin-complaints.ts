@@ -1,8 +1,10 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { AdminService } from '../../../../core/services/admin.service';
+import { ComplaintService } from '../../../../core/services/complaint.service';
+import { HousingService } from '../../../../core/services/housing.service';
 import { FormsModule } from '@angular/forms';
-import { AdminComplaint, ComplaintUpdateRequest } from '../../../../core/models/admin.model';
+import { Complaint, ComplaintStatus, UpdateComplaintRequest } from '../../../../core/models/complaint.model';
+import { HousingUnit } from '../../../../core/models/housing.model';
 
 @Component({
   selector: 'app-admin-complaints',
@@ -11,9 +13,11 @@ import { AdminComplaint, ComplaintUpdateRequest } from '../../../../core/models/
   templateUrl: './admin-complaints.html'
 })
 export class AdminComplaints implements OnInit {
-  private adminService = inject(AdminService);
+  private complaintService = inject(ComplaintService);
+  private housingService = inject(HousingService);
 
-  complaints   = signal<AdminComplaint[]>([]);
+  complaints   = signal<Complaint[]>([]);
+  housings     = signal<HousingUnit[]>([]);
   totalCount   = signal<number>(0);
   pageNumber   = signal<number>(1);
   pageSize     = signal<number>(10);
@@ -21,46 +25,58 @@ export class AdminComplaints implements OnInit {
   isLoading    = signal<boolean>(true);
 
   // Status filter
-  statusFilter = signal<number | undefined>(undefined);
+  statusFilter = signal<ComplaintStatus | undefined>(undefined);
 
   // Edit modal
-  editModal    = signal<AdminComplaint | null>(null);
+  editModal    = signal<Complaint | null>(null);
   editTitle    = signal<string>('');
   editDesc     = signal<string>('');
-  editStatus   = signal<number>(0);
+  editStatus   = signal<ComplaintStatus>(ComplaintStatus.Open);
   isSaving     = signal<boolean>(false);
   saveError    = signal<string | null>(null);
 
   // Toast
   toastMessage = signal<{ text: string; success: boolean } | null>(null);
 
-  ngOnInit() { this.fetchComplaints(); }
+  ComplaintStatus = ComplaintStatus;
+
+  ngOnInit() { 
+    this.fetchComplaints();
+    this.loadHousings();
+  }
+
+  loadHousings() {
+    this.housingService.getAll().subscribe({
+      next: (data) => {
+        this.housings.set(data);
+      },
+      error: (err) => {
+        console.error('Failed to load housings', err);
+      }
+    });
+  }
 
   onStatusFilterChange(event: any) {
     const val = event.target.value;
-    this.statusFilter.set(val === '' ? undefined : Number(val));
+    this.statusFilter.set(val === '' ? undefined : Number(val) as ComplaintStatus);
     this.pageNumber.set(1);
     this.fetchComplaints();
   }
 
   fetchComplaints() {
     this.isLoading.set(true);
-    this.adminService.getComplaints({
-      status: this.statusFilter(),
-      pageNumber: this.pageNumber(),
-      pageSize: this.pageSize()
-    }).subscribe({
-      next: (res: any) => {
-        let items: AdminComplaint[] = [];
-        let total = 0;
-        if (Array.isArray(res)) { items = res; total = res.length; }
-        else if (res) {
-          items = res.items || res.records || res.data || res.Items || res.Records || res.Data || [];
-          total = res.totalCount || res.totalRecords || res.TotalCount || res.TotalRecords || items.length;
+    this.complaintService.getAll().subscribe({
+      next: (res) => {
+        let items = res || [];
+        
+        // Apply status filter
+        if (this.statusFilter() !== undefined) {
+          items = items.filter(c => c.status === this.statusFilter());
         }
+        
         this.complaints.set(items);
-        this.totalCount.set(total);
-        this.totalPages.set(res?.totalPages || res?.TotalPages || Math.ceil(total / this.pageSize()) || 1);
+        this.totalCount.set(items.length);
+        this.totalPages.set(Math.ceil(items.length / this.pageSize()) || 1);
         this.isLoading.set(false);
       },
       error: () => this.isLoading.set(false)
@@ -68,15 +84,16 @@ export class AdminComplaints implements OnInit {
   }
 
   // Quick status change (no modal)
-  quickUpdateStatus(complaintId: string, newStatus: number) {
-    const complaint = this.complaints().find(c => c.id === complaintId);
+  quickUpdateStatus(complaintId: string, newStatus: ComplaintStatus) {
+    const complaint = this.complaints().find(c => c.complaintId === complaintId);
     if (!complaint) return;
-    this.adminService.updateComplaintStatus(complaintId, {
+    
+    const req: UpdateComplaintRequest = {
       complaintId,
-      title: complaint.title || 'Complaint',
-      description: complaint.description || 'Status updated',
       status: newStatus
-    }).subscribe({
+    };
+    
+    this.complaintService.update(req).subscribe({
       next: () => {
         this.showToast('Status updated successfully.', true);
         this.fetchComplaints();
@@ -86,7 +103,7 @@ export class AdminComplaints implements OnInit {
   }
 
   // Open full edit modal
-  openEditModal(complaint: AdminComplaint) {
+  openEditModal(complaint: Complaint) {
     this.editModal.set(complaint);
     this.editTitle.set(complaint.title || '');
     this.editDesc.set(complaint.description || '');
@@ -105,13 +122,11 @@ export class AdminComplaints implements OnInit {
     if (!this.editTitle().trim()) { this.saveError.set('Title is required.'); return; }
     this.isSaving.set(true);
     this.saveError.set(null);
-    const req: ComplaintUpdateRequest = {
-      complaintId: complaint.id,
-      title: this.editTitle().trim(),
-      description: this.editDesc().trim(),
+    const req: UpdateComplaintRequest = {
+      complaintId: complaint.complaintId,
       status: this.editStatus()
     };
-    this.adminService.updateComplaintStatus(complaint.id, req).subscribe({
+    this.complaintService.update(req).subscribe({
       next: () => {
         this.isSaving.set(false);
         this.closeEditModal();
@@ -137,30 +152,35 @@ export class AdminComplaints implements OnInit {
     if (this.pageNumber() < this.totalPages()) { this.pageNumber.update(p => p + 1); this.fetchComplaints(); }
   }
 
-  getStatusBadgeClass(status: number): string {
+  getStatusBadgeClass(status: ComplaintStatus): string {
     switch (status) {
-      case 0: return 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400';
-      case 1: return 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400';
-      case 2: return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400';
+      case ComplaintStatus.Open: return 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400';
+      case ComplaintStatus.InInvestigation: return 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400';
+      case ComplaintStatus.Resolved: return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400';
       default: return 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400';
     }
   }
 
-  getStatusLabel(status: number): string {
+  getStatusLabel(status: ComplaintStatus): string {
     switch (status) {
-      case 0: return 'Open';
-      case 1: return 'In Progress';
-      case 2: return 'Resolved';
+      case ComplaintStatus.Open: return 'Open';
+      case ComplaintStatus.InInvestigation: return 'In Investigation';
+      case ComplaintStatus.Resolved: return 'Resolved';
       default: return 'Unknown';
     }
   }
 
-  getStatusIcon(status: number): string {
+  getStatusIcon(status: ComplaintStatus): string {
     switch (status) {
-      case 0: return 'fa-exclamation-circle';
-      case 1: return 'fa-spinner';
-      case 2: return 'fa-check-circle';
+      case ComplaintStatus.Open: return 'fa-exclamation-circle';
+      case ComplaintStatus.InInvestigation: return 'fa-spinner';
+      case ComplaintStatus.Resolved: return 'fa-check-circle';
       default: return 'fa-question-circle';
     }
+  }
+
+  getHousingTitle(housingUnitId: string): string {
+    const housing = this.housings().find(h => h.housingUnitId === housingUnitId);
+    return housing?.title || 'Unknown Property';
   }
 }

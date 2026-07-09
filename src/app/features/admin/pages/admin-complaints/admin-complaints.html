@@ -15,7 +15,7 @@
       <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40">
         <div>
           <h2 class="text-lg font-bold text-slate-800 dark:text-slate-100">Edit Complaint</h2>
-          <p class="text-xs text-slate-500 font-mono mt-0.5">ID: {{ editModal()!.id.substring(0,8) }}...</p>
+          <p class="text-xs text-slate-500 font-mono mt-0.5">ID: {{ editModal()!.complaintId.substring(0,8) }}...</p>
         </div>
         <button (click)="closeEditModal()" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
           <i class="fas fa-times"></i>
@@ -42,18 +42,18 @@
         <div>
           <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Status</label>
           <div class="grid grid-cols-3 gap-2">
-            <button (click)="editStatus.set(0)"
-                    [ngClass]="editStatus() === 0 ? 'bg-rose-500 text-white shadow-md shadow-rose-500/25' : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700'"
+            <button (click)="editStatus.set(ComplaintStatus.Open)"
+                    [ngClass]="editStatus() === ComplaintStatus.Open ? 'bg-rose-500 text-white shadow-md shadow-rose-500/25' : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700'"
                     class="py-2 rounded-xl font-semibold text-xs transition-all flex items-center justify-center gap-1.5">
               <i class="fas fa-exclamation-circle"></i> Open
             </button>
-            <button (click)="editStatus.set(1)"
-                    [ngClass]="editStatus() === 1 ? 'bg-amber-500 text-white shadow-md shadow-amber-500/25' : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700'"
+            <button (click)="editStatus.set(ComplaintStatus.InInvestigation)"
+                    [ngClass]="editStatus() === ComplaintStatus.InInvestigation ? 'bg-amber-500 text-white shadow-md shadow-amber-500/25' : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700'"
                     class="py-2 rounded-xl font-semibold text-xs transition-all flex items-center justify-center gap-1.5">
-              <i class="fas fa-spinner"></i> In Progress
+              <i class="fas fa-spinner"></i> In Investigation
             </button>
-            <button (click)="editStatus.set(2)"
-                    [ngClass]="editStatus() === 2 ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/25' : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700'"
+            <button (click)="editStatus.set(ComplaintStatus.Resolved)"
+                    [ngClass]="editStatus() === ComplaintStatus.Resolved ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/25' : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700'"
                     class="py-2 rounded-xl font-semibold text-xs transition-all flex items-center justify-center gap-1.5">
               <i class="fas fa-check-circle"></i> Resolved
             </button>
@@ -93,9 +93,9 @@
       <div class="relative min-w-[160px]">
         <select class="lc-select w-full" (change)="onStatusFilterChange($event)">
           <option value="">All Statuses</option>
-          <option value="0">Open</option>
-          <option value="1">In Progress</option>
-          <option value="2">Resolved</option>
+          <option [value]="ComplaintStatus.Open">Open</option>
+          <option [value]="ComplaintStatus.InInvestigation">In Investigation</option>
+          <option [value]="ComplaintStatus.Resolved">Resolved</option>
         </select>
       </div>
     </div>
@@ -142,7 +142,7 @@
               </div>
               <div class="flex items-center gap-2">
                 <span class="font-mono text-[10px] text-indigo-600 dark:text-indigo-400 font-semibold bg-indigo-50 dark:bg-indigo-900/30 px-2 py-0.5 rounded">
-                  #{{ complaint.id.substring(0,8) }}
+                  #{{ complaint.complaintId.substring(0,8) }}
                 </span>
                 <span *ngIf="complaint.studentId" class="text-[10px] text-slate-400">
                   Student: {{ complaint.studentId!.substring(0,8) }}...
@@ -152,7 +152,7 @@
 
             <!-- Date -->
             <td class="px-6 py-4 text-slate-500 dark:text-slate-400 hidden md:table-cell whitespace-nowrap">
-              {{ complaint.createdDate ? (complaint.createdDate | date:'mediumDate') : 'N/A' }}
+              {{ complaint.createdAt ? (complaint.createdAt | date:'mediumDate') : 'N/A' }}
             </td>
 
             <!-- Status badge -->
@@ -168,15 +168,15 @@
             <td class="px-6 py-4 text-right">
               <div class="flex items-center justify-end gap-2">
                 <!-- Quick Status Buttons -->
-                <button *ngIf="complaint.status !== 1" (click)="quickUpdateStatus(complaint.id, 1)"
+                <button *ngIf="complaint.status !== ComplaintStatus.InInvestigation" (click)="quickUpdateStatus(complaint.complaintId, ComplaintStatus.InInvestigation)"
                         class="text-xs font-semibold px-2.5 py-1.5 rounded-lg text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors border border-transparent hover:border-amber-200">
-                  In Progress
+                  In Investigation
                 </button>
-                <button *ngIf="complaint.status !== 2" (click)="quickUpdateStatus(complaint.id, 2)"
+                <button *ngIf="complaint.status !== ComplaintStatus.Resolved" (click)="quickUpdateStatus(complaint.complaintId, ComplaintStatus.Resolved)"
                         class="text-xs font-semibold px-2.5 py-1.5 rounded-lg text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors border border-transparent hover:border-emerald-200">
                   Resolve
                 </button>
-                <button *ngIf="complaint.status !== 0" (click)="quickUpdateStatus(complaint.id, 0)"
+                <button *ngIf="complaint.status !== ComplaintStatus.Open" (click)="quickUpdateStatus(complaint.complaintId, ComplaintStatus.Open)"
                         class="text-xs font-semibold px-2.5 py-1.5 rounded-lg text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors border border-transparent hover:border-rose-200">
                   Re-open
                 </button>

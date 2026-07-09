@@ -1,14 +1,17 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
-import { Review, Complaint } from '../models/feedback.model';
+import { Review } from '../models/feedback.model';
 import { ReviewService } from './review.service';
+import { ComplaintService } from './complaint.service';
 import { CreateReviewRequest } from '../models/review.model';
+import { CreateComplaintRequest, Complaint } from '../models/complaint.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class FeedbackService {
   private reviewService = inject(ReviewService);
+  private complaintService = inject(ComplaintService);
 
   constructor() {}
 
@@ -30,27 +33,29 @@ export class FeedbackService {
     return this.reviewService.create(request);
   }
 
-  submitComplaint(complaint: Partial<Complaint>): Observable<Complaint> {
-    // TODO: Implement complaint API when available
-    const newComplaint: Complaint = {
-      id: 'comp' + Math.floor(Math.random() * 1000),
-      studentId: complaint.studentId || 'current-user',
-      landlordId: complaint.landlordId,
-      housingId: complaint.housingId,
-      description: complaint.description || '',
-      status: 'pending',
-      createdDate: new Date().toISOString().split('T')[0]
+  submitComplaint(complaint: { title: string; housingUnitId: string; description: string }): Observable<Complaint> {
+    const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
+    const studentId = user?.studentId || user?.id;
+
+    const request: CreateComplaintRequest = {
+      title: complaint.title,
+      studentId: studentId,
+      housingUnitId: complaint.housingUnitId,
+      description: complaint.description
     };
 
-    return new Observable(observer => {
-      setTimeout(() => observer.next(newComplaint), 1500);
-    });
+    return this.complaintService.create(request);
   }
 
   getComplaints(): Observable<Complaint[]> {
-    // TODO: Implement complaint API when available
-    return new Observable(observer => {
-      setTimeout(() => observer.next([]), 1000);
-    });
+    return this.complaintService.getAll();
+  }
+
+  getComplaintById(complaintId: string): Observable<Complaint> {
+    return this.complaintService.getById(complaintId);
+  }
+
+  getComplaintsByHousingUnit(housingUnitId: string): Observable<Complaint[]> {
+    return this.complaintService.getByHousingUnit(housingUnitId);
   }
 }
