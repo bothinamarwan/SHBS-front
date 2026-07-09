@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, catchError, throwError, of } from 'rxjs';
+import { Observable, catchError, throwError, of, map } from 'rxjs';
 import { Notification } from '../models/notification.model';
 
 @Injectable({
@@ -16,7 +16,15 @@ export class NotificationService {
     if (type) params.type = type;
     if (isRead !== undefined) params.isRead = isRead;
     
-    return this.http.get<Notification[]>(this.baseUrl, { params });
+    return this.http.get<{ success: boolean; data: Notification[]; count: number }>(this.baseUrl, { params }).pipe(
+      map(response => response.data || []),
+      catchError((error) => {
+        if (error.status === 404) {
+          return of([]);
+        }
+        return throwError(() => error);
+      })
+    );
   }
 
   getById(id: string): Observable<Notification> {
