@@ -27,6 +27,23 @@ export class BookingPaymentCallbackPage implements OnInit {
       console.log('Payment callback params:', params);
       console.log('Parsed - orderId:', orderId, 'transactionId:', transactionId, 'isSuccess:', isSuccess);
 
+      // Call confirm endpoint with Paymob query params
+      const order = params['order'] || params['id'];
+      const txnId = params['id'];
+      const success = params['success'] === 'true';
+
+      if (order) {
+        console.log('Calling payment confirmation with Paymob params:', { order, txnId, success });
+        this.bookingPaymentService.confirm(order, txnId || '', success).subscribe({
+          next: (res) => {
+            console.log('Payment confirmation response:', res);
+          },
+          error: (err) => {
+            console.error('Payment confirmation error:', err);
+          }
+        });
+      }
+
       if (orderId && transactionId) {
         this.orderId.set(orderId);
         this.processCallback({ orderId, transactionId, isSuccess });
