@@ -16,13 +16,13 @@ export class FeedbackService {
     return this.reviewService.getByHousingUnit(housingUnitId);
   }
 
-  addReview(review: Partial<Review> & { housingId: string }): Observable<Review> {
+  addReview(review: Partial<Review> & { housingUnitId: string }): Observable<Review> {
     const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
     const studentId = user?.studentId || user?.id;
 
     const request: CreateReviewRequest = {
       studentId: studentId,
-      housingUnitId: review.housingId,
+      housingUnitId: review.housingUnitId,
       rating: review.rating || 5,
       comment: review.comment || ''
     };

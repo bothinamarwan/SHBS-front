@@ -66,7 +66,7 @@ export class HousingDetails implements OnInit {
 
     this.isSubmittingReview.set(true);
     this.feedbackService.addReview({
-      housingId: id,
+      housingUnitId: id,
       comment: this.newComment(),
       rating: this.newRating()
     }).subscribe({
