@@ -59,6 +59,10 @@ export const studentRoutes: Routes = [
         loadComponent: () => import('./pages/student-verification/student-verification').then(m => m.StudentVerification)
       },
       {
+        path: 'contract',
+        loadComponent: () => import('./pages/student-contract/student-contract').then(m => m.StudentContract)
+      },
+      {
         path: 'receipts',
         loadComponent: () => import('./pages/student-receipts/student-receipts').then(m => m.StudentReceipts)
       },
