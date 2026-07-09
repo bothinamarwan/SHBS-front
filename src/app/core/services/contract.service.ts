@@ -48,6 +48,7 @@ export class ContractService {
     formData.append('bookingId', req.bookingId);
     formData.append('contractPdf', req.contractPdf);
     formData.append('adminUserId', req.adminUserId);
-    return this.http.post<Contract>(this.baseUrl, formData);
+    // Try booking endpoint since contract creation endpoint doesn't exist
+    return this.http.post<Contract>('/api/Booking/UploadContract', formData);
   }
 }
