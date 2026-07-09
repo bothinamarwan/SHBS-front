@@ -8,6 +8,7 @@ import { AdminApprovals } from './pages/admin-approvals/admin-approvals';
 import { AdminBookings } from './pages/admin-bookings/admin-bookings';
 import { AdminReceipts } from './pages/admin-receipts/admin-receipts';
 import { AdminNotifications } from './pages/admin-notifications/admin-notifications';
+import { AdminContracts } from './pages/admin-contracts/admin-contracts';
 
 export const adminRoutes: Routes = [
   { path: '', component: AdminDashboard },
@@ -19,4 +20,5 @@ export const adminRoutes: Routes = [
   { path: 'bookings', component: AdminBookings },
   { path: 'receipts', component: AdminReceipts },
   { path: 'notifications', component: AdminNotifications },
+  { path: 'contracts', component: AdminContracts },
 ];
