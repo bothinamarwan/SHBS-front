@@ -23,12 +23,12 @@ export class ContractService {
     return this.http.post<Contract>(`${this.baseUrl}/${id}/signatures/owner`, req);
   }
 
-  adminApprove(id: string, req: AdminApprovalRequest): Observable<Contract> {
-    return this.http.post<Contract>(`${this.baseUrl}/${id}/admin/approve`, req);
+  adminApprove(id: string, req: string): Observable<Contract> {
+    return this.http.post<Contract>(`/api/Admin/bookings/${id}/approve`, req);
   }
 
-  adminReject(id: string, req: AdminRejectionRequest): Observable<Contract> {
-    return this.http.post<Contract>(`${this.baseUrl}/${id}/admin/reject`, req);
+  adminReject(id: string, req: string): Observable<Contract> {
+    return this.http.post<Contract>(`/api/Admin/bookings/${id}/reject`, req);
   }
 
   getAll(): Observable<Contract[]> {
@@ -48,7 +48,6 @@ export class ContractService {
     formData.append('bookingId', req.bookingId);
     formData.append('contractPdf', req.contractPdf);
     formData.append('adminUserId', req.adminUserId);
-    // Try booking endpoint since contract creation endpoint doesn't exist
-    return this.http.post<Contract>('/api/Booking/UploadContract', formData);
+    return this.http.post<Contract>(`/api/Admin/bookings/${req.bookingId}/upload-contract`, formData);
   }
 }

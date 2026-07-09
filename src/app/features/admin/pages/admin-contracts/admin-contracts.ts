@@ -4,6 +4,7 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ContractService } from '../../../../core/services/contract.service';
 import { BookingService } from '../../../../core/services/booking.service';
+import { AuthService } from '../../../../core/services/auth.service';
 import { Contract, AdminApprovalRequest, AdminRejectionRequest, AdminContractUploadRequest, ContractStatus } from '../../../../core/models/contract.model';
 
 @Component({
@@ -15,6 +16,7 @@ import { Contract, AdminApprovalRequest, AdminRejectionRequest, AdminContractUpl
 export class AdminContracts implements OnInit {
   private contractService = inject(ContractService);
   private bookingService = inject(BookingService);
+  private authService = inject(AuthService);
   private fb = inject(FormBuilder);
 
   contracts = signal<Contract[]>([]);
@@ -34,18 +36,14 @@ export class AdminContracts implements OnInit {
 
   constructor() {
     this.approvalForm = this.fb.group({
-      adminUserId: ['', Validators.required],
       notes: ['']
     });
 
     this.rejectionForm = this.fb.group({
-      adminUserId: ['', Validators.required],
       notes: ['', Validators.required]
     });
 
-    this.uploadForm = this.fb.group({
-      adminUserId: ['', Validators.required]
-    });
+    this.uploadForm = this.fb.group({});
   }
 
   ngOnInit() {
@@ -104,21 +102,24 @@ export class AdminContracts implements OnInit {
   }
 
   uploadContract() {
-    if (this.uploadForm.invalid || !this.selectedFile()) {
-      this.uploadForm.markAllAsTouched();
-      if (!this.selectedFile()) {
-        alert('Please select a PDF file');
-      }
+    if (!this.selectedFile()) {
+      alert('Please select a PDF file');
       return;
     }
 
     const bookingId = this.selectedBookingId();
     if (!bookingId) return;
 
+    const currentUser = this.authService.currentUserValue;
+    if (!currentUser || !currentUser.id) {
+      alert('Admin user ID not found. Please log in again.');
+      return;
+    }
+
     const req: AdminContractUploadRequest = {
       bookingId: bookingId,
       contractPdf: this.selectedFile()!,
-      adminUserId: this.uploadForm.value.adminUserId
+      adminUserId: currentUser.id
     };
 
     this.contractService.adminUploadContract(req).subscribe({
@@ -144,12 +145,9 @@ export class AdminContracts implements OnInit {
     const bookingId = this.selectedContract()?.bookingId;
     if (!contractId || !bookingId) return;
 
-    const req: AdminApprovalRequest = {
-      adminUserId: this.approvalForm.value.adminUserId,
-      notes: this.approvalForm.value.notes
-    };
+    const notes = this.approvalForm.value.notes || '';
 
-    this.contractService.adminApprove(contractId, req).subscribe({
+    this.contractService.adminApprove(bookingId, notes).subscribe({
       next: () => {
         // Update booking status to APPROVED (6)
         this.bookingService.update({
@@ -187,12 +185,9 @@ export class AdminContracts implements OnInit {
     const bookingId = this.selectedContract()?.bookingId;
     if (!contractId || !bookingId) return;
 
-    const req: AdminRejectionRequest = {
-      adminUserId: this.rejectionForm.value.adminUserId,
-      notes: this.rejectionForm.value.notes
-    };
+    const notes = this.rejectionForm.value.notes || '';
 
-    this.contractService.adminReject(contractId, req).subscribe({
+    this.contractService.adminReject(bookingId, notes).subscribe({
       next: () => {
         // Update booking status to REJECTED (7)
         this.bookingService.update({
