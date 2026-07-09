@@ -1,219 +1,113 @@
 <!-- Page Header -->
 <div class="flex items-center justify-between mb-8">
   <div>
-    <h1 class="text-2xl font-extrabold text-neutral-900 dark:text-slate-100">Rental Contracts</h1>
-    <p class="text-sm text-neutral-500 dark:text-slate-400 mt-1">View and manage all lease agreements</p>
+    <h1 class="text-2xl font-extrabold text-neutral-900 dark:text-slate-100">Contract Management</h1>
+    <p class="text-sm text-neutral-500 dark:text-slate-400 mt-1">Sign contracts and manage lease agreements</p>
   </div>
 </div>
 
-<!-- Filter Tabs -->
-<div class="flex gap-2 mb-6 overflow-x-auto pb-1">
-  <button *ngFor="let filter of filters"
-    (click)="activeFilter.set(filter.value)"
-    [class.active]="activeFilter() === filter.value"
-    class="tab-btn flex-shrink-0 px-4 py-2 rounded-xl border border-neutral-200 dark:border-slate-700 bg-white dark:bg-slate-900">
-    {{ filter.label }}
-  </button>
+<!-- Loading State -->
+<div *ngIf="isLoading()" class="flex flex-col items-center justify-center py-20">
+  <div class="w-10 h-10 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mb-4"></div>
+  <p class="text-sm text-slate-500 font-medium">Loading contracts...</p>
 </div>
 
 <!-- Empty State -->
-<div *ngIf="filteredContracts().length === 0"
+<div *ngIf="!isLoading() && contracts().length === 0"
   class="flex flex-col items-center justify-center py-24 gap-4 text-center">
   <div class="w-20 h-20 rounded-2xl bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center">
     <i class="fas fa-file-contract text-4xl text-indigo-300 dark:text-indigo-600"></i>
   </div>
   <h3 class="text-lg font-bold text-neutral-800 dark:text-slate-100">No contracts found</h3>
-  <p class="text-sm text-neutral-400">Contracts will appear here once bookings are approved and signed.</p>
+  <p class="text-sm text-neutral-400">Contracts will appear here once bookings are paid and contracts are uploaded.</p>
 </div>
 
 <!-- Contracts List -->
-<div class="space-y-4">
-  <div *ngFor="let contract of filteredContracts()"
-    class="bg-white dark:bg-slate-900 rounded-2xl border border-neutral-100 dark:border-slate-800 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all p-5 flex items-start gap-4 cursor-pointer"
-    (click)="openPreview(contract)">
+<div *ngIf="!isLoading()" class="space-y-4">
+  <div *ngFor="let contract of contracts()"
+    class="bg-white dark:bg-slate-900 rounded-2xl border border-neutral-100 dark:border-slate-800 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all p-5">
 
-    <!-- Icon -->
-    <div class="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
-      [class.bg-indigo-50]="contract.status === 'signed'"
-      [class.dark:bg-indigo-900/30]="contract.status === 'signed'"
-      [class.bg-amber-50]="contract.status === 'draft'"
-      [class.dark:bg-amber-900/30]="contract.status === 'draft'"
-      [class.bg-neutral-100]="contract.status === 'expired'"
-      [class.dark:bg-slate-700]="contract.status === 'expired'">
-      <i class="fas fa-file-contract text-xl"
-        [class.text-indigo-500]="contract.status === 'signed'"
-        [class.text-amber-500]="contract.status === 'draft'"
-        [class.text-neutral-400]="contract.status === 'expired'"></i>
-    </div>
-
-    <!-- Content -->
-    <div class="flex-1 min-w-0">
-      <div class="flex items-start justify-between gap-3">
-        <div>
-          <p class="font-bold text-neutral-900 dark:text-slate-100">{{ contract.studentName }}</p>
-          <p class="text-xs text-neutral-400 dark:text-slate-500 mt-0.5">
-            {{ contract.propertyTitle }} — {{ contract.roomName }}
-          </p>
+    <!-- Header -->
+    <div class="flex items-start justify-between gap-4">
+      <div class="flex items-center gap-4 flex-1">
+        <div class="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
+          [ngClass]="getStatusClass(contract.status)">
+          <i class="fas fa-file-contract text-xl text-indigo-500"></i>
         </div>
-        <span class="status-badge flex-shrink-0" [ngClass]="getStatusClass(contract.status)">
-          {{ contract.status | titlecase }}
-        </span>
-      </div>
+        <div class="flex-1 min-w-0">
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <p class="font-bold text-neutral-900 dark:text-slate-100 text-sm font-mono">
+                {{ contract.contractNumber }}
+              </p>
+              <p class="text-xs text-neutral-400 dark:text-slate-500 mt-0.5">
+                Booking ID: {{ contract.bookingId.split('-')[0] }}...
+              </p>
+            </div>
+            <span class="status-badge flex-shrink-0" [ngClass]="getStatusClass(contract.status)">
+              {{ getContractStatusLabel(contract.status) }}
+            </span>
+          </div>
 
-      <div class="flex flex-wrap gap-x-4 gap-y-1 mt-3">
-        <span class="text-xs text-neutral-500 dark:text-slate-400 flex items-center gap-1">
-          <i class="fas fa-hashtag text-indigo-400 text-[10px]"></i>
-          <span class="font-mono">{{ contract.contractId }}</span>
-        </span>
-        <span class="text-xs text-neutral-500 dark:text-slate-400 flex items-center gap-1">
-          <i class="fas fa-calendar-alt text-indigo-400 text-[10px]"></i>
-          Start: <strong class="ml-1 text-neutral-700 dark:text-slate-200">{{ contract.moveInDate }}</strong>
-        </span>
-        <span class="text-xs text-neutral-500 dark:text-slate-400 flex items-center gap-1">
-          <i class="fas fa-clock text-indigo-400 text-[10px]"></i>
-          {{ contract.duration }} months
-        </span>
-        <span class="text-xs text-indigo-600 dark:text-indigo-400 font-bold flex items-center gap-1">
-          <i class="fas fa-tag text-[10px]"></i>
-          {{ formatCurrency(contract.monthlyRent) }}/mo
-        </span>
-        <span *ngIf="contract.signedDate" class="text-xs text-neutral-400 flex items-center gap-1 ml-auto">
-          <i class="fas fa-pen-nib text-[10px]"></i>
-          Signed: {{ contract.signedDate }}
-        </span>
+          <div class="flex flex-wrap gap-x-4 gap-y-1 mt-3">
+            <span class="text-xs text-neutral-500 dark:text-slate-400 flex items-center gap-1">
+              <i class="fas fa-calendar-check text-indigo-400 text-[10px]"></i>
+              Created: {{ contract.createdAt | date:'shortDate' }}
+            </span>
+            <span class="text-xs text-neutral-500 dark:text-slate-400 flex items-center gap-1">
+              <i class="fas fa-user-check text-indigo-400 text-[10px]"></i>
+              Student: {{ contract.isStudentSigned ? ' Signed' : ' Pending' }}
+            </span>
+            <span class="text-xs text-neutral-500 dark:text-slate-400 flex items-center gap-1">
+              <i class="fas fa-user-check text-indigo-400 text-[10px]"></i>
+              Landlord: {{ contract.isLandlordSigned ? ' Signed' : ' Pending' }}
+            </span>
+          </div>
+        </div>
       </div>
     </div>
 
-    <div class="flex-shrink-0 text-neutral-300 dark:text-slate-600">
-      <i class="fas fa-chevron-right text-sm"></i>
+    <!-- Actions -->
+    <div class="flex gap-3 mt-4 pt-4 border-t border-neutral-100 dark:border-slate-800">
+      <button (click)="downloadContract()" 
+              class="flex-1 px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-2">
+        <i class="fas fa-download"></i>
+        Download PDF
+      </button>
+      <button *ngIf="canSign(contract)" (click)="openSignModal(contract)"
+              class="flex-1 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-2">
+        <i class="fas fa-signature"></i>
+        Sign Contract
+      </button>
     </div>
   </div>
 </div>
 
-<!-- ══════════════════════════════════
-     Contract Preview Modal
-══════════════════════════════════ -->
-<div *ngIf="isPreviewOpen()" class="modal-overlay" (click)="closePreview()">
-  <div class="modal-panel max-w-2xl" (click)="$event.stopPropagation()">
-
-    <div class="px-6 pt-6 pb-4 border-b border-neutral-100 dark:border-slate-800 flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <div class="w-9 h-9 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center">
-          <i class="fas fa-file-contract text-indigo-600 dark:text-indigo-400"></i>
-        </div>
-        <div>
-          <h2 class="text-base font-bold text-neutral-900 dark:text-slate-100">Lease Agreement Preview</h2>
-          <p class="text-xs text-neutral-400 font-mono" *ngIf="selectedContract()">{{ selectedContract()!.contractId }}</p>
-        </div>
-      </div>
-      <div class="flex items-center gap-2">
-        <span *ngIf="selectedContract()" class="status-badge" [ngClass]="getStatusClass(selectedContract()!.status)">
-          {{ selectedContract()!.status | titlecase }}
-        </span>
-        <button (click)="closePreview()" class="w-8 h-8 rounded-lg text-neutral-400 hover:bg-neutral-100 dark:hover:bg-slate-800 flex items-center justify-center transition-colors">
-          <i class="fas fa-times"></i>
-        </button>
-      </div>
+<!-- Sign Modal -->
+<div *ngIf="isModalOpen()" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+  <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+    <div class="p-6 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+      <h2 class="text-lg font-bold text-slate-900 dark:text-slate-100">Sign Contract</h2>
+      <button (click)="closeModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
+        <i class="fas fa-times"></i>
+      </button>
     </div>
 
-    <!-- Contract Document -->
-    <div class="p-6" *ngIf="selectedContract() as c">
-      <div class="bg-white dark:bg-slate-800/60 border border-neutral-100 dark:border-slate-700 rounded-xl p-6 space-y-4 text-sm">
-
-        <!-- Header -->
-        <div class="text-center pb-4 border-b border-neutral-100 dark:border-slate-700">
-          <div class="w-10 h-10 rounded-xl mx-auto mb-3 flex items-center justify-center shadow-md" style="background:linear-gradient(135deg,#105aaf,#6ca3fd)">
-            <span class="text-white font-black text-sm">U</span>
-          </div>
-          <p class="text-base font-black text-neutral-900 dark:text-slate-100 tracking-tight">RESIDENTIAL LEASE AGREEMENT</p>
-          <p class="text-xs text-neutral-400 mt-1">UniStay Platform • Contract Reference: {{ c.contractId }}</p>
-        </div>
-
-        <!-- Parties -->
-        <div class="grid grid-cols-2 gap-4">
-          <div class="bg-neutral-50 dark:bg-slate-900/50 rounded-lg p-3">
-            <p class="text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-2">Landlord</p>
-            <p class="text-sm font-bold text-neutral-800 dark:text-slate-100">Property Owner</p>
-            <p class="text-xs text-neutral-400 mt-0.5">UniStay Verified Member</p>
-          </div>
-          <div class="bg-neutral-50 dark:bg-slate-900/50 rounded-lg p-3">
-            <p class="text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-2">Tenant</p>
-            <p class="text-sm font-bold text-neutral-800 dark:text-slate-100">{{ c.studentName }}</p>
-            <p class="text-xs text-neutral-400 mt-0.5">Registered Student</p>
-          </div>
-        </div>
-
-        <!-- Key Terms Grid -->
-        <div class="grid grid-cols-2 gap-3">
-          <div class="border border-neutral-100 dark:border-slate-700 rounded-lg p-3">
-            <p class="text-[10px] font-bold text-neutral-400 uppercase">Property</p>
-            <p class="text-sm font-semibold text-neutral-800 dark:text-slate-100 mt-0.5">{{ c.propertyTitle }}</p>
-          </div>
-          <div class="border border-neutral-100 dark:border-slate-700 rounded-lg p-3">
-            <p class="text-[10px] font-bold text-neutral-400 uppercase">Room</p>
-            <p class="text-sm font-semibold text-neutral-800 dark:text-slate-100 mt-0.5">{{ c.roomName }}</p>
-          </div>
-          <div class="border border-neutral-100 dark:border-slate-700 rounded-lg p-3">
-            <p class="text-[10px] font-bold text-neutral-400 uppercase">Lease Start</p>
-            <p class="text-sm font-semibold text-neutral-800 dark:text-slate-100 mt-0.5">{{ c.moveInDate }}</p>
-          </div>
-          <div class="border border-neutral-100 dark:border-slate-700 rounded-lg p-3">
-            <p class="text-[10px] font-bold text-neutral-400 uppercase">Lease End</p>
-            <p class="text-sm font-semibold text-neutral-800 dark:text-slate-100 mt-0.5">{{ getEndDate(c) }}</p>
-          </div>
-          <div class="border border-neutral-100 dark:border-slate-700 rounded-lg p-3">
-            <p class="text-[10px] font-bold text-neutral-400 uppercase">Monthly Rent</p>
-            <p class="text-sm font-bold text-indigo-600 dark:text-indigo-400 mt-0.5">{{ formatCurrency(c.monthlyRent) }}</p>
-          </div>
-          <div class="border border-neutral-100 dark:border-slate-700 rounded-lg p-3">
-            <p class="text-[10px] font-bold text-neutral-400 uppercase">Total Value</p>
-            <p class="text-sm font-bold text-indigo-600 dark:text-indigo-400 mt-0.5">{{ formatCurrency(c.totalPrice) }}</p>
-          </div>
-        </div>
-
-        <!-- Terms -->
-        <div class="bg-neutral-50 dark:bg-slate-900/50 rounded-lg p-4">
-          <p class="text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-2">Terms & Conditions</p>
-          <p class="text-xs text-neutral-600 dark:text-slate-300 leading-relaxed">{{ c.terms }}</p>
-          <p class="text-xs text-neutral-500 dark:text-slate-400 mt-2 leading-relaxed">
-            The Tenant agrees to pay rent monthly in advance. Early termination requires 30 days written notice.
-            The property must be returned in the same condition as received. The Landlord is responsible for major
-            repairs and habitability maintenance throughout the lease term.
-          </p>
-        </div>
-
-        <!-- Signature Section -->
-        <div class="grid grid-cols-2 gap-4 pt-4 border-t border-neutral-100 dark:border-slate-700">
-          <div>
-            <p class="text-[10px] font-bold text-neutral-400 uppercase mb-3">Landlord Signature</p>
-            <div *ngIf="c.status === 'signed'" class="border-b-2 border-neutral-800 dark:border-slate-200 pb-1 mb-1">
-              <p class="text-2xl text-neutral-800 dark:text-slate-100" style="font-family: 'Brush Script MT', cursive;">
-                Property Owner
-              </p>
-            </div>
-            <div *ngIf="c.status !== 'signed'" class="h-8 border-b-2 border-dashed border-neutral-200 dark:border-slate-600 mb-1"></div>
-            <p class="text-[10px] text-neutral-400">{{ c.signedDate || 'Pending signature' }}</p>
-          </div>
-          <div>
-            <p class="text-[10px] font-bold text-neutral-400 uppercase mb-3">Tenant Signature</p>
-            <div *ngIf="c.status === 'signed'" class="border-b-2 border-neutral-800 dark:border-slate-200 pb-1 mb-1">
-              <p class="text-2xl text-neutral-800 dark:text-slate-100" style="font-family: 'Brush Script MT', cursive;">
-                {{ c.studentName }}
-              </p>
-            </div>
-            <div *ngIf="c.status !== 'signed'" class="h-8 border-b-2 border-dashed border-neutral-200 dark:border-slate-600 mb-1"></div>
-            <p class="text-[10px] text-neutral-400">{{ c.signedDate || 'Pending signature' }}</p>
-          </div>
-        </div>
+    <div class="p-6">
+      <div class="mb-4">
+        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Signed PDF URL</label>
+        <input type="text" formControlName="signedPdfUrl" [formGroup]="signatureForm"
+               class="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+               placeholder="Enter the URL of your signed contract PDF">
+        <p class="text-xs text-slate-500 mt-1">Upload your signed contract to a cloud storage and paste the URL here</p>
       </div>
 
-      <!-- Footer actions -->
-      <div class="flex gap-3 mt-4">
-        <button (click)="closePreview()" class="btn-ghost flex-1 justify-center">Close</button>
-        <button class="btn-primary flex-1 justify-center" onclick="window.print()">
-          <i class="fas fa-print text-xs"></i> Print Contract
-        </button>
-      </div>
+      <button (click)="signContract()" [disabled]="isSigning()"
+              class="w-full px-4 py-3 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2">
+        <i class="fas fa-signature" *ngIf="!isSigning()"></i>
+        <i class="fas fa-spinner fa-spin" *ngIf="isSigning()"></i>
+        {{ isSigning() ? 'Signing...' : 'Sign Contract' }}
+      </button>
     </div>
   </div>
 </div>

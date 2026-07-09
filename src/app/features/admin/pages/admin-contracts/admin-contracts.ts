@@ -1,10 +1,10 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ContractService } from '../../../../core/services/contract.service';
 import { BookingService } from '../../../../core/services/booking.service';
-import { Contract, AdminApprovalRequest, AdminRejectionRequest } from '../../../../core/models/contract.model';
+import { Contract, AdminApprovalRequest, AdminRejectionRequest, AdminContractUploadRequest, ContractStatus } from '../../../../core/models/contract.model';
 
 @Component({
   selector: 'app-admin-contracts',
@@ -21,9 +21,16 @@ export class AdminContracts implements OnInit {
   isLoading = signal(true);
   selectedContract = signal<Contract | null>(null);
   isModalOpen = signal(false);
+  isUploadModalOpen = signal(false);
+  selectedBookingId = signal<string | null>(null);
 
   approvalForm: FormGroup;
   rejectionForm: FormGroup;
+  uploadForm: FormGroup;
+  selectedFile = signal<File | null>(null);
+
+  contractsWaitingForUpload = computed(() => this.contracts().filter(c => c.status === 0));
+  contractsPendingReview = computed(() => this.contracts().filter(c => c.status === 4));
 
   constructor() {
     this.approvalForm = this.fb.group({
@@ -35,12 +42,27 @@ export class AdminContracts implements OnInit {
       adminUserId: ['', Validators.required],
       notes: ['', Validators.required]
     });
+
+    this.uploadForm = this.fb.group({
+      adminUserId: ['', Validators.required]
+    });
   }
 
   ngOnInit() {
-    // TODO: Fetch contracts that need admin review
-    // For now, we'll need a getAllContracts endpoint or filter by status
-    this.isLoading.set(false);
+    this.loadContracts();
+  }
+
+  loadContracts() {
+    this.contractService.getAll().subscribe({
+      next: (contracts) => {
+        this.contracts.set(contracts);
+        this.isLoading.set(false);
+      },
+      error: (err) => {
+        console.error('Error loading contracts:', err);
+        this.isLoading.set(false);
+      }
+    });
   }
 
   openReviewModal(contract: Contract) {
@@ -53,6 +75,63 @@ export class AdminContracts implements OnInit {
   closeModal() {
     this.isModalOpen.set(false);
     this.selectedContract.set(null);
+  }
+
+  openUploadModal(bookingId: string) {
+    this.selectedBookingId.set(bookingId);
+    this.isUploadModalOpen.set(true);
+    this.uploadForm.reset();
+    this.selectedFile.set(null);
+  }
+
+  closeUploadModal() {
+    this.isUploadModalOpen.set(false);
+    this.selectedBookingId.set(null);
+    this.selectedFile.set(null);
+  }
+
+  onFileSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files[0]) {
+      const file = input.files[0];
+      if (file.type === 'application/pdf') {
+        this.selectedFile.set(file);
+      } else {
+        alert('Please select a PDF file');
+        this.selectedFile.set(null);
+      }
+    }
+  }
+
+  uploadContract() {
+    if (this.uploadForm.invalid || !this.selectedFile()) {
+      this.uploadForm.markAllAsTouched();
+      if (!this.selectedFile()) {
+        alert('Please select a PDF file');
+      }
+      return;
+    }
+
+    const bookingId = this.selectedBookingId();
+    if (!bookingId) return;
+
+    const req: AdminContractUploadRequest = {
+      bookingId: bookingId,
+      contractPdf: this.selectedFile()!,
+      adminUserId: this.uploadForm.value.adminUserId
+    };
+
+    this.contractService.adminUploadContract(req).subscribe({
+      next: (contract) => {
+        alert('Contract uploaded successfully');
+        this.closeUploadModal();
+        this.loadContracts();
+      },
+      error: (err) => {
+        console.error('Error uploading contract:', err);
+        alert('Failed to upload contract. Please try again.');
+      }
+    });
   }
 
   approveContract() {
@@ -82,7 +161,7 @@ export class AdminContracts implements OnInit {
           next: () => {
             alert('Contract approved successfully. Amount transferred to landlord.');
             this.closeModal();
-            // TODO: Refresh contracts list
+            this.loadContracts();
           },
           error: (err) => {
             console.error('Error updating booking status:', err);
@@ -125,7 +204,7 @@ export class AdminContracts implements OnInit {
           next: () => {
             alert('Contract rejected. Amount transferred back to student.');
             this.closeModal();
-            // TODO: Refresh contracts list
+            this.loadContracts();
           },
           error: (err) => {
             console.error('Error updating booking status:', err);

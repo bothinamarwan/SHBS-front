@@ -44,3 +44,9 @@ export interface AdminRejectionRequest {
   adminUserId: string;
   notes: string;
 }
+
+export interface AdminContractUploadRequest {
+  bookingId: string;
+  contractPdf: File;
+  adminUserId: string;
+}

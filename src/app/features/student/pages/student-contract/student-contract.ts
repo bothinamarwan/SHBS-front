@@ -5,7 +5,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ContractService } from '../../../../core/services/contract.service';
 import { BookingService } from '../../../../core/services/booking.service';
-import { Contract, StudentSignatureRequest } from '../../../../core/models/contract.model';
+import { Contract, StudentSignatureRequest, ContractStatus } from '../../../../core/models/contract.model';
 
 @Component({
   selector: 'app-student-contract',
@@ -85,7 +85,7 @@ export class StudentContract implements OnInit {
         // If contract status is WAITING_LANDLORD_SIGNATURE (3) → booking status 4
         // If contract status is WAITING_ADMIN_APPROVAL (4) → booking status 5
         let newBookingStatus = 4; // Default to WAITING_LANDLORD_SIGNATURE
-        if (updatedContract.status === 4) {
+        if (updatedContract.status === ContractStatus.WaitingForAdminApproval) {
           newBookingStatus = 5; // WAITING_ADMIN_APPROVAL
         }
 

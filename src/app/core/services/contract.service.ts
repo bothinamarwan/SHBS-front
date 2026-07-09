@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Contract, StudentSignatureRequest, LandlordSignatureRequest, AdminApprovalRequest, AdminRejectionRequest } from '../models/contract.model';
+import { Contract, StudentSignatureRequest, LandlordSignatureRequest, AdminApprovalRequest, AdminRejectionRequest, AdminContractUploadRequest } from '../models/contract.model';
 
 @Injectable({
   providedIn: 'root'
@@ -20,7 +20,7 @@ export class ContractService {
   }
 
   landlordSign(id: string, req: LandlordSignatureRequest): Observable<Contract> {
-    return this.http.post<Contract>(`${this.baseUrl}/${id}/signatures/landlord`, req);
+    return this.http.post<Contract>(`${this.baseUrl}/${id}/signatures/owner`, req);
   }
 
   adminApprove(id: string, req: AdminApprovalRequest): Observable<Contract> {
@@ -29,5 +29,25 @@ export class ContractService {
 
   adminReject(id: string, req: AdminRejectionRequest): Observable<Contract> {
     return this.http.post<Contract>(`${this.baseUrl}/${id}/admin/reject`, req);
+  }
+
+  getAll(): Observable<Contract[]> {
+    return this.http.get<Contract[]>(this.baseUrl);
+  }
+
+  getByBookingId(bookingId: string): Observable<Contract> {
+    return this.http.get<Contract>(`${this.baseUrl}/by-booking/${bookingId}`);
+  }
+
+  getPdf(id: string): Observable<Blob> {
+    return this.http.get(`${this.baseUrl}/${id}/pdf`, { responseType: 'blob' });
+  }
+
+  adminUploadContract(req: AdminContractUploadRequest): Observable<Contract> {
+    const formData = new FormData();
+    formData.append('bookingId', req.bookingId);
+    formData.append('contractPdf', req.contractPdf);
+    formData.append('adminUserId', req.adminUserId);
+    return this.http.post<Contract>(this.baseUrl, formData);
   }
 }
