@@ -4,8 +4,10 @@ import { Router } from '@angular/router';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { FeedbackService } from '../../../../core/services/feedback.service';
 import { HousingService } from '../../../../core/services/housing.service';
+import { BookingService } from '../../../../core/services/booking.service';
 import { Complaint, ComplaintStatus } from '../../../../core/models/complaint.model';
 import { HousingUnit } from '../../../../core/models/housing.model';
+import { Booking } from '../../../../core/models/booking.model';
 
 @Component({
   selector: 'app-landlord-complaints',
@@ -18,9 +20,11 @@ export class LandlordComplaints implements OnInit {
   private router = inject(Router);
   private feedbackService = inject(FeedbackService);
   private housingService = inject(HousingService);
+  private bookingService = inject(BookingService);
 
   complaintForm: FormGroup;
   housings = signal<HousingUnit[]>([]);
+  bookings = signal<Booking[]>([]);
   complaints = signal<Complaint[]>([]);
   isLoading = signal(true);
   isSubmitting = signal(false);
@@ -31,6 +35,7 @@ export class LandlordComplaints implements OnInit {
   constructor() {
     this.complaintForm = this.fb.group({
       housingUnitId: ['', Validators.required],
+      studentId: ['', Validators.required],
       title: ['', [Validators.required, Validators.minLength(5)]],
       description: ['', [Validators.required, Validators.minLength(20)]]
     });
@@ -38,6 +43,7 @@ export class LandlordComplaints implements OnInit {
 
   ngOnInit() {
     this.loadHousings();
+    this.loadBookings();
     this.loadComplaints();
   }
 
@@ -52,6 +58,22 @@ export class LandlordComplaints implements OnInit {
       },
       error: (err) => {
         console.error('Failed to load housings', err);
+      }
+    });
+  }
+
+  loadBookings() {
+    this.bookingService.getAll().subscribe({
+      next: (data) => {
+        const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
+        const landlordId = user?.landlordId || user?.id;
+        
+        // Filter bookings for landlord's properties
+        const landlordHousingIds = this.housings().map(h => h.housingUnitId);
+        this.bookings.set(data.filter((b: Booking) => b.housingUnitId && landlordHousingIds.includes(b.housingUnitId)));
+      },
+      error: (err) => {
+        console.error('Failed to load bookings', err);
       }
     });
   }
@@ -81,12 +103,12 @@ export class LandlordComplaints implements OnInit {
     this.isSubmitting.set(true);
     const formValue = this.complaintForm.value;
 
-    // Note: Landlord complaints would need a different API endpoint
-    // For now, we'll use the same endpoint but mark it differently
+    // Pass the selected studentId for landlord complaints
     this.feedbackService.submitComplaint({
       title: formValue.title,
       housingUnitId: formValue.housingUnitId,
-      description: formValue.description
+      description: formValue.description,
+      studentId: formValue.studentId
     }).subscribe({
       next: (complaint) => {
         this.complaints.update(prev => [complaint, ...prev]);
@@ -99,6 +121,20 @@ export class LandlordComplaints implements OnInit {
         this.isSubmitting.set(false);
       }
     });
+  }
+
+  onHousingChange(housingUnitId: string) {
+    // When housing changes, reset student selection
+    this.complaintForm.patchValue({ studentId: '' });
+  }
+
+  getStudentsForHousing(housingUnitId: string): Booking[] {
+    return this.bookings().filter(b => b.housingUnitId === housingUnitId);
+  }
+
+  getStudentName(studentId: string): string {
+    const booking = this.bookings().find(b => b.studentId === studentId);
+    return booking?.studentName || 'Unknown Student';
   }
 
   getStatusLabel(status: ComplaintStatus): string {

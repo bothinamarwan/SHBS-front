@@ -33,9 +33,10 @@ export class FeedbackService {
     return this.reviewService.create(request);
   }
 
-  submitComplaint(complaint: { title: string; housingUnitId: string; description: string }): Observable<Complaint> {
+  submitComplaint(complaint: { title: string; housingUnitId: string; description: string; studentId?: string }): Observable<Complaint> {
     const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
-    const studentId = user?.studentId || user?.id;
+    // Use provided studentId if available (for landlord complaints), otherwise get from localStorage
+    const studentId = complaint.studentId || user?.studentId || user?.id;
 
     const request: CreateComplaintRequest = {
       title: complaint.title,
