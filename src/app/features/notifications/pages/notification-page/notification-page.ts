@@ -29,31 +29,20 @@ export class NotificationPage implements OnInit {
   loadNotifications() {
     this.isLoading.set(true);
 
-    const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
-    const userId = user?.studentId || user?.landlordId || user?.adminId || user?.id;
-
-    if (userId) {
-      this.notificationService.getByUserId(userId).subscribe({
+    if (this.activeTab() === 'unread') {
+      this.notificationService.getAll(1, 50, undefined, false).subscribe({
         next: (response: Notification[]) => {
           const data: Notification[] = Array.isArray(response) ? response : (response as any)?.data || (response as any)?.items || (response as any)?.$values || [];
-          let filtered = data;
-          if (this.activeTab() === 'unread') {
-            filtered = data.filter(n => !n.isSeen);
-          }
-          this.notifications.set(filtered);
+          this.notifications.set(data);
           this.isLoading.set(false);
         },
         error: () => this.isLoading.set(false)
       });
     } else {
-      this.notificationService.getAll().subscribe({
+      this.notificationService.getAll(1, 50).subscribe({
         next: (response: Notification[]) => {
           const data: Notification[] = Array.isArray(response) ? response : (response as any)?.data || (response as any)?.items || (response as any)?.$values || [];
-          let filtered = data;
-          if (this.activeTab() === 'unread') {
-            filtered = data.filter(n => !n.isSeen);
-          }
-          this.notifications.set(filtered);
+          this.notifications.set(data);
           this.isLoading.set(false);
         },
         error: () => this.isLoading.set(false)
@@ -67,23 +56,18 @@ export class NotificationPage implements OnInit {
   }
 
   markAsRead(n: Notification) {
-    if (n.isSeen) return;
-    this.notificationService.markAsSeen(n.notificationId).subscribe(() => {
+    if (n.isRead) return;
+    this.notificationService.markAsRead(n.notificationId).subscribe(() => {
       this.notifications.update(prev => 
-        prev.map(x => x.notificationId === n.notificationId ? { ...x, isSeen: true } : x)
+        prev.map(x => x.notificationId === n.notificationId ? { ...x, isRead: true } : x)
       );
     });
   }
 
   markAllAsRead() {
-    const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
-    const userId = user?.studentId || user?.landlordId || user?.adminId || user?.id;
-    
-    if (userId) {
-      this.notificationService.markAllAsSeen(userId).subscribe(() => {
-        this.notifications.update(prev => prev.map(x => ({ ...x, isSeen: true })));
-      });
-    }
+    this.notificationService.markAllAsRead().subscribe(() => {
+      this.notifications.update(prev => prev.map(x => ({ ...x, isRead: true })));
+    });
   }
 
   getNotificationIcon(type: string): string {

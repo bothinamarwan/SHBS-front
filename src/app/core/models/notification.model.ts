@@ -13,10 +13,6 @@ export interface Notification {
   userId: string;
   message: string;
   type: string;
-  isSeen: boolean;
+  isRead: boolean;
   createdAt: string;
-}
-
-export interface UpdateNotificationRequest {
-  isSeen: boolean;
 }

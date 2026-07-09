@@ -181,7 +181,7 @@ export class ChatInterface implements OnInit {
       userId: recipientId,
       message: messageContent.length > 50 ? messageContent.substring(0, 50) + '...' : messageContent,
       type: 'General',
-      isSeen: false
+      isRead: false
     };
 
     this.notificationService.create(notification).subscribe({

@@ -29,8 +29,8 @@
   <!-- Notifications List -->
   <div *ngIf="!isLoading() && notifications().length > 0" class="space-y-4">
     <div *ngFor="let notification of notifications()" 
-      [class.bg-indigo-50]="!notification.isSeen"
-      [class.dark:bg-indigo-900/10]="!notification.isSeen"
+      [class.bg-indigo-50]="!notification.isRead"
+      [class.dark:bg-indigo-900/10]="!notification.isRead"
       class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-neutral-100 dark:border-slate-800 shadow-sm transition-all">
       
       <div class="flex items-start gap-4">
@@ -53,7 +53,7 @@
             
             <!-- Actions -->
             <div class="flex items-center gap-2 flex-shrink-0">
-              <button *ngIf="!notification.isSeen" (click)="markAsSeen(notification.notificationId)" 
+              <button *ngIf="!notification.isRead" (click)="markAsSeen(notification.notificationId)" 
                 class="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 transition-colors p-2"
                 title="Mark as seen">
                 <i class="fas fa-check"></i>

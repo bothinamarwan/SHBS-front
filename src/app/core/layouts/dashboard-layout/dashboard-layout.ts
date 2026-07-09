@@ -37,31 +37,18 @@ export class DashboardLayout implements OnInit {
   loadNotifications() {
     if (!this.authService.currentUserValue) return;
     
-    this.notificationService.getUnseenCount().subscribe({
+    this.notificationService.getUnreadCount().subscribe({
       next: (count: number) => this.unreadCount.set(count),
       error: () => {}
     });
 
-    const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
-    const userId = user?.studentId || user?.landlordId || user?.adminId || user?.id;
-
-    if (userId) {
-      this.notificationService.getByUserId(userId).subscribe({
-        next: (response: Notification[]) => {
-          const notifications: Notification[] = Array.isArray(response) ? response : (response as any)?.data || (response as any)?.items || (response as any)?.$values || [];
-          this.recentNotifications.set(notifications.filter(n => !n.isSeen).slice(0, 3));
-        },
-        error: () => {}
-      });
-    } else {
-      this.notificationService.getAll().subscribe({
-        next: (response: Notification[]) => {
-          const notifications: Notification[] = Array.isArray(response) ? response : (response as any)?.data || (response as any)?.items || (response as any)?.$values || [];
-          this.recentNotifications.set(notifications.filter(n => !n.isSeen).slice(0, 3));
-        },
-        error: () => {}
-      });
-    }
+    this.notificationService.getAll(1, 3, undefined, false).subscribe({
+      next: (response: Notification[]) => {
+        const notifications: Notification[] = Array.isArray(response) ? response : (response as any)?.data || (response as any)?.items || (response as any)?.$values || [];
+        this.recentNotifications.set(notifications);
+      },
+      error: () => {}
+    });
   }
 
   getNotificationIcon(type: string): string {
@@ -89,22 +76,17 @@ export class DashboardLayout implements OnInit {
   }
 
   markAsRead(id: string) {
-    this.notificationService.markAsSeen(id).subscribe({
+    this.notificationService.markAsRead(id).subscribe({
       next: () => this.loadNotifications(),
       error: () => {}
     });
   }
 
   markAllAsRead() {
-    const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
-    const userId = user?.studentId || user?.landlordId || user?.adminId || user?.id;
-    
-    if (userId) {
-      this.notificationService.markAllAsSeen(userId).subscribe({
-        next: () => this.loadNotifications(),
-        error: () => {}
-      });
-    }
+    this.notificationService.markAllAsRead().subscribe({
+      next: () => this.loadNotifications(),
+      error: () => {}
+    });
   }
 
   viewAllNotifications() {

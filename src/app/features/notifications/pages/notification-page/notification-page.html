@@ -21,16 +21,16 @@
     </div>
 
     <div class="divide-y divide-neutral-50 dark:divide-slate-800">
-      <div *ngFor="let n of notifications()" (click)="markAsRead(n)" [class.opacity-60]="n.isSeen" class="p-8 hover:bg-neutral-50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer flex gap-6 relative group">
+      <div *ngFor="let n of notifications()" (click)="markAsRead(n)" [class.opacity-60]="n.isRead" class="p-8 hover:bg-neutral-50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer flex gap-6 relative group">
         
-        <div *ngIf="!n.isSeen" class="absolute left-3 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-indigo-500"></div>
+        <div *ngIf="!n.isRead" class="absolute left-3 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-indigo-500"></div>
 
         <div [class]="getNotificationBg(n.type)" class="w-12 h-12 rounded-2xl flex items-center justify-center text-xl shrink-0">
           <i [class]="getNotificationIcon(n.type)"></i>
         </div>
         <div class="flex-1">
           <div class="flex justify-between items-start mb-1">
-            <h3 [class.font-extrabold]="!n.isSeen" [class.font-bold]="n.isSeen" class="text-neutral-800 dark:text-slate-100">{{ n.type }}</h3>
+            <h3 [class.font-extrabold]="!n.isRead" [class.font-bold]="n.isRead" class="text-neutral-800 dark:text-slate-100">{{ n.type }}</h3>
             <span class="text-[10px] font-bold text-neutral-400 dark:text-slate-500 uppercase tracking-widest">{{ n.createdAt | date:'short' }}</span>
           </div>
           <p class="text-sm text-neutral-500 dark:text-slate-400 leading-relaxed">{{ n.message }}</p>

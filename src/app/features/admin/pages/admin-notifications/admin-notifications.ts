@@ -26,39 +26,34 @@ export class AdminNotifications implements OnInit {
   }
 
   loadNotifications() {
-    const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
-    const userId = user?.adminId || user?.id;
-
-    if (userId) {
-      this.notificationService.getByUserId(userId).subscribe({
-        next: (data) => {
-          this.notifications.set(data);
-          this.isLoading.set(false);
-        },
-        error: (err) => {
-          console.error('Failed to load notifications', err);
-          this.isLoading.set(false);
-        }
-      });
-    }
+    this.notificationService.getAll(1, 50, undefined, false).subscribe({
+      next: (data) => {
+        this.notifications.set(data);
+        this.isLoading.set(false);
+      },
+      error: (err) => {
+        console.error('Failed to load notifications', err);
+        this.isLoading.set(false);
+      }
+    });
   }
 
   loadUnseenCount() {
-    this.notificationService.getUnseenCount().subscribe({
-      next: (count) => {
+    this.notificationService.getUnreadCount().subscribe({
+      next: (count: number) => {
         this.unseenCount.set(count);
       },
-      error: (err) => {
+      error: (err: any) => {
         console.error('Failed to load unseen count', err);
       }
     });
   }
 
   markAsSeen(notificationId: string) {
-    this.notificationService.markAsSeen(notificationId).subscribe({
+    this.notificationService.markAsRead(notificationId).subscribe({
       next: () => {
         this.notifications.update(prev => 
-          prev.map(n => n.notificationId === notificationId ? { ...n, isSeen: true } : n)
+          prev.map(n => n.notificationId === notificationId ? { ...n, isRead: true } : n)
         );
         this.loadUnseenCount();
       },
@@ -69,22 +64,17 @@ export class AdminNotifications implements OnInit {
   }
 
   markAllAsSeen() {
-    const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
-    const userId = user?.adminId || user?.id;
-
-    if (userId) {
-      this.notificationService.markAllAsSeen(userId).subscribe({
-        next: () => {
-          this.notifications.update(prev => 
-            prev.map(n => ({ ...n, isSeen: true }))
-          );
-          this.loadUnseenCount();
-        },
-        error: (err) => {
-          console.error('Failed to mark all notifications as seen', err);
-        }
-      });
-    }
+    this.notificationService.markAllAsRead().subscribe({
+      next: () => {
+        this.notifications.update(prev => 
+          prev.map(n => ({ ...n, isRead: true }))
+        );
+        this.loadUnseenCount();
+      },
+      error: (err) => {
+        console.error('Failed to mark all notifications as seen', err);
+      }
+    });
   }
 
   deleteNotification(notificationId: string) {
