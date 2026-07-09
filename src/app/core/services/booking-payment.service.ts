@@ -19,11 +19,27 @@ export class BookingPaymentService {
     return this.http.post(`${this.baseUrl}/callback`, req);
   }
 
+  getCallback(): Observable<any> {
+    return this.http.get(`${this.baseUrl}/callback`);
+  }
+
   complete(paymentId: string): Observable<any> {
     return this.http.post(`${this.baseUrl}/complete/${paymentId}`, {});
   }
 
   confirm(order: string, id: string, success: boolean): Observable<any> {
     return this.http.post(`${this.baseUrl}/confirm?order=${order}&id=${id}&success=${success}`, {});
+  }
+
+  getCallbackInfo(): Observable<any> {
+    return this.http.get(`${this.baseUrl}/callback-info`);
+  }
+
+  generateContract(paymentId: string): Observable<any> {
+    return this.http.post(`${this.baseUrl}/generate-contract/${paymentId}`, {});
+  }
+
+  retryContract(paymentId: string): Observable<any> {
+    return this.http.post(`${this.baseUrl}/retry-contract/${paymentId}`, {});
   }
 }
