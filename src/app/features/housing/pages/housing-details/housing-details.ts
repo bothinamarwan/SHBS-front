@@ -35,16 +35,26 @@ export class HousingDetails implements OnInit {
   isInitiatingChat     = signal(false);
   isEditingReview      = signal(false);
   editingReviewId      = signal<string | null>(null);
+  userHasReviewed      = signal(false);
 
   // expose to template
   GenderAllowed = GenderAllowed;
   genderLabel   = genderLabel;
 
-  // Get current student ID from localStorage
+  // Get current student ID from localStorage - check multiple possible keys
   currentStudentId = computed(() => {
-    const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
-    const id = user?.studentId || user?.id;
-    console.log('Current student ID from localStorage:', id, 'User:', user);
+    const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    
+    // Try multiple possible keys for student ID
+    const id = currentUser?.studentId || currentUser?.id || user?.studentId || user?.id || currentUser?.userId || user?.userId;
+    
+    console.log('Current student ID check:', {
+      currentUser,
+      user,
+      finalId: id
+    });
+    
     return id;
   });
 
@@ -85,8 +95,18 @@ export class HousingDetails implements OnInit {
   loadReviews(id: string) {
     this.feedbackService.getReviewsByHousing(id).subscribe(revs => {
       console.log('Loaded reviews:', revs);
-      console.log('Current student ID:', this.currentStudentId());
       this.reviews.set(revs);
+
+      // Check if current user has reviewed
+      const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      const studentId = currentUser?.studentId || currentUser?.id || user?.studentId || user?.id || currentUser?.userId || user?.userId;
+
+      console.log('Checking if user has reviewed:', { studentId, reviews: revs });
+
+      const hasRev = revs.some(r => r.studentId === studentId);
+      this.userHasReviewed.set(hasRev);
+      console.log('userHasReviewed set to:', hasRev);
     });
   }
 
@@ -137,6 +157,7 @@ export class HousingDetails implements OnInit {
             studentName: rev.studentName || 'You'
           };
           this.reviews.update(prev => [reviewToAdd, ...prev]);
+          this.userHasReviewed.set(true);
           this.newComment.set('');
           this.isSubmittingReview.set(false);
         },
@@ -169,6 +190,7 @@ export class HousingDetails implements OnInit {
       next: () => {
         console.log('Review deleted successfully');
         this.reviews.update(prev => prev.filter(r => r.reviewId !== reviewId));
+        this.userHasReviewed.set(false);
       },
       error: (err) => {
         console.error('Failed to delete review', err);
