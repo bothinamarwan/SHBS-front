@@ -138,6 +138,30 @@ export class StudentBookings implements OnInit {
     return map[statusNum] || 'bg-slate-100 text-slate-700';
   }
 
+  getStatusIcon(status: number | string): string {
+    const statusNum = typeof status === 'string' ? parseInt(status) : status;
+    const map: Record<number, string> = {
+      0: 'fa-clock',
+      1: 'fa-credit-card',
+      2: 'fa-spinner fa-spin',
+      3: 'fa-check-circle',
+      4: 'fa-file',
+      5: 'fa-file-signature',
+      6: 'fa-pen',
+      7: 'fa-signature',
+      8: 'fa-user-pen',
+      9: 'fa-search',
+      10: 'fa-check-double',
+      11: 'fa-house',
+      12: 'fa-flag-checkered',
+      13: 'fa-times-circle',
+      14: 'fa-ban',
+      15: 'fa-clock',
+      16: 'fa-check-circle'
+    };
+    return map[statusNum] || 'fa-question-circle';
+  }
+
   formatDate(dateString: string): string {
     if (!dateString) return 'N/A';
     return new Date(dateString).toLocaleDateString('en-US', {
