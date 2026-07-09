@@ -81,7 +81,7 @@
             <td class="px-6 py-4">
               <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold" [ngClass]="getStatusClass(b.bookingStatus)">
                 <i class="fas" [ngClass]="getStatusIcon(b.bookingStatus)"></i>
-                {{ getStatusLabel(b.bookingStatus) }}
+                {{ getStatusLabel(b.bookingStatus) }} ({{ b.bookingStatus }})
               </span>
             </td>
           </tr>
