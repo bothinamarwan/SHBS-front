@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, catchError, throwError, of } from 'rxjs';
 import { Notification, UpdateNotificationRequest } from '../models/notification.model';
 
 @Injectable({
@@ -20,11 +20,25 @@ export class NotificationService {
   }
 
   getByUserId(userId: string): Observable<Notification[]> {
-    return this.http.get<Notification[]>(`${this.baseUrl}/user/${userId}`);
+    return this.http.get<Notification[]>(`${this.baseUrl}/user/${userId}`).pipe(
+      catchError((error) => {
+        if (error.status === 404) {
+          return of([]);
+        }
+        return throwError(() => error);
+      })
+    );
   }
 
   getUnseenCount(): Observable<number> {
-    return this.http.get<number>(`${this.baseUrl}/count/unseen`);
+    return this.http.get<number>(`${this.baseUrl}/count/unseen`).pipe(
+      catchError((error) => {
+        if (error.status === 404) {
+          return of(0);
+        }
+        return throwError(() => error);
+      })
+    );
   }
 
   markAsSeen(id: string): Observable<Notification> {
