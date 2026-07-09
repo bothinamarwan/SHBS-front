@@ -43,19 +43,25 @@ export class HousingDetails implements OnInit {
   // Get current student ID from localStorage
   currentStudentId = computed(() => {
     const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
-    return user?.studentId || user?.id;
+    const id = user?.studentId || user?.id;
+    console.log('Current student ID from localStorage:', id, 'User:', user);
+    return id;
   });
 
   // Check if current student has already reviewed this housing unit
   hasReviewed = computed(() => {
     const studentId = this.currentStudentId();
-    return this.reviews().some(r => r.studentId === studentId);
+    const hasRev = this.reviews().some(r => r.studentId === studentId);
+    console.log('hasReviewed check:', { studentId, reviews: this.reviews(), hasRev });
+    return hasRev;
   });
 
   // Get the current student's review
   currentUserReview = computed(() => {
     const studentId = this.currentStudentId();
-    return this.reviews().find(r => r.studentId === studentId);
+    const review = this.reviews().find(r => r.studentId === studentId);
+    console.log('currentUserReview:', { studentId, review });
+    return review;
   });
 
   ngOnInit() {
@@ -78,6 +84,8 @@ export class HousingDetails implements OnInit {
 
   loadReviews(id: string) {
     this.feedbackService.getReviewsByHousing(id).subscribe(revs => {
+      console.log('Loaded reviews:', revs);
+      console.log('Current student ID:', this.currentStudentId());
       this.reviews.set(revs);
     });
   }
