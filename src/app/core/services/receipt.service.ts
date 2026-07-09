@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, map } from 'rxjs';
 import { Receipt, FinancialSummary } from '../models/receipt.model';
 
 @Injectable({
@@ -12,7 +12,9 @@ export class ReceiptService {
   constructor(private http: HttpClient) {}
 
   getMyReceipts(): Observable<Receipt[]> {
-    return this.http.get<Receipt[]>(`${this.baseUrl}/my-receipts`);
+    return this.http.get<{ success: boolean; data: Receipt[]; count: number }>(`${this.baseUrl}/my-receipts`).pipe(
+      map(response => response.data || [])
+    );
   }
 
   getReceiptById(receiptId: string): Observable<Receipt> {
