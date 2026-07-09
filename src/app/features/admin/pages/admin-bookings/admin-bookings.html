@@ -89,8 +89,8 @@
 
             <td class="px-6 py-4 text-right">
               <div class="flex items-center justify-end gap-2">
-                <!-- Upload Contract for Pending Payment bookings -->
-                <button *ngIf="b.bookingStatus === 0" (click)="openUploadModal(b.bookingId)" class="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-100 transition-colors" title="Upload Contract">
+                <!-- Upload Contract for Waiting for Contract bookings -->
+                <button *ngIf="b.bookingStatus === 1" (click)="openUploadModal(b.bookingId)" class="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-100 transition-colors" title="Upload Contract">
                   <i class="fas fa-file-upload"></i>
                 </button>
                 <!-- Status Actions - Admin can approve/reject bookings in UNDER_REVIEW status -->
