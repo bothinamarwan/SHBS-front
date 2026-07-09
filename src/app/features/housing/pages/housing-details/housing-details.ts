@@ -75,7 +75,10 @@ export class HousingDetails implements OnInit {
         this.newComment.set('');
         this.isSubmittingReview.set(false);
       },
-      error: () => this.isSubmittingReview.set(false)
+      error: (err) => {
+        console.error('Failed to submit review', err);
+        this.isSubmittingReview.set(false);
+      }
     });
   }
 

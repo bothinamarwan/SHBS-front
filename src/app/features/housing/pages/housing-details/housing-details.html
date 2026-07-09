@@ -164,7 +164,7 @@
                 </div>
               </div>
               <p class="text-neutral-600 dark:text-slate-400 leading-relaxed text-sm">{{ rev.comment }}</p>
-              <p class="text-[10px] text-neutral-400 dark:text-slate-500 font-bold uppercase tracking-widest">{{ rev.reviewDate | date:'longDate' }}</p>
+              <p class="text-[10px] text-neutral-400 dark:text-slate-500 font-bold uppercase tracking-widest">{{ rev.createdAt | date:'longDate' }}</p>
             </div>
           </div>
           <div *ngIf="reviews().length === 0" class="text-center py-10 border-2 border-dashed border-neutral-100 dark:border-slate-800 rounded-2xl">

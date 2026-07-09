@@ -9,12 +9,15 @@ export interface Review {
   studentName?: string;
 }
 
-export interface Complaint {
-  id: string;
+export interface CreateReviewRequest {
   studentId: string;
-  landlordId?: string;
-  housingId?: string;
-  description: string;
-  status: 'pending' | 'received' | 'investigating' | 'resolved' | 'rejected';
-  createdDate: string;
+  housingUnitId: string;
+  rating: number;
+  comment: string;
+}
+
+export interface UpdateReviewRequest {
+  reviewId: string;
+  rating: number;
+  comment: string;
 }

@@ -1,45 +1,37 @@
-import { Injectable, signal } from '@angular/core';
-import { Observable, of, delay, tap } from 'rxjs';
+import { Injectable, inject } from '@angular/core';
+import { Observable } from 'rxjs';
 import { Review, Complaint } from '../models/feedback.model';
+import { ReviewService } from './review.service';
+import { CreateReviewRequest } from '../models/review.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class FeedbackService {
-  private reviews = signal<Review[]>([]);
-  private complaints = signal<Complaint[]>([]);
+  private reviewService = inject(ReviewService);
 
-  constructor() {
-    this.loadMockData();
+  constructor() {}
+
+  getReviewsByHousing(housingUnitId: string): Observable<Review[]> {
+    return this.reviewService.getByHousingUnit(housingUnitId);
   }
 
-  private loadMockData() {
-    this.reviews.set([]);
-    this.complaints.set([]);
-  }
+  addReview(review: Partial<Review> & { housingId: string }): Observable<Review> {
+    const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
+    const studentId = user?.studentId || user?.id;
 
-  getReviewsByHousing(housingId: string): Observable<Review[]> {
-    return of(this.reviews().filter(r => r.housingId === housingId)).pipe(delay(800));
-  }
-
-  addReview(review: Partial<Review>): Observable<Review> {
-    const newReview: Review = {
-      id: 'rev' + Math.floor(Math.random() * 1000),
-      studentId: review.studentId || 'current-user',
-      studentName: review.studentName || 'Student',
-      housingId: review.housingId!,
+    const request: CreateReviewRequest = {
+      studentId: studentId,
+      housingUnitId: review.housingId,
       rating: review.rating || 5,
-      comment: review.comment || '',
-      reviewDate: new Date().toISOString().split('T')[0]
+      comment: review.comment || ''
     };
 
-    return of(newReview).pipe(
-      delay(1500),
-      tap(r => this.reviews.update(prev => [r, ...prev]))
-    );
+    return this.reviewService.create(request);
   }
 
   submitComplaint(complaint: Partial<Complaint>): Observable<Complaint> {
+    // TODO: Implement complaint API when available
     const newComplaint: Complaint = {
       id: 'comp' + Math.floor(Math.random() * 1000),
       studentId: complaint.studentId || 'current-user',
@@ -50,13 +42,15 @@ export class FeedbackService {
       createdDate: new Date().toISOString().split('T')[0]
     };
 
-    return of(newComplaint).pipe(
-      delay(1500),
-      tap(c => this.complaints.update(prev => [c, ...prev]))
-    );
+    return new Observable(observer => {
+      setTimeout(() => observer.next(newComplaint), 1500);
+    });
   }
 
   getComplaints(): Observable<Complaint[]> {
-    return of(this.complaints()).pipe(delay(1000));
+    // TODO: Implement complaint API when available
+    return new Observable(observer => {
+      setTimeout(() => observer.next([]), 1000);
+    });
   }
 }
