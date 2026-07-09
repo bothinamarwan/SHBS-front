@@ -79,7 +79,7 @@ export class HousingDetails implements OnInit {
           housingUnitId: rev.housingUnitId || id,
           rating: rev.rating,
           comment: rev.comment,
-          createdAt: rev.createdAt,
+          reviewDate: rev.reviewDate || rev.createdAt,
           studentName: rev.studentName || 'You'
         };
         this.reviews.update(prev => [reviewToAdd, ...prev]);

@@ -4,6 +4,7 @@ export interface Review {
   housingUnitId: string;
   rating: number;
   comment: string;
+  reviewDate?: string;
   createdAt?: string;
   updatedAt?: string;
   studentName?: string;
