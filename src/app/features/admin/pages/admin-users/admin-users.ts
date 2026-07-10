@@ -143,6 +143,7 @@ export class AdminUsers implements OnInit {
       pageSize: this.pageSize()
     }).subscribe({
       next: (res: any) => {
+        console.log('API Response from /api/Admin/users:', res);
         let items = [];
         let total = 0;
         
@@ -154,6 +155,10 @@ export class AdminUsers implements OnInit {
           total = res.totalCount || res.totalRecords || res.TotalCount || res.TotalRecords || items.length;
         }
 
+        console.log('Parsed users items:', items);
+        if (items.length > 0) {
+          console.log('First user object:', items[0]);
+        }
         this.users.set(items);
         this.totalCount.set(total);
         this.totalPages.set(res?.totalPages || res?.TotalPages || Math.ceil(total / this.pageSize()) || 1);
@@ -220,9 +225,14 @@ export class AdminUsers implements OnInit {
   }
 
   toggleActive(userId: string) {
+    console.log('toggleActive called with userId:', userId);
+    console.log('User object being toggled:', this.users().find(u => u.id === userId));
     this.adminService.toggleUserActive(userId).subscribe({
       next: () => {
         this.fetchUsers();
+      },
+      error: (err) => {
+        console.error('Error toggling user active status:', err);
       }
     });
   }
