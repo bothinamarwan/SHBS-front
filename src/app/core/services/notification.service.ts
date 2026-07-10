@@ -11,10 +11,10 @@ export class NotificationService {
 
   constructor(private http: HttpClient) {}
 
-  getAll(pageNumber: number = 1, pageSize: number = 10, type?: string, isRead?: boolean): Observable<Notification[]> {
+  getAll(pageNumber: number = 1, pageSize: number = 10, type?: string, isSeen?: boolean): Observable<Notification[]> {
     let params: any = { pageNumber, pageSize };
     if (type) params.type = type;
-    if (isRead !== undefined) params.isRead = isRead;
+    if (isSeen !== undefined) params.isSeen = isSeen;
     
     return this.http.get<{ success: boolean; data: Notification[]; count: number }>(this.baseUrl, { params }).pipe(
       map(response => response.data || []),
