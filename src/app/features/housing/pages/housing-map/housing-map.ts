@@ -4,6 +4,7 @@ import {
 import { CommonModule } from '@angular/common';
 import { RouterLink, Router } from '@angular/router';
 import { HousingService } from '../../../../core/services/housing.service';
+import { StudentService } from '../../../../core/services/student.service';
 import { MapPin, GenderAllowed, genderLabel } from '../../../../core/models/housing.model';
 import * as L from 'leaflet';
 
@@ -25,11 +26,14 @@ export class HousingMap implements OnInit, AfterViewInit, OnDestroy {
 
   private housingService = inject(HousingService);
   private router         = inject(Router);
+  private studentService = inject(StudentService);
 
   pins         = signal<MapPin[]>([]);
   isLoading    = signal(true);
   errorMessage = signal<string | null>(null);
   selectedPin  = signal<MapPin | null>(null);
+  isVerified   = signal(false);
+  showVerificationMessage = signal(false);
 
   GenderAllowed = GenderAllowed;
   genderLabel   = genderLabel;
@@ -38,6 +42,25 @@ export class HousingMap implements OnInit, AfterViewInit, OnDestroy {
   private markers: L.Marker[] = [];
 
   ngOnInit() {
+    // Check if user is logged in and get verification status
+    const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+    if (currentUser && (currentUser.role === 'student' || currentUser.studentId)) {
+      this.studentService.getMyVerificationStatus().subscribe({
+        next: (verificationStatus) => {
+          const isVerified = verificationStatus?.isVerified === true || verificationStatus?.status === 'Approved' || verificationStatus?.verificationStatus === 'Approved';
+          this.isVerified.set(isVerified);
+          if (!isVerified) {
+            this.showVerificationMessage.set(true);
+          }
+        },
+        error: () => {
+          // If error fetching verification, assume not verified
+          this.isVerified.set(false);
+          this.showVerificationMessage.set(true);
+        }
+      });
+    }
+
     this.housingService.getMapPins().subscribe({
       next: (data) => {
         this.pins.set(data);
