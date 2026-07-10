@@ -424,12 +424,10 @@ export class LandlordListings implements OnInit {
     const fv = this.housingForm.value;
 
     // Use uploaded image URL if provided via file, else keep the URL field value
-    const imageUrl = this.uploadedImages().length > 0 && this.uploadedImages()[0].url.startsWith('data:')
-      ? '' // In a real app you'd upload to CDN first; for now skip data URIs
-      : (this.uploadedImages()[0]?.url || fv.unitImageUrl || '');
-    const videoUrl = this.uploadedVideo()?.url.startsWith('blob:')
-      ? ''
-      : (this.uploadedVideo()?.url || fv.videoUrl || '');
+    const imageUrl = this.uploadedImages().length > 0
+      ? this.uploadedImages()[0].url // Send the uploaded image URL (data URI or external URL)
+      : (fv.unitImageUrl || '');
+    const videoUrl = this.uploadedVideo()?.url || fv.videoUrl || '';
 
     const editing = this.editingHousing();
 
