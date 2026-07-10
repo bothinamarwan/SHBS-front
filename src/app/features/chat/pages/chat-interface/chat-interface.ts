@@ -208,21 +208,8 @@ export class ChatInterface implements OnInit {
   }
 
   private createMessageNotification(conv: Conversation, messageContent: string) {
-    const currentUserId = this.currentUserId;
-    const recipientId = currentUserId === conv.studentUserId ? conv.landLordUserId : conv.studentUserId;
-
-    if (!recipientId) return;
-
-    const notification: Omit<Notification, 'notificationId' | 'createdAt'> = {
-      userId: recipientId,
-      message: messageContent.length > 50 ? messageContent.substring(0, 50) + '...' : messageContent,
-      type: 'General',
-      isRead: false
-    };
-
-    this.notificationService.create(notification).subscribe({
-      error: (err) => console.error('Failed to create notification', err)
-    });
+    // Notifications are handled automatically by the backend when messages are sent
+    // No manual notification creation needed
   }
 
   get currentUserId(): string {
