@@ -29,6 +29,19 @@
     <div class="absolute bottom-0 right-0 mr-10 mb-10 w-40 h-40 bg-indigo-400/20 rounded-full blur-2xl"></div>
   </section>
 
+  <!-- Verification Required Message -->
+  <div *ngIf="showVerificationMessage()" class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-3xl p-8 flex flex-col items-center justify-center text-center gap-4">
+    <div class="w-20 h-20 bg-amber-100 dark:bg-amber-900/30 rounded-full flex items-center justify-center">
+      <i class="fas fa-user-shield text-4xl text-amber-600 dark:text-amber-400"></i>
+    </div>
+    <h3 class="text-2xl font-bold text-amber-800 dark:text-amber-300">Verification Required</h3>
+    <p class="text-amber-700 dark:text-amber-400 max-w-lg">You must complete your university verification and receive admin approval before viewing property listings.</p>
+    <a routerLink="/student/profile" class="inline-flex items-center gap-2 px-8 py-3 bg-amber-600 text-white rounded-xl font-bold hover:bg-amber-700 transition-colors shadow-lg">
+      <i class="fas fa-check-circle"></i>
+      Complete Verification
+    </a>
+  </div>
+
   <!-- Quick Stats -->
   <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
     <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-neutral-100 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
@@ -57,7 +70,7 @@
   <!-- Main Grid -->
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
     <!-- Featured Listings -->
-    <div class="lg:col-span-2 space-y-6">
+    <div class="lg:col-span-2 space-y-6" *ngIf="!showVerificationMessage()">
       <div class="flex justify-between items-center">
         <h2 class="text-2xl font-bold text-neutral-800 dark:text-slate-100">Featured Listings</h2>
         <a routerLink="/student/search" class="text-indigo-600 dark:text-indigo-400 font-bold text-sm flex items-center gap-1 hover:underline">
