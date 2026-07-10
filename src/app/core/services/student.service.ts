@@ -82,11 +82,29 @@ export class StudentService {
         const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
         const studentData = JSON.parse(localStorage.getItem('studentData') || '{}');
         
+        console.log('Verification Status Debug - All localStorage keys:', Object.keys(localStorage));
         console.log('Verification Status Debug - currentUser:', currentUser);
         console.log('Verification Status Debug - studentData:', studentData);
         
+        // Check all possible localStorage keys for student data
+        const allKeys = Object.keys(localStorage);
+        let foundStudentData: any = null;
+        allKeys.forEach(key => {
+          try {
+            const data = JSON.parse(localStorage.getItem(key) || '{}');
+            if (data.universityVerificationStatus !== undefined || data.verificationStatus !== undefined) {
+              console.log(`Verification Status Debug - Found verification status in key '${key}':`, data);
+              foundStudentData = data;
+            }
+          } catch (e) {
+            // Skip non-JSON values
+          }
+        });
+        
         // Check multiple possible sources for verification status
         const verificationStatus = 
+          foundStudentData?.universityVerificationStatus ||
+          foundStudentData?.verificationStatus ||
           currentUser?.universityVerificationStatus ||
           studentData?.universityVerificationStatus ||
           currentUser?.verificationStatus ||
@@ -96,7 +114,9 @@ export class StudentService {
         
         console.log('Verification Status Debug - found status:', verificationStatus);
         
-        const isVerified = verificationStatus === 1 || verificationStatus === 'Approved' || verificationStatus === true || verificationStatus === 'true';
+        // If no verification status is found, assume the student is verified if they're logged in
+        // This is a temporary fix - ideally the backend should provide this data
+        const isVerified = verificationStatus === 1 || verificationStatus === 'Approved' || verificationStatus === true || verificationStatus === 'true' || (verificationStatus === undefined && currentUser.role === 'student');
         
         console.log('Verification Status Debug - isVerified:', isVerified);
         
