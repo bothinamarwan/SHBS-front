@@ -26,8 +26,6 @@ export class StudentDashboard implements OnInit {
 
   featuredListings: HousingUnit[] = [];
   isLoadingListings = true;
-  isVerified = signal(false);
-  showVerificationMessage = signal(false);
 
   // Real stats from services
   activeBookingsCount$ = this.studentService.getMyBookings().pipe(
@@ -47,31 +45,6 @@ export class StudentDashboard implements OnInit {
   );
 
   ngOnInit() {
-    // Check if user is logged in and get verification status
-    const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-    const studentData = JSON.parse(localStorage.getItem('studentData') || '{}');
-    
-    if (currentUser && (currentUser.role === 'student' || currentUser.studentId)) {
-      this.studentService.getMyVerificationStatus().subscribe({
-        next: (verificationStatus) => {
-          const isVerified = verificationStatus?.isVerified === true || verificationStatus?.status === 'Approved' || verificationStatus?.verificationStatus === 'Approved' || verificationStatus?.verificationStatus === 2;
-          this.isVerified.set(isVerified);
-          if (!isVerified) {
-            this.showVerificationMessage.set(true);
-          }
-        },
-        error: () => {
-          // If error fetching verification, check localStorage directly
-          const localVerificationStatus = currentUser?.universityVerificationStatus || studentData?.universityVerificationStatus;
-          const isVerified = localVerificationStatus === 2 || localVerificationStatus === 'Approved' || localVerificationStatus === true;
-          this.isVerified.set(isVerified);
-          if (!isVerified) {
-            this.showVerificationMessage.set(true);
-          }
-        }
-      });
-    }
-
     this.housingService.getAll().subscribe({
       next: (housings) => {
         this.featuredListings = housings.slice(0, 4);

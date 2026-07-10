@@ -6,7 +6,6 @@ import { WishlistService } from '../../../../core/services/wishlist.service';
 import { FeedbackService } from '../../../../core/services/feedback.service';
 import { ReviewService } from '../../../../core/services/review.service';
 import { ChatService } from '../../../../core/services/chat.service';
-import { StudentService } from '../../../../core/services/student.service';
 import { HousingUnitDetails, GenderAllowed, genderLabel } from '../../../../core/models/housing.model';
 import { Review, UpdateReviewRequest } from '../../../../core/models/review.model';
 import { FormsModule } from '@angular/forms';
@@ -25,7 +24,6 @@ export class HousingDetails implements OnInit {
   private feedbackService = inject(FeedbackService);
   private reviewService   = inject(ReviewService);
   private chatService     = inject(ChatService);
-  private studentService  = inject(StudentService);
 
   housing              = signal<HousingUnitDetails | null>(null);
   reviews              = signal<Review[]>([]);
@@ -38,8 +36,6 @@ export class HousingDetails implements OnInit {
   isEditingReview      = signal(false);
   editingReviewId      = signal<string | null>(null);
   userHasReviewed      = signal(false);
-  isVerified           = signal(false);
-  showVerificationMessage = signal(false);
 
   // expose to template
   GenderAllowed = GenderAllowed;
@@ -79,28 +75,6 @@ export class HousingDetails implements OnInit {
   });
 
   ngOnInit() {
-    // Check if user is logged in and get verification status
-    const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-    const studentData = JSON.parse(localStorage.getItem('studentData') || '{}');
-    
-    if (currentUser && (currentUser.role === 'student' || currentUser.studentId)) {
-      this.studentService.getMyVerificationStatus().subscribe({
-        next: (verificationStatus) => {
-          const isVerified = verificationStatus?.isVerified === true || verificationStatus?.status === 'Approved' || verificationStatus?.verificationStatus === 'Approved' || verificationStatus?.verificationStatus === 2;
-          this.isVerified.set(isVerified);
-          if (!isVerified) {
-            this.showVerificationMessage.set(true);
-          }
-        },
-        error: () => {
-          const localVerificationStatus = currentUser?.universityVerificationStatus || studentData?.universityVerificationStatus;
-          const isVerified = localVerificationStatus === 2 || localVerificationStatus === 'Approved' || localVerificationStatus === true;
-          this.isVerified.set(isVerified);
-          this.showVerificationMessage.set(!isVerified);
-        }
-      });
-    }
-
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
       this.housingService.getDetailsById(id).subscribe({

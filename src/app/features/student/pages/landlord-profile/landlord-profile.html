@@ -14,21 +14,8 @@
   <button routerLink="/student/search" class="px-6 py-2 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-all">Go back</button>
 </div>
 
-<!-- Verification Required Message -->
-<div *ngIf="!isLoading() && showVerificationMessage()" class="flex flex-col items-center justify-center py-32 gap-6">
-  <div class="w-24 h-24 bg-amber-50 dark:bg-amber-900/20 rounded-full flex items-center justify-center">
-    <i class="fas fa-user-shield text-5xl text-amber-600 dark:text-amber-400"></i>
-  </div>
-  <h3 class="text-2xl font-bold text-neutral-800 dark:text-slate-100">Verification Required</h3>
-  <p class="text-neutral-500 dark:text-slate-400 max-w-md text-center">You must complete your university verification and receive admin approval before viewing property listings.</p>
-  <a routerLink="/student/profile" class="inline-flex items-center gap-2 px-8 py-3 bg-amber-600 text-white rounded-xl font-bold hover:bg-amber-700 transition-colors shadow-lg">
-    <i class="fas fa-check-circle"></i>
-    Complete Verification
-  </a>
-</div>
-
 <!-- Main Content -->
-<div *ngIf="!isLoading() && !errorMessage() && !showVerificationMessage()" class="max-w-5xl mx-auto space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
+<div *ngIf="!isLoading() && !errorMessage()" class="max-w-5xl mx-auto space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
 
   <!-- Properties Section -->
   <div class="space-y-6">

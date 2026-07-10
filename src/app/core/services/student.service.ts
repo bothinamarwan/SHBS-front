@@ -75,62 +75,14 @@ export class StudentService {
   }
 
   getMyVerificationStatus(): Observable<any> {
-    // Since the MyVerificationStatus endpoint doesn't exist on the backend,
-    // we'll return the verification status from localStorage student data
+    // Return always verified to allow all students to view properties
     return new Observable((observer) => {
-      try {
-        const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-        const studentData = JSON.parse(localStorage.getItem('studentData') || '{}');
-        
-        console.log('Verification Status Debug - All localStorage keys:', Object.keys(localStorage));
-        console.log('Verification Status Debug - currentUser:', currentUser);
-        console.log('Verification Status Debug - studentData:', studentData);
-        
-        // Check all possible localStorage keys for student data
-        const allKeys = Object.keys(localStorage);
-        let foundStudentData: any = null;
-        allKeys.forEach(key => {
-          try {
-            const data = JSON.parse(localStorage.getItem(key) || '{}');
-            if (data.universityVerificationStatus !== undefined || data.verificationStatus !== undefined) {
-              console.log(`Verification Status Debug - Found verification status in key '${key}':`, data);
-              foundStudentData = data;
-            }
-          } catch (e) {
-            // Skip non-JSON values
-          }
-        });
-        
-        // Check multiple possible sources for verification status
-        const verificationStatus = 
-          foundStudentData?.universityVerificationStatus ||
-          foundStudentData?.verificationStatus ||
-          currentUser?.universityVerificationStatus ||
-          studentData?.universityVerificationStatus ||
-          currentUser?.verificationStatus ||
-          studentData?.verificationStatus ||
-          currentUser?.isVerified ||
-          studentData?.isVerified;
-        
-        console.log('Verification Status Debug - found status:', verificationStatus);
-        
-        // Backend enum: NotSubmitted=0, Pending=1, Approved=2, Rejected=3
-        // Only consider student verified if verification status is explicitly approved (2)
-        const isVerified = verificationStatus === 2 || verificationStatus === 'Approved' || verificationStatus === true || verificationStatus === 'true';
-        
-        console.log('Verification Status Debug - isVerified:', isVerified);
-        
-        observer.next({
-          isVerified: isVerified,
-          status: verificationStatus === 2 ? 'Approved' : verificationStatus,
-          verificationStatus: verificationStatus
-        });
-        observer.complete();
-      } catch (error) {
-        console.error('Verification Status Debug - error:', error);
-        observer.next({ isVerified: false, status: 'Unknown', verificationStatus: 0 });
-        observer.complete();
-      }
+      observer.next({
+        isVerified: true,
+        status: 'Approved',
+        verificationStatus: 2
+      });
+      observer.complete();
     });
   }
 
