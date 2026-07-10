@@ -83,14 +83,10 @@ export class BookingCreate implements OnInit {
           // Use rooms from housing response if available, otherwise fetch separately
           if (data.rooms && Array.isArray(data.rooms)) {
             console.log('Using rooms from housing response:', data.rooms);
-            // Log each room's availability
+            // Log each room's full structure
             data.rooms.forEach((room: any, index: number) => {
-              console.log(`Room ${index}:`, {
-                id: room.id || room.roomId,
-                roomType: room.roomType,
-                price: room.price,
-                isAvailable: room.isAvailable
-              });
+              console.log(`Room ${index} full object:`, room);
+              console.log(`Room ${index} keys:`, Object.keys(room));
             });
             this.rooms.set(data.rooms);
             console.log('Rooms signal set to:', this.rooms());
@@ -121,15 +117,24 @@ export class BookingCreate implements OnInit {
 
   selectRoom(room: RoomModel) {
     console.log('selectRoom called with room:', room);
+    console.log('Room properties:', Object.keys(room));
     console.log('Current selectedRoom:', this.selectedRoom());
-    if (this.selectedRoom()?.id === room.id || this.selectedRoom()?.roomId === room.roomId) {
+    
+    // Check if room is already selected using multiple possible ID properties
+    const currentRoomId = this.selectedRoom()?.id || this.selectedRoom()?.roomId || (this.selectedRoom() as any)?.Id;
+    const newRoomId = room.id || room.roomId || (room as any)?.Id;
+    
+    console.log('Current room ID:', currentRoomId);
+    console.log('New room ID:', newRoomId);
+    
+    if (currentRoomId === newRoomId) {
       console.log('Deselecting room');
       this.selectedRoom.set(null);
       this.beds.set([]);
     } else {
       console.log('Selecting room:', room);
       this.selectedRoom.set(room);
-      const roomId = room.id || room.roomId || '';
+      const roomId = newRoomId;
       console.log('Fetching beds for roomId:', roomId);
       this.bedService.getBedsByRoom(roomId).subscribe((beds: any) => {
         console.log('Beds response:', beds);
