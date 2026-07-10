@@ -10,6 +10,7 @@ import { Notification, NotificationType } from '../../../../core/models/notifica
 import { StudentService } from '../../../../core/services/student.service';
 import { LandlordService } from '../../../../core/services/landlord.service';
 
+
 @Component({
   selector: 'app-chat-interface',
   standalone: true,
@@ -65,26 +66,49 @@ export class ChatInterface implements OnInit {
   loadConversations() {
     this.isLoadingConversations.set(true);
     this.chatService.getMyConversations().subscribe({
-      next: async (convs) => {
-        // Enrich all conversations with participant names
-        const enrichedConversations = await Promise.all(
-          convs.map(conv => this.enrichConversationWithNames(conv))
-        );
-        this.conversations.set(enrichedConversations);
+      next: (convs) => {
+        // Remove duplicate conversations by ID
+        const seen = new Set<string>();
+        const uniqueConvs = (convs || []).filter(c => {
+          const id = this.getConversationId(c);
+          if (!id || seen.has(id)) return false;
+          seen.add(id);
+          return true;
+        });
+
+        // Set conversations list immediately so the UI doesn't hang
+        this.conversations.set(uniqueConvs);
         this.isLoadingConversations.set(false);
+
+        // Enrich names asynchronously in the background
+        this.enrichConversationsBackground(uniqueConvs);
       },
       error: (err) => {
         console.error('Failed to load conversations', err);
-        // If there's an error (e.g. endpoint doesn't exist), we just have an empty list
+        this.conversations.set([]);
         this.isLoadingConversations.set(false);
       }
     });
   }
 
+  private async enrichConversationsBackground(convs: Conversation[]) {
+    // Enrich each conversation one by one in the background
+    for (const conv of convs) {
+      this.enrichConversationWithNames(conv).then(enriched => {
+        this.conversations.update(prev =>
+          prev.map(c => this.getConversationId(c) === this.getConversationId(enriched) ? { ...c, ...enriched } : c)
+        );
+      }).catch(err => {
+        console.error('Background enrichment error for conversation', conv, err);
+      });
+    }
+  }
+
   private async enrichConversationWithNames(conv: Conversation): Promise<Conversation> {
     try {
-      // Fetch student name
-      if (conv.studentUserId && !conv.studentName) {
+      // Fetch student name if missing or contains email format
+      const needsStudentName = !conv.studentName || conv.studentName.includes('@');
+      if (conv.studentUserId && needsStudentName) {
         try {
           const student = await this.studentService.getStudentByUserId(conv.studentUserId).toPromise();
           if (student) {
@@ -95,8 +119,9 @@ export class ChatInterface implements OnInit {
         }
       }
 
-      // Fetch landlord name
-      if (conv.landLordUserId && !conv.landlordName) {
+      // Fetch landlord name if missing or contains email format
+      const needsLandlordName = !conv.landlordName || conv.landlordName.includes('@');
+      if (conv.landLordUserId && needsLandlordName) {
         try {
           console.log('Fetching landlord for userId:', conv.landLordUserId);
           const landlord = await this.landlordService.getByUserId(conv.landLordUserId).toPromise();
@@ -131,8 +156,17 @@ export class ChatInterface implements OnInit {
     // });
 
     this.chatService.getMessages(convId).subscribe({
-      next: (msgs) => {
-        this.messages.set(Array.isArray(msgs) ? msgs : []);
+      next: (res: any) => {
+        const msgList = Array.isArray(res) 
+          ? res 
+          : (Array.isArray(res?.messages) ? res.messages : []);
+          
+        const mappedMsgs = msgList.map((m: any) => ({
+          ...m,
+          timestamp: m.timestamp || m.sentAt
+        }));
+
+        this.messages.set(mappedMsgs);
         this.isLoadingMessages.set(false);
       },
       error: () => {
@@ -157,10 +191,14 @@ export class ChatInterface implements OnInit {
     this.isSending.set(true);
 
     this.chatService.sendMessage(convId, { content }).subscribe({
-      next: (msg) => {
+      next: (msg: any) => {
         this.messages.update(prev => {
           const currentMessages = Array.isArray(prev) ? prev : [];
-          return [...currentMessages, msg];
+          const mappedMsg = {
+            ...msg,
+            timestamp: msg.timestamp || msg.sentAt
+          };
+          return [...currentMessages, mappedMsg];
         });
         this.isSending.set(false);
 
