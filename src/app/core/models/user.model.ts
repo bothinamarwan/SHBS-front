@@ -16,6 +16,7 @@ export interface User {
   city?: string;
   preferredArea?: string;
   nationalID?: string;
+  universityVerificationStatus?: number; // 0 = NotSubmitted, 1 = Approved, 2 = Rejected
 
   // Landlord specific fields (for parity)
   landlordId?: string;
@@ -39,6 +40,7 @@ export interface AuthResponse {
     roles: string[];
     studentId?: string;
     landLordId?: string;
+    universityVerificationStatus?: number;
   };
   requiresTwoFactor?: boolean;
 }

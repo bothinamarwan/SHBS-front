@@ -252,7 +252,8 @@ export class AuthService {
           ? res.user.roles[0].toLowerCase() as any
           : 'student',
         studentId: res.user.studentId,
-        landlordId: res.user.landLordId
+        landlordId: res.user.landLordId,
+        universityVerificationStatus: res.user.universityVerificationStatus
       };
 
       localStorage.setItem('user', JSON.stringify(mappedUser));
