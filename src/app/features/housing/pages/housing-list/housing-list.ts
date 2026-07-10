@@ -1,9 +1,10 @@
 import { Component, inject, signal, OnInit, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { RouterLink, Router } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
 import { HousingService } from '../../../../core/services/housing.service';
 import { WishlistService } from '../../../../core/services/wishlist.service';
+import { AuthService } from '../../../../core/services/auth.service';
 import { HousingUnit, GenderAllowed, genderLabel } from '../../../../core/models/housing.model';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
 
@@ -17,12 +18,15 @@ export class HousingList implements OnInit {
   private fb             = inject(FormBuilder);
   private housingService = inject(HousingService);
   private wishlistService = inject(WishlistService);
+  private authService = inject(AuthService);
+  private router = inject(Router);
 
   filterForm: FormGroup;
   allHousings  = signal<HousingUnit[]>([]);
   housings     = signal<HousingUnit[]>([]);
   isLoading    = signal(true);
   errorMessage = signal<string | null>(null);
+  isStudentUnverified = signal(false);
 
   // expose helper to template
   GenderAllowed = GenderAllowed;
@@ -55,6 +59,7 @@ export class HousingList implements OnInit {
   }
 
   ngOnInit() {
+    this.checkStudentVerification();
     this.loadHousings();
 
     this.filterForm.valueChanges.pipe(
@@ -64,6 +69,13 @@ export class HousingList implements OnInit {
       this.currentPage.set(1);
       this.applyFilters();
     });
+  }
+
+  checkStudentVerification() {
+    const user = this.authService.currentUserValue;
+    if (user?.role === 'student' && user.universityVerificationStatus !== 1) {
+      this.isStudentUnverified.set(true);
+    }
   }
 
   loadHousings() {
