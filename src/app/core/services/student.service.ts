@@ -82,20 +82,32 @@ export class StudentService {
         const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
         const studentData = JSON.parse(localStorage.getItem('studentData') || '{}');
         
+        console.log('Verification Status Debug - currentUser:', currentUser);
+        console.log('Verification Status Debug - studentData:', studentData);
+        
         // Check multiple possible sources for verification status
         const verificationStatus = 
           currentUser?.universityVerificationStatus ||
           studentData?.universityVerificationStatus ||
           currentUser?.verificationStatus ||
-          studentData?.verificationStatus;
+          studentData?.verificationStatus ||
+          currentUser?.isVerified ||
+          studentData?.isVerified;
+        
+        console.log('Verification Status Debug - found status:', verificationStatus);
+        
+        const isVerified = verificationStatus === 1 || verificationStatus === 'Approved' || verificationStatus === true || verificationStatus === 'true';
+        
+        console.log('Verification Status Debug - isVerified:', isVerified);
         
         observer.next({
-          isVerified: verificationStatus === 1 || verificationStatus === 'Approved' || verificationStatus === true,
+          isVerified: isVerified,
           status: verificationStatus === 1 ? 'Approved' : verificationStatus,
           verificationStatus: verificationStatus
         });
         observer.complete();
       } catch (error) {
+        console.error('Verification Status Debug - error:', error);
         observer.next({ isVerified: false, status: 'Unknown', verificationStatus: 0 });
         observer.complete();
       }
