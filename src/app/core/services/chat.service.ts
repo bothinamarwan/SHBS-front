@@ -35,6 +35,6 @@ export class ChatService {
   }
 
   markAsRead(conversationId: string): Observable<any> {
-    return this.http.post(`${this.baseUrl}/conversations/${conversationId}/read`, {});
+    return this.http.put(`${this.baseUrl}/conversations/${conversationId}/read`, {});
   }
 }
