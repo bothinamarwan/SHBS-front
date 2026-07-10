@@ -61,7 +61,8 @@ export class LandlordBeds implements OnInit {
 
     this.housingService.getAll().subscribe({
       next: (units) => {
-        this.housingUnits.set(units.filter(u => !landlordId || u.landLordId === landlordId));
+        const unitsArray = Array.isArray(units) ? units : [];
+        this.housingUnits.set(unitsArray.filter(u => !landlordId || u.landLordId === landlordId));
         housingLoaded = true;
         checkDone();
       },
@@ -70,8 +71,9 @@ export class LandlordBeds implements OnInit {
 
     this.roomService.getAllRooms().subscribe({
       next: (rms) => {
+        const rmsArray = Array.isArray(rms) ? rms : [];
         const landlordRoomIds = this.housingUnits().map(u => u.housingUnitId);
-        this.rooms.set(rms.filter(r => landlordRoomIds.includes(r.housingUnitId)));
+        this.rooms.set(rmsArray.filter(r => landlordRoomIds.includes(r.housingUnitId)));
         roomsLoaded = true;
         checkDone();
       },
@@ -80,8 +82,9 @@ export class LandlordBeds implements OnInit {
 
     this.bedService.getAllBeds(0, 1000).subscribe({
       next: (res) => {
+        const records = Array.isArray(res?.records) ? res.records : [];
         const landlordRoomIds = this.rooms().map(r => r.id || r.roomId!).filter(id => id);
-        this.beds.set(res.records.filter(b => landlordRoomIds.includes(b.roomId)));
+        this.beds.set(records.filter(b => landlordRoomIds.includes(b.roomId)));
         bedsLoaded = true;
         checkDone();
       },
