@@ -276,6 +276,9 @@
           <input formControlName="capacity" type="number" min="1" class="lc-input" />
         </div>
       </div>
+      <div *ngIf="roomForm.hasError('capacityExceeded')" class="flex items-center gap-2 bg-amber-50 dark:bg-amber-900/20 text-amber-600 text-xs font-semibold px-4 py-2.5 rounded-xl border border-amber-200">
+        <i class="fas fa-exclamation-triangle"></i> Number of beds cannot exceed room capacity.
+      </div>
       <div>
         <label class="lc-label">Room Image URL</label>
         <input formControlName="roomImageUrl" type="text" class="lc-input" placeholder="https://..." />

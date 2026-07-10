@@ -1,7 +1,7 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { HousingService } from '../../../../core/services/housing.service';
 import { RoomService } from '../../../../core/services/room.service';
 import { BedService } from '../../../../core/services/bed.service';
@@ -48,7 +48,7 @@ export class LandlordPropertyManager implements OnInit {
     capacity:     [1, [Validators.required, Validators.min(1)]],
     roomImageUrl: [''],
     isAvailable:  [true]
-  });
+  }, { validators: this.capacityValidator });
 
   // ── Bed Modal ──────────────────────────────────────────────────────────────
   bedModalOpen     = signal(false);
@@ -71,6 +71,17 @@ export class LandlordPropertyManager implements OnInit {
     const id = this.route.snapshot.paramMap.get('id');
     if (!id) { this.router.navigate(['/landlord/listings']); return; }
     this.loadProperty(id);
+  }
+
+  // Custom validator to ensure numberOfBeds <= capacity
+  capacityValidator(control: AbstractControl): ValidationErrors | null {
+    const numberOfBeds = control.get('numberOfBeds')?.value;
+    const capacity = control.get('capacity')?.value;
+
+    if (numberOfBeds && capacity && numberOfBeds > capacity) {
+      return { capacityExceeded: true };
+    }
+    return null;
   }
 
   loadProperty(id: string) {
@@ -281,6 +292,19 @@ export class LandlordPropertyManager implements OnInit {
     this.bedSaveError.set(null);
     const fv = this.bedForm.value;
     const editing = this.editingBed();
+
+    // Check capacity when adding a new bed
+    if (!editing) {
+      const roomId = this.bedModalRoomId();
+      const room = this.rooms().find(r => (r.id === roomId || r.roomId === roomId));
+      const currentBeds = (this.bedsByRoom()[roomId] || []).length;
+      
+      if (room && currentBeds >= room.capacity) {
+        this.bedSaveError.set(`Cannot add bed. Room capacity (${room.capacity}) has been reached.`);
+        this.isSavingBed.set(false);
+        return;
+      }
+    }
 
     if (editing) {
       const req: UpdateBedRequest = {
