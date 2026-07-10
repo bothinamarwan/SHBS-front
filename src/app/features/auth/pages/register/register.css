@@ -560,8 +560,12 @@
 
 .grid-fields {
   display: grid;
-  grid-template-columns: 2fr 1fr;
+  grid-template-columns: 1fr 1fr;
   gap: 1rem;
+}
+
+.grid-fields .field-group {
+  max-width: 200px;
 }
 
 .gender-selector {
