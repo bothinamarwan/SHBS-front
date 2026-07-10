@@ -37,7 +37,7 @@ export class LandlordProfile implements OnInit {
     if (currentUser && (currentUser.role === 'student' || currentUser.studentId)) {
       this.studentService.getMyVerificationStatus().subscribe({
         next: (verificationStatus) => {
-          const isVerified = verificationStatus?.isVerified === true || verificationStatus?.status === 'Approved' || verificationStatus?.verificationStatus === 'Approved' || verificationStatus?.verificationStatus === 1;
+          const isVerified = verificationStatus?.isVerified === true || verificationStatus?.status === 'Approved' || verificationStatus?.verificationStatus === 'Approved' || verificationStatus?.verificationStatus === 2;
           this.isVerified.set(isVerified);
           if (!isVerified) {
             this.showVerificationMessage.set(true);
@@ -45,7 +45,7 @@ export class LandlordProfile implements OnInit {
         },
         error: () => {
           const localVerificationStatus = currentUser?.universityVerificationStatus || studentData?.universityVerificationStatus;
-          const isVerified = localVerificationStatus === 1 || localVerificationStatus === 'Approved' || localVerificationStatus === true;
+          const isVerified = localVerificationStatus === 2 || localVerificationStatus === 'Approved' || localVerificationStatus === true;
           this.isVerified.set(isVerified);
           this.showVerificationMessage.set(!isVerified);
         }

@@ -114,14 +114,15 @@ export class StudentService {
         
         console.log('Verification Status Debug - found status:', verificationStatus);
         
-        // Only consider student verified if verification status is explicitly approved
-        const isVerified = verificationStatus === 1 || verificationStatus === 'Approved' || verificationStatus === true || verificationStatus === 'true';
+        // Backend enum: NotSubmitted=0, Pending=1, Approved=2, Rejected=3
+        // Only consider student verified if verification status is explicitly approved (2)
+        const isVerified = verificationStatus === 2 || verificationStatus === 'Approved' || verificationStatus === true || verificationStatus === 'true';
         
         console.log('Verification Status Debug - isVerified:', isVerified);
         
         observer.next({
           isVerified: isVerified,
-          status: verificationStatus === 1 ? 'Approved' : verificationStatus,
+          status: verificationStatus === 2 ? 'Approved' : verificationStatus,
           verificationStatus: verificationStatus
         });
         observer.complete();

@@ -54,7 +54,7 @@ export class StudentDashboard implements OnInit {
     if (currentUser && (currentUser.role === 'student' || currentUser.studentId)) {
       this.studentService.getMyVerificationStatus().subscribe({
         next: (verificationStatus) => {
-          const isVerified = verificationStatus?.isVerified === true || verificationStatus?.status === 'Approved' || verificationStatus?.verificationStatus === 'Approved' || verificationStatus?.verificationStatus === 1;
+          const isVerified = verificationStatus?.isVerified === true || verificationStatus?.status === 'Approved' || verificationStatus?.verificationStatus === 'Approved' || verificationStatus?.verificationStatus === 2;
           this.isVerified.set(isVerified);
           if (!isVerified) {
             this.showVerificationMessage.set(true);
@@ -63,7 +63,7 @@ export class StudentDashboard implements OnInit {
         error: () => {
           // If error fetching verification, check localStorage directly
           const localVerificationStatus = currentUser?.universityVerificationStatus || studentData?.universityVerificationStatus;
-          const isVerified = localVerificationStatus === 1 || localVerificationStatus === 'Approved' || localVerificationStatus === true;
+          const isVerified = localVerificationStatus === 2 || localVerificationStatus === 'Approved' || localVerificationStatus === true;
           this.isVerified.set(isVerified);
           if (!isVerified) {
             this.showVerificationMessage.set(true);
