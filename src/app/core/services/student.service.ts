@@ -114,9 +114,8 @@ export class StudentService {
         
         console.log('Verification Status Debug - found status:', verificationStatus);
         
-        // If no verification status is found, assume the student is verified if they're logged in
-        // This is a temporary fix - ideally the backend should provide this data
-        const isVerified = verificationStatus === 1 || verificationStatus === 'Approved' || verificationStatus === true || verificationStatus === 'true' || (verificationStatus === undefined && currentUser.role === 'student');
+        // Only consider student verified if verification status is explicitly approved
+        const isVerified = verificationStatus === 1 || verificationStatus === 'Approved' || verificationStatus === true || verificationStatus === 'true';
         
         console.log('Verification Status Debug - isVerified:', isVerified);
         
