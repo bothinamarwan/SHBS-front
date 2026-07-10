@@ -224,6 +224,15 @@ export class AdminUsers implements OnInit {
     });
   }
 
+  getUserId(user: AdminUserResponse): string {
+    const id = user.id || (user as any).userId || (user as any).applicationUserId || (user as any).Id;
+    if (!id) {
+      console.error('No valid ID found for user:', user);
+      throw new Error('User ID is undefined');
+    }
+    return id;
+  }
+
   toggleActive(userId: string) {
     console.log('toggleActive called with userId:', userId);
     console.log('User object being toggled:', this.users().find(u => u.id === userId));

@@ -180,7 +180,7 @@
               </span>
             </td>
             <td class="px-6 py-4 text-right">
-              <button (click)="toggleActive(user.id || user.userId || user.applicationUserId || user.Id)" 
+              <button (click)="toggleActive(getUserId(user))" 
                       class="text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors"
                       [ngClass]="user.isActive !== false ? 'text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/20' : 'text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20'">
                 {{ user.isActive !== false ? 'Deactivate' : 'Activate' }}
