@@ -18,6 +18,7 @@ export interface Conversation {
   participants?: string[];
   lastMessage?: string;
   lastMessageTime?: string;
+  lastMessageAt?: string;
   unreadCount?: number;
   // Participant names (if provided by backend)
   studentName?: string;

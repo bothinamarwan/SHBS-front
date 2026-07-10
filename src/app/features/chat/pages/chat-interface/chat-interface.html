@@ -1,7 +1,7 @@
-<div class="h-[calc(100vh-12rem)] bg-white dark:bg-slate-900 rounded-[2.5rem] border border-neutral-100 dark:border-slate-800 shadow-xl overflow-hidden flex animate-in fade-in slide-in-from-bottom-4 duration-700">
+<div class="h-[calc(100vh-8rem)] bg-white dark:bg-slate-900 rounded-[2.5rem] border border-neutral-100 dark:border-slate-800 shadow-xl overflow-hidden flex animate-in fade-in slide-in-from-bottom-4 duration-700">
   <!-- Chat List Sidebar -->
-  <aside class="w-80 border-r border-neutral-100 dark:border-slate-800 flex flex-col bg-neutral-50/30 dark:bg-slate-900/50">
-    <div class="p-6 border-b border-neutral-100 dark:border-slate-800 bg-white dark:bg-slate-900">
+  <aside class="w-80 border-r border-neutral-100 dark:border-slate-800 flex flex-col bg-neutral-50/30 dark:bg-slate-900/50 shrink-0">
+    <div class="p-6 border-b border-neutral-100 dark:border-slate-800 bg-white dark:bg-slate-900 shrink-0">
       <h2 class="text-xl font-bold text-neutral-800 dark:text-slate-100">Messages</h2>
       <div class="mt-4 relative">
         <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 text-sm"></i>
@@ -45,7 +45,7 @@
               {{ getConversationTitle(conv) }}
             </h4>
             <span class="text-[10px] font-medium text-neutral-400 dark:text-slate-500">
-              {{ conv.lastMessageTime ? (conv.lastMessageTime | date:'shortTime') : '' }}
+              {{ conv.lastMessageAt ? (conv.lastMessageAt | date:'shortTime') : (conv.lastMessageTime ? (conv.lastMessageTime | date:'shortTime') : '') }}
             </span>
           </div>
           <p class="text-xs text-neutral-400 dark:text-slate-500 truncate">{{ conv.lastMessage || 'No messages yet' }}</p>
@@ -55,10 +55,10 @@
   </aside>
 
   <!-- Chat Bubble Area -->
-  <main class="flex-1 flex flex-col bg-white dark:bg-slate-900">
-    <div *ngIf="selectedConversation() as conv" class="flex-1 flex flex-col min-w-0">
+  <main class="flex-1 flex flex-col bg-white dark:bg-slate-900 min-w-0">
+    <div *ngIf="selectedConversation() as conv" class="flex flex-col h-full">
       <!-- Chat Header -->
-      <header class="p-4 sm:p-6 border-b border-neutral-100 dark:border-slate-800 flex items-center justify-between">
+      <header class="p-4 sm:p-6 border-b border-neutral-100 dark:border-slate-800 flex items-center justify-between shrink-0">
         <div class="flex items-center gap-4">
           <div class="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-bold">
             {{ getConversationInitial(conv) }}

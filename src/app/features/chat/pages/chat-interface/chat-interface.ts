@@ -111,7 +111,7 @@ export class ChatInterface implements OnInit {
       if (conv.studentUserId && needsStudentName) {
         try {
           const student = await this.studentService.getStudentByUserId(conv.studentUserId).toPromise();
-          if (student) {
+          if (student && student.fullName) {
             conv.studentName = student.fullName;
           }
         } catch (e) {
@@ -123,10 +123,8 @@ export class ChatInterface implements OnInit {
       const needsLandlordName = !conv.landlordName || conv.landlordName.includes('@');
       if (conv.landLordUserId && needsLandlordName) {
         try {
-          console.log('Fetching landlord for userId:', conv.landLordUserId);
           const landlord = await this.landlordService.getByUserId(conv.landLordUserId).toPromise();
-          console.log('Landlord response:', landlord);
-          if (landlord) {
+          if (landlord && landlord.fullName) {
             conv.landlordName = landlord.fullName;
           }
         } catch (e) {
