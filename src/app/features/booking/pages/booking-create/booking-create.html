@@ -78,7 +78,11 @@
             class="p-4 border-2 border-neutral-100 rounded-2xl cursor-pointer hover:border-indigo-200 transition-all">
             <div class="flex justify-between items-center">
               <h5 class="font-bold text-neutral-800">Bed {{ bed.bedNumber || $any(bed).BedNumber }}</h5>
-              <span class="text-lg font-bold text-neutral-800">{{ bed.calculatedPrice || $any(bed).CalculatedPrice || 0 | number }} EGP/mo</span>
+              <span class="text-lg font-bold text-neutral-800">
+                {{ (bed.calculatedPrice || $any(bed).CalculatedPrice || 0) > 0 
+                    ? (bed.calculatedPrice || $any(bed).CalculatedPrice) 
+                    : ((selectedRoom()?.price || selectedRoom()?.price || 0) / (selectedRoom()?.numberOfBeds || 1)) | number }} EGP/mo
+              </span>
             </div>
             <div class="mt-2">
               <span *ngIf="bed.isAvailable" class="text-xs text-emerald-600 font-semibold">Available</span>

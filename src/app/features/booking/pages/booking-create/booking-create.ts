@@ -63,7 +63,20 @@ export class BookingCreate implements OnInit {
       basePrice = this.selectedRoom()!.price || (this.selectedRoom() as any).Price || 0;
       console.log('FullRoom basePrice:', basePrice);
     } else if (this.bookingType() === BookingType.SingleBed && this.selectedBed()) {
-      basePrice = this.selectedBed()!.calculatedPrice || (this.selectedBed() as any).CalculatedPrice || 0;
+      // Try to get calculated price from bed, or calculate from room price / number of beds
+      let bedPrice = this.selectedBed()!.calculatedPrice || (this.selectedBed() as any).CalculatedPrice || 0;
+      console.log('Bed calculatedPrice from API:', bedPrice);
+      
+      // If bed price is 0, calculate from room price
+      if (bedPrice === 0 && this.selectedRoom()) {
+        const roomPrice = this.selectedRoom()!.price || (this.selectedRoom() as any).Price || 0;
+        const numberOfBeds = this.selectedRoom()!.numberOfBeds || 1;
+        console.log('Room price:', roomPrice, 'Number of beds:', numberOfBeds);
+        bedPrice = roomPrice / numberOfBeds;
+        console.log('Calculated bed price from room:', roomPrice, '/', numberOfBeds, '=', bedPrice);
+      }
+      
+      basePrice = bedPrice;
       console.log('SingleBed basePrice:', basePrice);
     }
     const total = basePrice * months;
