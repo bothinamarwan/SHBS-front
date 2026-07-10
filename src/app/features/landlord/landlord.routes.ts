@@ -65,6 +65,11 @@ export const landlordRoutes: Routes = [
         path: 'complaints',
         loadComponent: () =>
           import('./pages/landlord-complaints/landlord-complaints').then(m => m.LandlordComplaints)
+      },
+      {
+        path: 'chat',
+        loadComponent: () =>
+          import('../chat/pages/chat-interface/chat-interface').then(m => m.ChatInterface)
       }
     ]
   }
