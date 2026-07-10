@@ -148,49 +148,73 @@ export class BookingCreate implements OnInit {
 
   confirmBooking() {
     this.isLoading.set(true);
-    const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-    const sId = currentUser.studentId || currentUser.id || (currentUser as any)?.studentId || '3fa85f64-5717-4562-b3fc-2c963f66afa6';
 
-    console.log('Current user from localStorage:', currentUser);
-    console.log('Student ID being used:', sId);
+    // Check verification status before allowing booking
+    this.studentService.getMyVerificationStatus().subscribe({
+      next: (verificationStatus) => {
+        console.log('Verification status:', verificationStatus);
 
-    const moveIn = new Date(this.bookingForm.value.moveInDate);
-    const months = this.bookingForm.value.duration || 12;
-    const moveOut = new Date(moveIn);
-    moveOut.setMonth(moveOut.getMonth() + months);
+        // Check if student is verified and approved
+        const isVerified = verificationStatus?.isVerified === true || verificationStatus?.status === 'Approved' || verificationStatus?.verificationStatus === 'Approved';
 
-    let payload: BookingCreateRequest = {
-      studentId: sId,
-      bookingType: this.bookingType(),
-      startDate: moveIn.toISOString(),
-      endDate: moveOut.toISOString()
-    };
-
-    if (this.bookingType() === BookingType.FullUnit) {
-      payload.housingUnitId = this.housing()!.housingUnitId;
-    } else if (this.bookingType() === BookingType.FullRoom && this.selectedRoom()) {
-      payload.roomId = this.selectedRoom()!.id || this.selectedRoom()!.roomId;
-    } else if (this.bookingType() === BookingType.SingleBed && this.selectedBed()) {
-      payload.bedId = this.selectedBed()!.bedId;
-    }
-
-    console.log('Booking payload:', payload);
-
-    this.bookingService.create(payload).subscribe({
-      next: (res) => {
-        this.isLoading.set(false);
-        const bookingId = res.bookingId || (res as any).BookingId || (res as any).id || (res as any).Id;
-        if (bookingId) {
-          // Redirect to payment page which will generate receipt after payment
-          this.router.navigate(['/student/booking/pay/', bookingId]);
-        } else {
-          // If no payment needed, redirect to receipts to view the generated receipt
-          this.router.navigate(['/student/receipts']);
+        if (!isVerified) {
+          this.isLoading.set(false);
+          alert('You must complete your verification and receive admin approval before booking a property. Please complete your university verification and wait for admin approval.');
+          this.router.navigate(['/student/profile']);
+          return;
         }
+
+        // Proceed with booking if verified
+        const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+        const sId = currentUser.studentId || currentUser.id || (currentUser as any)?.studentId || '3fa85f64-5717-4562-b3fc-2c963f66afa6';
+
+        console.log('Current user from localStorage:', currentUser);
+        console.log('Student ID being used:', sId);
+
+        const moveIn = new Date(this.bookingForm.value.moveInDate);
+        const months = this.bookingForm.value.duration || 12;
+        const moveOut = new Date(moveIn);
+        moveOut.setMonth(moveOut.getMonth() + months);
+
+        let payload: BookingCreateRequest = {
+          studentId: sId,
+          bookingType: this.bookingType(),
+          startDate: moveIn.toISOString(),
+          endDate: moveOut.toISOString()
+        };
+
+        if (this.bookingType() === BookingType.FullUnit) {
+          payload.housingUnitId = this.housing()!.housingUnitId;
+        } else if (this.bookingType() === BookingType.FullRoom && this.selectedRoom()) {
+          payload.roomId = this.selectedRoom()!.id || this.selectedRoom()!.roomId;
+        } else if (this.bookingType() === BookingType.SingleBed && this.selectedBed()) {
+          payload.bedId = this.selectedBed()!.bedId;
+        }
+
+        console.log('Booking payload:', payload);
+
+        this.bookingService.create(payload).subscribe({
+          next: (res) => {
+            this.isLoading.set(false);
+            const bookingId = res.bookingId || (res as any).BookingId || (res as any).id || (res as any).Id;
+            if (bookingId) {
+              // Redirect to payment page which will generate receipt after payment
+              this.router.navigate(['/student/booking/pay/', bookingId]);
+            } else {
+              // If no payment needed, redirect to receipts to view the generated receipt
+              this.router.navigate(['/student/receipts']);
+            }
+          },
+          error: (err) => {
+            this.isLoading.set(false);
+            console.error(err);
+          }
+        });
       },
       error: (err) => {
         this.isLoading.set(false);
-        console.error(err);
+        console.error('Error fetching verification status:', err);
+        alert('Unable to verify your account status. Please try again or contact support.');
       }
     });
   }
