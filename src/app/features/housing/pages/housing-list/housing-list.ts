@@ -4,6 +4,7 @@ import { RouterLink } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
 import { HousingService } from '../../../../core/services/housing.service';
 import { WishlistService } from '../../../../core/services/wishlist.service';
+import { StudentService } from '../../../../core/services/student.service';
 import { HousingUnit, GenderAllowed, genderLabel } from '../../../../core/models/housing.model';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
 
@@ -17,12 +18,15 @@ export class HousingList implements OnInit {
   private fb             = inject(FormBuilder);
   private housingService = inject(HousingService);
   private wishlistService = inject(WishlistService);
+  private studentService = inject(StudentService);
 
   filterForm: FormGroup;
   allHousings  = signal<HousingUnit[]>([]);
   housings     = signal<HousingUnit[]>([]);
   isLoading    = signal(true);
   errorMessage = signal<string | null>(null);
+  isVerified = signal(false);
+  showVerificationMessage = signal(false);
 
   // expose helper to template
   GenderAllowed = GenderAllowed;
@@ -55,6 +59,25 @@ export class HousingList implements OnInit {
   }
 
   ngOnInit() {
+    // Check if user is logged in and get verification status
+    const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+    if (currentUser && (currentUser.role === 'student' || currentUser.studentId)) {
+      this.studentService.getMyVerificationStatus().subscribe({
+        next: (verificationStatus) => {
+          const isVerified = verificationStatus?.isVerified === true || verificationStatus?.status === 'Approved' || verificationStatus?.verificationStatus === 'Approved';
+          this.isVerified.set(isVerified);
+          if (!isVerified) {
+            this.showVerificationMessage.set(true);
+          }
+        },
+        error: () => {
+          // If error fetching verification, assume not verified
+          this.isVerified.set(false);
+          this.showVerificationMessage.set(true);
+        }
+      });
+    }
+
     this.loadHousings();
 
     this.filterForm.valueChanges.pipe(
