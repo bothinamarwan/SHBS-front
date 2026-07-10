@@ -24,19 +24,22 @@ export class FeaturedListings implements OnInit {
   ngOnInit() {
     // Check if user is logged in and get verification status
     const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+    const studentData = JSON.parse(localStorage.getItem('studentData') || '{}');
+    
     if (currentUser && (currentUser.role === 'student' || currentUser.studentId)) {
       this.studentService.getMyVerificationStatus().subscribe({
         next: (verificationStatus) => {
-          const isVerified = verificationStatus?.isVerified === true || verificationStatus?.status === 'Approved' || verificationStatus?.verificationStatus === 'Approved';
+          const isVerified = verificationStatus?.isVerified === true || verificationStatus?.status === 'Approved' || verificationStatus?.verificationStatus === 'Approved' || verificationStatus?.verificationStatus === 1;
           this.isVerified.set(isVerified);
           if (!isVerified) {
             this.showVerificationMessage.set(true);
           }
         },
         error: () => {
-          // If error fetching verification, assume not verified
-          this.isVerified.set(false);
-          this.showVerificationMessage.set(true);
+          const localVerificationStatus = currentUser?.universityVerificationStatus || studentData?.universityVerificationStatus;
+          const isVerified = localVerificationStatus === 1 || localVerificationStatus === 'Approved' || localVerificationStatus === true;
+          this.isVerified.set(isVerified);
+          this.showVerificationMessage.set(!isVerified);
         }
       });
     }

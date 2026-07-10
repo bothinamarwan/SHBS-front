@@ -75,7 +75,31 @@ export class StudentService {
   }
 
   getMyVerificationStatus(): Observable<any> {
-    return this.http.get(`${this.baseUrl}/MyVerificationStatus`);
+    // Since the MyVerificationStatus endpoint doesn't exist on the backend,
+    // we'll return the verification status from localStorage student data
+    return new Observable((observer) => {
+      try {
+        const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+        const studentData = JSON.parse(localStorage.getItem('studentData') || '{}');
+        
+        // Check multiple possible sources for verification status
+        const verificationStatus = 
+          currentUser?.universityVerificationStatus ||
+          studentData?.universityVerificationStatus ||
+          currentUser?.verificationStatus ||
+          studentData?.verificationStatus;
+        
+        observer.next({
+          isVerified: verificationStatus === 1 || verificationStatus === 'Approved' || verificationStatus === true,
+          status: verificationStatus === 1 ? 'Approved' : verificationStatus,
+          verificationStatus: verificationStatus
+        });
+        observer.complete();
+      } catch (error) {
+        observer.next({ isVerified: false, status: 'Unknown', verificationStatus: 0 });
+        observer.complete();
+      }
+    });
   }
 
   getMyBookings(): Observable<any[]> {
