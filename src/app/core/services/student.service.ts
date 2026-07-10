@@ -28,7 +28,7 @@ export class StudentService {
   }
 
   changePassword(passwordData: ChangePasswordRequest): Observable<any> {
-    return this.http.post(`${this.baseUrl}/ChangePassword`, passwordData);
+    return this.http.put(`${this.baseUrl}/ChangePassword`, passwordData);
   }
 
   deleteStudent(studentId: string): Observable<any> {
