@@ -9,11 +9,12 @@ import { ChatService } from '../../../../core/services/chat.service';
 import { HousingUnitDetails, GenderAllowed, genderLabel } from '../../../../core/models/housing.model';
 import { Review, UpdateReviewRequest } from '../../../../core/models/review.model';
 import { FormsModule } from '@angular/forms';
+import { StudentVerifiedDirective } from '../../../../core/directives/student-verified.directive';
 
 @Component({
   selector: 'app-housing-details',
   standalone: true,
-  imports: [CommonModule, RouterLink, FormsModule],
+  imports: [CommonModule, RouterLink, FormsModule, StudentVerifiedDirective],
   templateUrl: './housing-details.html'
 })
 export class HousingDetails implements OnInit {

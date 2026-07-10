@@ -23,36 +23,38 @@
     No featured listings available at the moment.
   </div>
 
-  <div *ngFor="let listing of listings()" class="group bg-surface-container-lowest dark:bg-slate-900 rounded-xl overflow-hidden border border-transparent dark:border-slate-800 transition-all duration-300 hover:-translate-y-2 shadow-sm dark:shadow-none">
-    <div class="relative h-64 overflow-hidden">
-      <img [alt]="listing.title" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-           [src]="listing.unitImageUrl || 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800'"
-           onerror="this.src='https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800'"/>
-      <div *ngIf="listing.isAvailable" class="absolute top-4 left-4 bg-secondary-container text-on-secondary-container px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">Available Now</div>
-      <div class="absolute top-4 right-4 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md p-2 rounded-full shadow-sm cursor-pointer hover:bg-white transition-colors">
-        <span class="material-symbols-outlined text-outline dark:text-slate-500">favorite</span>
-      </div>
-    </div>
-    <div class="p-6 space-y-4">
-      <div class="flex justify-between items-start">
-        <h3 class="font-headline text-xl font-bold dark:text-slate-100">{{ listing.title }}</h3>
-        <div class="flex items-center text-tertiary">
-          <span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
-          <span class="text-sm font-bold ml-1 dark:text-slate-300">New</span>
+  <ng-template [studentVerified]>
+    <div *ngFor="let listing of listings()" class="group bg-surface-container-lowest dark:bg-slate-900 rounded-xl overflow-hidden border border-transparent dark:border-slate-800 transition-all duration-300 hover:-translate-y-2 shadow-sm dark:shadow-none">
+      <div class="relative h-64 overflow-hidden">
+        <img [alt]="listing.title" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+             [src]="listing.unitImageUrl || 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800'"
+             onerror="this.src='https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800'"/>
+        <div *ngIf="listing.isAvailable" class="absolute top-4 left-4 bg-secondary-container text-on-secondary-container px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">Available Now</div>
+        <div class="absolute top-4 right-4 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md p-2 rounded-full shadow-sm cursor-pointer hover:bg-white transition-colors">
+          <span class="material-symbols-outlined text-outline dark:text-slate-500">favorite</span>
         </div>
       </div>
-      <p class="text-on-surface-variant dark:text-slate-400 text-sm flex items-center gap-1">
-        <span class="material-symbols-outlined text-base">location_on</span> {{ listing.area }}, {{ listing.city }}
-      </p>
-      <div class="flex flex-wrap gap-2 text-xs font-medium text-on-surface-variant dark:text-slate-400">
-        <span class="bg-surface-container dark:bg-slate-800 px-2 py-1 rounded">{{ listing.numberOfRooms }} Rooms</span>
-        <span class="bg-surface-container dark:bg-slate-800 px-2 py-1 rounded">{{ listing.genderAllowed === 1 ? 'Male Only' : listing.genderAllowed === 2 ? 'Female Only' : 'Mixed' }}</span>
-      </div>
-      <div class="pt-4 flex justify-between items-center border-t border-surface-container dark:border-slate-800">
-        <span class="text-2xl font-black text-primary dark:text-blue-400">{{ listing.baseMonthlyPrice || listing.price | number }}<span class="text-sm font-normal text-on-surface-variant dark:text-slate-500"> EGP/mo</span></span>
-        <a [routerLink]="['/listings/housing', listing.housingUnitId]" class="text-primary dark:text-blue-400 font-bold hover:underline">View Details</a>
+      <div class="p-6 space-y-4">
+        <div class="flex justify-between items-start">
+          <h3 class="font-headline text-xl font-bold dark:text-slate-100">{{ listing.title }}</h3>
+          <div class="flex items-center text-tertiary">
+            <span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+            <span class="text-sm font-bold ml-1 dark:text-slate-300">New</span>
+          </div>
+        </div>
+        <p class="text-on-surface-variant dark:text-slate-400 text-sm flex items-center gap-1">
+          <span class="material-symbols-outlined text-base">location_on</span> {{ listing.area }}, {{ listing.city }}
+        </p>
+        <div class="flex flex-wrap gap-2 text-xs font-medium text-on-surface-variant dark:text-slate-400">
+          <span class="bg-surface-container dark:bg-slate-800 px-2 py-1 rounded">{{ listing.numberOfRooms }} Rooms</span>
+          <span class="bg-surface-container dark:bg-slate-800 px-2 py-1 rounded">{{ listing.genderAllowed === 1 ? 'Male Only' : listing.genderAllowed === 2 ? 'Female Only' : 'Mixed' }}</span>
+        </div>
+        <div class="pt-4 flex justify-between items-center border-t border-surface-container dark:border-slate-800">
+          <span class="text-2xl font-black text-primary dark:text-blue-400">{{ listing.baseMonthlyPrice || listing.price | number }}<span class="text-sm font-normal text-on-surface-variant dark:text-slate-500"> EGP/mo</span></span>
+          <a [routerLink]="['/listings/housing', listing.housingUnitId]" class="text-primary dark:text-blue-400 font-bold hover:underline">View Details</a>
+        </div>
       </div>
     </div>
-  </div>
+  </ng-template>
 </div>
 </section>

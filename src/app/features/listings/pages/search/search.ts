@@ -5,11 +5,12 @@ import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
 import { HousingService } from '../../../../core/services/housing.service';
 import { HousingUnit } from '../../../../core/models/housing.model';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
+import { StudentVerifiedDirective } from '../../../../core/directives/student-verified.directive';
 
 @Component({
   selector: 'app-search',
   standalone: true,
-  imports: [CommonModule, RouterLink, ReactiveFormsModule],
+  imports: [CommonModule, RouterLink, ReactiveFormsModule, StudentVerifiedDirective],
   templateUrl: './search.html'
 })
 export class Search implements OnInit {

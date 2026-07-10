@@ -8,11 +8,12 @@ import { StudentService } from '../../../../core/services/student.service';
 import { WishlistService } from '../../../../core/services/wishlist.service';
 import { HousingUnit } from '../../../../core/models/housing.model';
 import { map } from 'rxjs/operators';
+import { StudentVerifiedDirective } from '../../../../core/directives/student-verified.directive';
 
 @Component({
   selector: 'app-student-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, StudentVerifiedDirective],
   templateUrl: './student-dashboard.html'
 })
 export class StudentDashboard implements OnInit {

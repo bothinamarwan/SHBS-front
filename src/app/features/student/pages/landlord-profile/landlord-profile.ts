@@ -5,11 +5,12 @@ import { LandlordService } from '../../../../core/services/landlord.service';
 import { HousingService } from '../../../../core/services/housing.service';
 import { Landlord } from '../../../../core/models/landlord.model';
 import { HousingUnit, genderLabel, GenderAllowed } from '../../../../core/models/housing.model';
+import { StudentVerifiedDirective } from '../../../../core/directives/student-verified.directive';
 
 @Component({
   selector: 'app-landlord-profile',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, StudentVerifiedDirective],
   templateUrl: './landlord-profile.html'
 })
 export class LandlordProfile implements OnInit {

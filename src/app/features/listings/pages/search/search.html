@@ -159,56 +159,58 @@
       </div>
 
       <!-- Housing Grid -->
-      <div *ngIf="!isLoading()" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-        <div *ngFor="let item of paginatedHousings()"
-          class="bg-white dark:bg-slate-900 rounded-[2rem] overflow-hidden border border-neutral-100 dark:border-slate-800 shadow-sm hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 group">
+      <ng-template [studentVerified]>
+        <div *ngIf="!isLoading()" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          <div *ngFor="let item of paginatedHousings()"
+            class="bg-white dark:bg-slate-900 rounded-[2rem] overflow-hidden border border-neutral-100 dark:border-slate-800 shadow-sm hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 group">
 
-          <!-- Image -->
-          <div class="relative h-52 overflow-hidden">
-            <img [src]="item.unitImageUrl || 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800'" [alt]="item.title"
-              class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-              onerror="this.src='https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800'">
-            <div class="absolute top-4 left-4 flex flex-col gap-1.5">
-              <span class="px-2.5 py-1 bg-white/90 backdrop-blur-md rounded-full text-indigo-600 text-[10px] font-extrabold shadow-sm uppercase tracking-wider">
-                {{ item.numberOfRooms }} Rooms
-              </span>
-              <span *ngIf="item.genderAllowed !== 0"
-                [class.bg-rose-500]="item.genderAllowed === 2" [class.bg-indigo-500]="item.genderAllowed === 1"
-                class="px-2.5 py-1 text-white text-[10px] font-extrabold rounded-full shadow-sm uppercase tracking-wider">
-                {{ item.genderAllowed === 1 ? 'Male only' : 'Female only' }}
-              </span>
-            </div>
-            <div class="absolute top-4 right-4 flex items-center gap-1 bg-white/90 backdrop-blur-md px-2.5 py-1 rounded-full shadow-sm">
-              <i class="fas fa-star text-amber-500 text-xs"></i>
-              <span class="text-amber-700 text-xs font-bold">New</span>
-            </div>
-          </div>
-
-          <!-- Body -->
-          <div class="p-6">
-            <h3 class="font-extrabold text-lg text-neutral-800 dark:text-slate-100 group-hover:text-indigo-600 transition-colors leading-tight mb-1">
-              {{ item.title }}
-            </h3>
-            <p class="text-neutral-500 text-sm flex items-center gap-1.5 mb-4">
-              <i class="fas fa-map-marker-alt text-indigo-400 text-xs"></i> {{ item.area }}, {{ item.city }}
-            </p>
-
-            <div class="flex items-center justify-between pt-4 border-t border-neutral-50 dark:border-slate-800">
-              <div>
-                <span class="text-neutral-400 text-[9px] font-bold uppercase tracking-wider block">Starting from</span>
-                <div class="flex items-baseline gap-1">
-                  <span class="text-xl font-black text-neutral-900 dark:text-slate-100">{{ item.baseMonthlyPrice || item.price | number }}</span>
-                  <span class="text-neutral-400 font-bold text-[10px] uppercase">EGP/mo</span>
-                </div>
+            <!-- Image -->
+            <div class="relative h-52 overflow-hidden">
+              <img [src]="item.unitImageUrl || 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800'" [alt]="item.title"
+                class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                onerror="this.src='https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800'">
+              <div class="absolute top-4 left-4 flex flex-col gap-1.5">
+                <span class="px-2.5 py-1 bg-white/90 backdrop-blur-md rounded-full text-indigo-600 text-[10px] font-extrabold shadow-sm uppercase tracking-wider">
+                  {{ item.numberOfRooms }} Rooms
+                </span>
+                <span *ngIf="item.genderAllowed !== 0"
+                  [class.bg-rose-500]="item.genderAllowed === 2" [class.bg-indigo-500]="item.genderAllowed === 1"
+                  class="px-2.5 py-1 text-white text-[10px] font-extrabold rounded-full shadow-sm uppercase tracking-wider">
+                  {{ item.genderAllowed === 1 ? 'Male only' : 'Female only' }}
+                </span>
               </div>
-              <a [routerLink]="['/listings/housing', item.housingUnitId]"
-                class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-extrabold rounded-xl transition-colors shadow-md shadow-indigo-100">
-                View Details
-              </a>
+              <div class="absolute top-4 right-4 flex items-center gap-1 bg-white/90 backdrop-blur-md px-2.5 py-1 rounded-full shadow-sm">
+                <i class="fas fa-star text-amber-500 text-xs"></i>
+                <span class="text-amber-700 text-xs font-bold">New</span>
+              </div>
+            </div>
+
+            <!-- Body -->
+            <div class="p-6">
+              <h3 class="font-extrabold text-lg text-neutral-800 dark:text-slate-100 group-hover:text-indigo-600 transition-colors leading-tight mb-1">
+                {{ item.title }}
+              </h3>
+              <p class="text-neutral-500 text-sm flex items-center gap-1.5 mb-4">
+                <i class="fas fa-map-marker-alt text-indigo-400 text-xs"></i> {{ item.area }}, {{ item.city }}
+              </p>
+
+              <div class="flex items-center justify-between pt-4 border-t border-neutral-50 dark:border-slate-800">
+                <div>
+                  <span class="text-neutral-400 text-[9px] font-bold uppercase tracking-wider block">Starting from</span>
+                  <div class="flex items-baseline gap-1">
+                    <span class="text-xl font-black text-neutral-900 dark:text-slate-100">{{ item.baseMonthlyPrice || item.price | number }}</span>
+                    <span class="text-neutral-400 font-bold text-[10px] uppercase">EGP/mo</span>
+                  </div>
+                </div>
+                <a [routerLink]="['/listings/housing', item.housingUnitId]"
+                  class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-extrabold rounded-xl transition-colors shadow-md shadow-indigo-100">
+                  View Details
+                </a>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      </ng-template>
 
       <!-- Empty state -->
       <div *ngIf="!isLoading() && housings().length === 0"

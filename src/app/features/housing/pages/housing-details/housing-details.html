@@ -16,88 +16,89 @@
 </div>
 
 <!-- Main Content -->
-<div *ngIf="!isLoading() && housing() as item" class="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+<ng-template [studentVerified]>
+  <div *ngIf="!isLoading() && housing() as item" class="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
 
-  <!-- Breadcrumbs & Actions -->
-  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-    <nav class="flex items-center gap-2 text-sm text-neutral-400 dark:text-slate-500 font-medium">
-      <a routerLink="/" class="hover:text-indigo-600 dark:hover:text-indigo-400">Home</a>
-      <i class="fas fa-chevron-right text-[10px]"></i>
-      <a routerLink="/listings" class="hover:text-indigo-600 dark:hover:text-indigo-400">Listings</a>
-      <i class="fas fa-chevron-right text-[10px]"></i>
-      <span class="text-neutral-800 dark:text-slate-200 line-clamp-1">{{ item.title }}</span>
-    </nav>
-    <div class="flex gap-3">
-      <button (click)="openMapLink()" *ngIf="item.latitude && item.longitude"
-        class="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-900 border border-neutral-200 dark:border-slate-800 rounded-xl text-sm font-bold text-neutral-600 dark:text-slate-400 hover:bg-neutral-50 dark:hover:bg-slate-800 transition-all">
-        <i class="fas fa-map-marker-alt text-indigo-500"></i> Map
-      </button>
-      <button (click)="toggleWishlist()"
-        [class.text-rose-500]="isInWishlist()"
-        [class.bg-rose-50]="isInWishlist()"
-        [class.dark:bg-rose-900\/20]="isInWishlist()"
-        [class.border-rose-100]="isInWishlist()"
-        class="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-900 border border-neutral-200 dark:border-slate-800 rounded-xl text-sm font-bold text-neutral-600 dark:text-slate-400 hover:bg-neutral-50 dark:hover:bg-slate-800 transition-all">
-        <i [class]="isInWishlist() ? 'fas fa-heart' : 'far fa-heart'"></i>
-        {{ isInWishlist() ? 'Saved' : 'Save' }}
-      </button>
+    <!-- Breadcrumbs & Actions -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <nav class="flex items-center gap-2 text-sm text-neutral-400 dark:text-slate-500 font-medium">
+        <a routerLink="/" class="hover:text-indigo-600 dark:hover:text-indigo-400">Home</a>
+        <i class="fas fa-chevron-right text-[10px]"></i>
+        <a routerLink="/listings" class="hover:text-indigo-600 dark:hover:text-indigo-400">Listings</a>
+        <i class="fas fa-chevron-right text-[10px]"></i>
+        <span class="text-neutral-800 dark:text-slate-200 line-clamp-1">{{ item.title }}</span>
+      </nav>
+      <div class="flex gap-3">
+        <button (click)="openMapLink()" *ngIf="item.latitude && item.longitude"
+          class="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-900 border border-neutral-200 dark:border-slate-800 rounded-xl text-sm font-bold text-neutral-600 dark:text-slate-400 hover:bg-neutral-50 dark:hover:bg-slate-800 transition-all">
+          <i class="fas fa-map-marker-alt text-indigo-500"></i> Map
+        </button>
+        <button (click)="toggleWishlist()"
+          [class.text-rose-500]="isInWishlist()"
+          [class.bg-rose-50]="isInWishlist()"
+          [class.dark:bg-rose-900\/20]="isInWishlist()"
+          [class.border-rose-100]="isInWishlist()"
+          class="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-900 border border-neutral-200 dark:border-slate-800 rounded-xl text-sm font-bold text-neutral-600 dark:text-slate-400 hover:bg-neutral-50 dark:hover:bg-slate-800 transition-all">
+          <i [class]="isInWishlist() ? 'fas fa-heart' : 'far fa-heart'"></i>
+          {{ isInWishlist() ? 'Saved' : 'Save' }}
+        </button>
+      </div>
     </div>
-  </div>
 
-  <!-- Hero Image -->
-  <section class="relative h-[420px] sm:h-[520px] rounded-3xl overflow-hidden shadow-2xl shadow-neutral-200 dark:shadow-none">
-    <img [src]="item.unitImageUrl || 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=1200'"
-      class="w-full h-full object-cover"
-      [alt]="item.title"
-      onerror="this.src='https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=1200'">
-    <div class="absolute inset-0 bg-gradient-to-t from-neutral-900/60 via-transparent to-transparent"></div>
-    <!-- Overlay badges -->
-    <div class="absolute bottom-6 left-6 flex flex-wrap gap-3">
-      <span *ngIf="item.genderAllowed !== GenderAllowed.Mixed"
-        [class.bg-rose-500]="item.genderAllowed === GenderAllowed.Female"
-        [class.bg-indigo-500]="item.genderAllowed === GenderAllowed.Male"
-        class="px-3 py-1.5 text-white text-xs font-bold rounded-full shadow uppercase">
-        {{ genderLabel(item.genderAllowed) }} only
-      </span>
-      <span [class]="item.isAvailable ? 'bg-emerald-500' : 'bg-neutral-500'"
-        class="px-3 py-1.5 text-white text-xs font-bold rounded-full shadow uppercase">
-        {{ item.isAvailable ? 'Available' : 'Not Available' }}
-      </span>
-    </div>
-  </section>
+    <!-- Hero Image -->
+    <section class="relative h-[420px] sm:h-[520px] rounded-3xl overflow-hidden shadow-2xl shadow-neutral-200 dark:shadow-none">
+      <img [src]="item.unitImageUrl || 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=1200'"
+        class="w-full h-full object-cover"
+        [alt]="item.title"
+        onerror="this.src='https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=1200'">
+      <div class="absolute inset-0 bg-gradient-to-t from-neutral-900/60 via-transparent to-transparent"></div>
+      <!-- Overlay badges -->
+      <div class="absolute bottom-6 left-6 flex flex-wrap gap-3">
+        <span *ngIf="item.genderAllowed !== GenderAllowed.Mixed"
+          [class.bg-rose-500]="item.genderAllowed === GenderAllowed.Female"
+          [class.bg-indigo-500]="item.genderAllowed === GenderAllowed.Male"
+          class="px-3 py-1.5 text-white text-xs font-bold rounded-full shadow uppercase">
+          {{ genderLabel(item.genderAllowed) }} only
+        </span>
+        <span [class]="item.isAvailable ? 'bg-emerald-500' : 'bg-neutral-500'"
+          class="px-3 py-1.5 text-white text-xs font-bold rounded-full shadow uppercase">
+          {{ item.isAvailable ? 'Available' : 'Not Available' }}
+        </span>
+      </div>
+    </section>
 
-  <!-- Main Grid -->
-  <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
+    <!-- Main Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
 
-    <!-- Left: Details -->
-    <div class="lg:col-span-2 space-y-10">
+      <!-- Left: Details -->
+      <div class="lg:col-span-2 space-y-10">
 
-      <!-- Title & Meta -->
-      <div class="space-y-4">
-        <h1 class="text-4xl font-black text-neutral-800 dark:text-slate-100 leading-tight">{{ item.title }}</h1>
-        <div class="flex flex-wrap items-center gap-4 text-sm text-neutral-500 dark:text-slate-400">
-          <span class="flex items-center gap-2">
-            <i class="fas fa-map-marker-alt text-indigo-500"></i>
-            {{ item.area }}, {{ item.city }}
-          </span>
-          <span *ngIf="item.address" class="flex items-center gap-2">
-            <i class="fas fa-road text-indigo-400"></i>
-            {{ item.address }}
-          </span>
-          <span class="flex items-center gap-2">
-            <i class="fas fa-door-open text-indigo-400"></i>
-            {{ item.numberOfRooms }} rooms
-          </span>
+        <!-- Title & Meta -->
+        <div class="space-y-4">
+          <h1 class="text-4xl font-black text-neutral-800 dark:text-slate-100 leading-tight">{{ item.title }}</h1>
+          <div class="flex flex-wrap items-center gap-4 text-sm text-neutral-500 dark:text-slate-400">
+            <span class="flex items-center gap-2">
+              <i class="fas fa-map-marker-alt text-indigo-500"></i>
+              {{ item.area }}, {{ item.city }}
+            </span>
+            <span *ngIf="item.address" class="flex items-center gap-2">
+              <i class="fas fa-road text-indigo-400"></i>
+              {{ item.address }}
+            </span>
+            <span class="flex items-center gap-2">
+              <i class="fas fa-door-open text-indigo-400"></i>
+              {{ item.numberOfRooms }} rooms
+            </span>
+          </div>
         </div>
-      </div>
 
-      <!-- Description -->
-      <div class="space-y-4">
-        <h2 class="text-xl font-bold text-neutral-800 dark:text-slate-100">About this property</h2>
-        <p class="text-neutral-600 dark:text-slate-400 leading-relaxed text-base">{{ item.description }}</p>
-      </div>
+        <!-- Description -->
+        <div class="space-y-4">
+          <h2 class="text-xl font-bold text-neutral-800 dark:text-slate-100">About this property</h2>
+          <p class="text-neutral-600 dark:text-slate-400 leading-relaxed text-base">{{ item.description }}</p>
+        </div>
 
-      <!-- Location block -->
+        <!-- Location block -->
       <div *ngIf="item.location" class="p-5 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800/30 rounded-2xl flex items-start gap-4">
         <div class="w-10 h-10 bg-indigo-100 dark:bg-indigo-800/40 rounded-xl flex items-center justify-center shrink-0">
           <i class="fas fa-location-dot text-indigo-600 dark:text-indigo-400"></i>
@@ -276,3 +277,4 @@
     </div>
   </div>
 </div>
+</ng-template>

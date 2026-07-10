@@ -36,67 +36,69 @@
     </div>
 
     <!-- Properties Grid -->
-    <div *ngIf="properties().length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      <a *ngFor="let item of properties()"
-         [routerLink]="['/student/housing', item.housingUnitId]"
-         class="group bg-white dark:bg-slate-900 rounded-[2rem] overflow-hidden border border-neutral-100 dark:border-slate-800 shadow-xl shadow-neutral-100/50 dark:shadow-none hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
+    <ng-template [studentVerified]>
+      <div *ngIf="properties().length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <a *ngFor="let item of properties()"
+           [routerLink]="['/student/housing', item.housingUnitId]"
+           class="group bg-white dark:bg-slate-900 rounded-[2rem] overflow-hidden border border-neutral-100 dark:border-slate-800 shadow-xl shadow-neutral-100/50 dark:shadow-none hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
 
-        <div class="relative h-48 overflow-hidden bg-neutral-100 dark:bg-slate-800">
-          <img [src]="item.unitImageUrl || 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800'"
-               class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-               onerror="this.src='https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800'">
+          <div class="relative h-48 overflow-hidden bg-neutral-100 dark:bg-slate-800">
+            <img [src]="item.unitImageUrl || 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800'"
+                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                 onerror="this.src='https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800'">
 
-          <div class="absolute top-4 left-4 flex flex-col gap-2">
-            <span [class]="item.isAvailable ? 'bg-emerald-500' : 'bg-neutral-800/80 backdrop-blur-md'"
-                  class="px-3 py-1.5 text-white text-[10px] font-bold rounded-full uppercase tracking-wider shadow-lg">
-              {{ item.isAvailable ? 'Available' : 'Unavailable' }}
-            </span>
-            <span *ngIf="item.genderAllowed !== GenderAllowed.Mixed"
-                  [class]="item.genderAllowed === GenderAllowed.Female ? 'bg-rose-500' : 'bg-indigo-500'"
-                  class="px-3 py-1.5 text-white text-[10px] font-bold rounded-full uppercase tracking-wider shadow-lg w-max">
-              {{ genderLabel(item.genderAllowed) }} only
-            </span>
-          </div>
-        </div>
-
-        <div class="p-6 space-y-4">
-          <div class="space-y-1">
-            <h3 class="text-lg font-bold text-neutral-800 dark:text-slate-100 line-clamp-1 group-hover:text-indigo-600 transition-colors">{{ item.title }}</h3>
-            <p class="text-sm text-neutral-500 dark:text-slate-400 flex items-center gap-1.5">
-              <i class="fas fa-map-marker-alt text-indigo-400 text-xs"></i>
-              {{ item.area }}, {{ item.city }}
-            </p>
-          </div>
-
-          <div class="grid grid-cols-2 gap-4 py-4 border-y border-neutral-100 dark:border-slate-800">
-            <div class="space-y-1 text-center border-r border-neutral-100 dark:border-slate-800">
-              <p class="text-xs font-bold text-neutral-400 dark:text-slate-500 uppercase">Rooms</p>
-              <p class="text-neutral-800 dark:text-slate-200 font-bold flex items-center justify-center gap-2">
-                <i class="fas fa-door-open text-indigo-400"></i> {{ item.numberOfRooms }}
-              </p>
-            </div>
-            <div class="space-y-1 text-center">
-              <p class="text-xs font-bold text-neutral-400 dark:text-slate-500 uppercase">Type</p>
-              <p class="text-neutral-800 dark:text-slate-200 font-bold flex items-center justify-center gap-2 capitalize">
-                {{ genderLabel(item.genderAllowed) }}
-              </p>
+            <div class="absolute top-4 left-4 flex flex-col gap-2">
+              <span [class]="item.isAvailable ? 'bg-emerald-500' : 'bg-neutral-800/80 backdrop-blur-md'"
+                    class="px-3 py-1.5 text-white text-[10px] font-bold rounded-full uppercase tracking-wider shadow-lg">
+                {{ item.isAvailable ? 'Available' : 'Unavailable' }}
+              </span>
+              <span *ngIf="item.genderAllowed !== GenderAllowed.Mixed"
+                    [class]="item.genderAllowed === GenderAllowed.Female ? 'bg-rose-500' : 'bg-indigo-500'"
+                    class="px-3 py-1.5 text-white text-[10px] font-bold rounded-full uppercase tracking-wider shadow-lg w-max">
+                {{ genderLabel(item.genderAllowed) }} only
+              </span>
             </div>
           </div>
 
-          <div class="flex items-end justify-between pt-2">
-            <div>
-              <p class="text-[10px] font-bold text-neutral-400 dark:text-slate-500 uppercase tracking-widest">Base Monthly</p>
-              <div class="flex items-baseline gap-1">
-                <span class="text-xl font-black text-indigo-600 dark:text-indigo-400">{{ item.baseMonthlyPrice | number }}</span>
-                <span class="text-xs font-bold text-neutral-500">EGP</span>
+          <div class="p-6 space-y-4">
+            <div class="space-y-1">
+              <h3 class="text-lg font-bold text-neutral-800 dark:text-slate-100 line-clamp-1 group-hover:text-indigo-600 transition-colors">{{ item.title }}</h3>
+              <p class="text-sm text-neutral-500 dark:text-slate-400 flex items-center gap-1.5">
+                <i class="fas fa-map-marker-alt text-indigo-400 text-xs"></i>
+                {{ item.area }}, {{ item.city }}
+              </p>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4 py-4 border-y border-neutral-100 dark:border-slate-800">
+              <div class="space-y-1 text-center border-r border-neutral-100 dark:border-slate-800">
+                <p class="text-xs font-bold text-neutral-400 dark:text-slate-500 uppercase">Rooms</p>
+                <p class="text-neutral-800 dark:text-slate-200 font-bold flex items-center justify-center gap-2">
+                  <i class="fas fa-door-open text-indigo-400"></i> {{ item.numberOfRooms }}
+                </p>
+              </div>
+              <div class="space-y-1 text-center">
+                <p class="text-xs font-bold text-neutral-400 dark:text-slate-500 uppercase">Type</p>
+                <p class="text-neutral-800 dark:text-slate-200 font-bold flex items-center justify-center gap-2 capitalize">
+                  {{ genderLabel(item.genderAllowed) }}
+                </p>
               </div>
             </div>
-            <div class="w-10 h-10 rounded-full bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white text-indigo-600 transition-colors">
-              <i class="fas fa-arrow-right"></i>
+
+            <div class="flex items-end justify-between pt-2">
+              <div>
+                <p class="text-[10px] font-bold text-neutral-400 dark:text-slate-500 uppercase tracking-widest">Base Monthly</p>
+                <div class="flex items-baseline gap-1">
+                  <span class="text-xl font-black text-indigo-600 dark:text-indigo-400">{{ item.baseMonthlyPrice | number }}</span>
+                  <span class="text-xs font-bold text-neutral-500">EGP</span>
+                </div>
+              </div>
+              <div class="w-10 h-10 rounded-full bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white text-indigo-600 transition-colors">
+                <i class="fas fa-arrow-right"></i>
+              </div>
             </div>
           </div>
-        </div>
-      </a>
-    </div>
+        </a>
+      </div>
+    </ng-template>
   </div>
 </div>

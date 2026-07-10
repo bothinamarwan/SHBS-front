@@ -6,11 +6,13 @@ import { FeedbackService } from '../../../../core/services/feedback.service';
 import { HousingService } from '../../../../core/services/housing.service';
 import { Complaint, ComplaintStatus } from '../../../../core/models/complaint.model';
 import { HousingUnit } from '../../../../core/models/housing.model';
+import { StudentVerifiedDirective } from '../../../../core/directives/student-verified.directive';
+import { AuthService } from '../../../../core/services/auth.service';
 
 @Component({
   selector: 'app-student-complaints',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, StudentVerifiedDirective],
   templateUrl: './student-complaints.html'
 })
 export class StudentComplaints implements OnInit {
@@ -18,6 +20,7 @@ export class StudentComplaints implements OnInit {
   private router = inject(Router);
   private feedbackService = inject(FeedbackService);
   private housingService = inject(HousingService);
+  private authService = inject(AuthService);
 
   complaintForm: FormGroup;
   housings = signal<HousingUnit[]>([]);
@@ -27,6 +30,11 @@ export class StudentComplaints implements OnInit {
   errorMessage = signal<string | null>(null);
 
   ComplaintStatus = ComplaintStatus;
+
+  isStudentVerified(): boolean {
+    const user = this.authService.currentUserValue;
+    return user?.role !== 'student' || user?.universityVerificationStatus === 1;
+  }
 
   constructor() {
     this.complaintForm = this.fb.group({
