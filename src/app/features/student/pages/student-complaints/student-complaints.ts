@@ -33,7 +33,7 @@ export class StudentComplaints implements OnInit {
 
   isStudentVerified(): boolean {
     const user = this.authService.currentUserValue;
-    return user?.role !== 'student' || user?.universityVerificationStatus === 1;
+    return user?.role !== 'student' || user?.universityVerificationStatus !== 0;
   }
 
   constructor() {

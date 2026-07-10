@@ -23,13 +23,14 @@ export class StudentVerifiedDirective {
       return;
     }
 
-    // Allow if student is verified (universityVerificationStatus === 1)
-    if (user?.universityVerificationStatus === 1) {
+    // Allow if student is verified (universityVerificationStatus !== 0)
+    // Status 0 = unverified, 1 = verified, 2 = other verified status
+    if (user?.universityVerificationStatus !== 0) {
       this.viewContainer.createEmbeddedView(this.templateRef);
       return;
     }
 
-    // Hide content for unverified students
+    // Hide content for unverified students (status === 0)
     this.viewContainer.clear();
   }
 }

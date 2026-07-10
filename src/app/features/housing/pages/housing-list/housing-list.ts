@@ -73,7 +73,7 @@ export class HousingList implements OnInit {
 
   checkStudentVerification() {
     const user = this.authService.currentUserValue;
-    if (user?.role === 'student' && user.universityVerificationStatus !== 1) {
+    if (user?.role === 'student' && user.universityVerificationStatus === 0) {
       this.isStudentUnverified.set(true);
     }
   }
