@@ -1,5 +1,8 @@
 export interface AdminUserResponse {
-  id: string;
+  id?: string;
+  userId?: string;
+  applicationUserId?: string;
+  Id?: string;
   email: string;
   name?: string;
   phoneNumber?: string;
