@@ -1,0 +1,164 @@
+<div *ngIf="isOpen()" class="modal-overlay" (click)="close()">
+  <div class="modal-container" (click)="$event.stopPropagation()">
+    <!-- Close Button -->
+    <button (click)="close()" class="modal-close-btn" title="Close">
+      <i class="fas fa-times"></i>
+    </button>
+
+    <!-- PDF Viewer Mode -->
+    <div *ngIf="showPdfViewer()" class="pdf-viewer-mode">
+      <div class="pdf-header">
+        <button (click)="backToDetails()" class="back-btn">
+          <i class="fas fa-arrow-left mr-2"></i>
+          Back to Details
+        </button>
+        <h3 class="pdf-title">Receipt PDF</h3>
+        <div class="pdf-actions-header">
+          <app-pdf-actions
+            [pdfBlob]="pdfBlob()!"
+            [fileName]="getFileName()"
+            [showView]="false"
+            [showDownload]="true"
+            [showOpenTab]="true"
+            [showPrint]="true">
+          </app-pdf-actions>
+        </div>
+      </div>
+
+      <div class="pdf-content">
+        <!-- Loading State -->
+        <div *ngIf="isLoadingPdf()" class="pdf-loading">
+          <div class="w-12 h-12 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin mx-auto mb-4"></div>
+          <p class="text-slate-600 dark:text-slate-400 font-medium">Loading PDF...</p>
+        </div>
+
+        <!-- Error State -->
+        <div *ngIf="pdfError()" class="pdf-error">
+          <div class="w-16 h-16 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-full flex items-center justify-center mb-4 mx-auto">
+            <i class="fas fa-exclamation-triangle text-2xl"></i>
+          </div>
+          <p class="text-slate-800 dark:text-white font-semibold mb-2">Failed to Load PDF</p>
+          <p class="text-slate-500 dark:text-slate-400 text-sm mb-4">{{ pdfError() }}</p>
+          <button (click)="viewPdf()" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium">
+            <i class="fas fa-redo mr-2"></i>Retry
+          </button>
+        </div>
+
+        <!-- PDF Viewer -->
+        <div *ngIf="!isLoadingPdf() && !pdfError() && pdfBlob()" class="pdf-viewer-wrapper">
+          <app-pdf-viewer
+            [pdfBlob]="pdfBlob()!"
+            [fileName]="getFileName()">
+          </app-pdf-viewer>
+        </div>
+      </div>
+    </div>
+
+    <!-- Details Mode -->
+    <div *ngIf="!showPdfViewer()" class="details-mode">
+      <div class="modal-header">
+        <h3 class="modal-title">Receipt Details</h3>
+      </div>
+
+      <div class="modal-body">
+        <!-- Receipt Summary -->
+        <div class="receipt-summary">
+          <div class="receipt-icon">
+            <i class="fas fa-receipt text-2xl"></i>
+          </div>
+          <div class="receipt-amount">
+            <h2>{{ receipt?.currency || '$' }}{{ receipt?.amount ? (receipt.amount | number:'1.2-2') : '0.00' }}</h2>
+            <p>{{ receipt?.paymentStatus || receipt?.status || 'Paid' }}</p>
+          </div>
+          <div *ngIf="receipt?.escrowTransaction" class="escrow-badge">
+            <i class="fas fa-shield-alt mr-1"></i> Escrow Protected
+          </div>
+        </div>
+
+        <!-- Receipt Details Grid -->
+        <div class="details-grid">
+          <div class="detail-item">
+            <span class="detail-label">Receipt No.</span>
+            <span class="detail-value">{{ receipt?.receiptNumber || '---' }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Date</span>
+            <span class="detail-value">{{ receipt?.createdAt || receipt?.date ? ((receipt.createdAt || receipt.date) | date:'medium') : '---' }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Type</span>
+            <span class="detail-value">{{ receipt?.typeLabel || receipt?.type || '---' }}</span>
+          </div>
+          <div class="detail-item" *ngIf="receipt?.paymentMethod">
+            <span class="detail-label">Payment Method</span>
+            <span class="detail-value">{{ receipt?.paymentMethod }}</span>
+          </div>
+          <div class="detail-item" *ngIf="receipt?.description">
+            <span class="detail-label">Description</span>
+            <span class="detail-value">{{ receipt?.description }}</span>
+          </div>
+          <div class="detail-item" *ngIf="receipt?.issuedToName">
+            <span class="detail-label">Issued To</span>
+            <span class="detail-value">{{ receipt?.issuedToName }}</span>
+          </div>
+          <div class="detail-item" *ngIf="receipt?.issuedToRole">
+            <span class="detail-label">Role</span>
+            <span class="detail-value">{{ receipt?.issuedToRole }}</span>
+          </div>
+          <div class="detail-item" *ngIf="receipt?.transactionReference">
+            <span class="detail-label">Transaction Ref</span>
+            <span class="detail-value detail-mono">{{ receipt?.transactionReference }}</span>
+          </div>
+          <div class="detail-item" *ngIf="receipt?.paymentDate">
+            <span class="detail-label">Payment Date</span>
+            <span class="detail-value">{{ receipt?.paymentDate | date:'medium' }}</span>
+          </div>
+          <div class="detail-item" *ngIf="receipt?.bookingId">
+            <span class="detail-label">Booking ID</span>
+            <span class="detail-value detail-mono">{{ receipt.bookingId.substring(0, 8) }}...</span>
+          </div>
+        </div>
+
+        <!-- Escrow Transaction Details -->
+        <div *ngIf="receipt?.escrowTransaction; let escrow" class="escrow-details">
+          <div class="escrow-header">
+            <i class="fas fa-shield-alt"></i>
+            <span>Escrow Transaction</span>
+          </div>
+          <div class="escrow-info">
+            <div class="escrow-item">
+              <span>Transaction ID:</span>
+              <span class="escrow-mono">{{ escrow?.transactionId ? (escrow.transactionId.substring(0, 12) + '...') : '---' }}</span>
+            </div>
+            <div class="escrow-item">
+              <span>Status:</span>
+              <span class="escrow-status">{{ escrow?.status || '---' }}</span>
+            </div>
+            <div class="escrow-item">
+              <span>Transaction Date:</span>
+              <span>{{ escrow?.transactionDate ? (escrow.transactionDate | date:'short') : '---' }}</span>
+            </div>
+            <div class="escrow-description">
+              <p>{{ escrow?.description || '---' }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="modal-footer">
+        <button (click)="close()" class="btn btn-secondary">
+          Close
+        </button>
+        <button (click)="viewPdf()" class="btn btn-primary" [disabled]="isLoadingPdf()">
+          <i class="fas fa-eye mr-2" [class.fa-spinner]="isLoadingPdf()" [class.fa-spin]="isLoadingPdf()"></i>
+          {{ isLoadingPdf() ? 'Loading...' : 'View PDF' }}
+        </button>
+        <button (click)="downloadPdf()" class="btn btn-success" [disabled]="isLoadingPdf()">
+          <i class="fas fa-download mr-2"></i>
+          Download
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

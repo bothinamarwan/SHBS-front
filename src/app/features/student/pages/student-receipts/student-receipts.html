@@ -64,103 +64,10 @@
     </div>
   </div>
 
-  <!-- Receipt Modal -->
-  <div *ngIf="selectedReceipt(); let receipt" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4 animate-fade-in">
-    <div class="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden flex flex-col max-h-[90vh]">
-      <div class="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
-        <h3 class="text-xl font-bold text-slate-800 dark:text-white">Receipt Details</h3>
-        <button (click)="closeModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 dark:hover:bg-slate-800">
-          <i class="fas fa-times"></i>
-        </button>
-      </div>
-      <div class="p-8 overflow-y-auto">
-        <div class="text-center mb-6">
-          <div class="inline-flex items-center justify-center w-16 h-16 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-2xl mb-4">
-            <i class="fas fa-receipt text-2xl"></i>
-          </div>
-          <h2 class="text-3xl font-bold text-slate-800 dark:text-white">{{ receipt?.currency || '$' }}{{ receipt?.amount ? (receipt.amount | number:'1.2-2') : '0.00' }}</h2>
-          <p class="text-sm text-slate-500 dark:text-slate-400 font-medium">{{ receipt?.paymentStatus || receipt?.status || 'Paid' }}</p>
-          <div *ngIf="receipt?.escrowTransaction" class="mt-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 text-xs font-semibold">
-            <i class="fas fa-shield-alt"></i> Escrow Protected
-          </div>
-        </div>
-        
-        <div class="space-y-4 text-sm">
-          <div class="flex justify-between py-3 border-b border-slate-100 dark:border-slate-800/50">
-            <span class="text-slate-500 dark:text-slate-400">Receipt No.</span>
-            <span class="font-semibold text-slate-800 dark:text-white">{{ receipt?.receiptNumber || '---' }}</span>
-          </div>
-          <div class="flex justify-between py-3 border-b border-slate-100 dark:border-slate-800/50">
-            <span class="text-slate-500 dark:text-slate-400">Date</span>
-            <span class="font-semibold text-slate-800 dark:text-white">{{ receipt?.createdAt || receipt?.date ? ((receipt.createdAt || receipt.date) | date:'medium') : '---' }}</span>
-          </div>
-          <div class="flex justify-between py-3 border-b border-slate-100 dark:border-slate-800/50">
-            <span class="text-slate-500 dark:text-slate-400">Type</span>
-            <span class="font-semibold text-slate-800 dark:text-white">{{ receipt?.typeLabel || receipt?.type || '---' }}</span>
-          </div>
-          <div class="flex justify-between py-3 border-b border-slate-100 dark:border-slate-800/50" *ngIf="receipt?.paymentMethod">
-            <span class="text-slate-500 dark:text-slate-400">Payment Method</span>
-            <span class="font-semibold text-slate-800 dark:text-white">{{ receipt?.paymentMethod }}</span>
-          </div>
-          <div class="flex justify-between py-3 border-b border-slate-100 dark:border-slate-800/50" *ngIf="receipt?.description">
-            <span class="text-slate-500 dark:text-slate-400">Description</span>
-            <span class="font-semibold text-slate-800 dark:text-white">{{ receipt?.description }}</span>
-          </div>
-          <div class="flex justify-between py-3 border-b border-slate-100 dark:border-slate-800/50" *ngIf="receipt?.issuedToName">
-            <span class="text-slate-500 dark:text-slate-400">Issued To</span>
-            <span class="font-semibold text-slate-800 dark:text-white">{{ receipt?.issuedToName }}</span>
-          </div>
-          <div class="flex justify-between py-3 border-b border-slate-100 dark:border-slate-800/50" *ngIf="receipt?.issuedToRole">
-            <span class="text-slate-500 dark:text-slate-400">Role</span>
-            <span class="font-semibold text-slate-800 dark:text-white">{{ receipt?.issuedToRole }}</span>
-          </div>
-          <div class="flex justify-between py-3 border-b border-slate-100 dark:border-slate-800/50" *ngIf="receipt?.transactionReference">
-            <span class="text-slate-500 dark:text-slate-400">Transaction Ref</span>
-            <span class="font-mono text-slate-700 dark:text-slate-300">{{ receipt?.transactionReference }}</span>
-          </div>
-          <div class="flex justify-between py-3 border-b border-slate-100 dark:border-slate-800/50" *ngIf="receipt?.paymentDate">
-            <span class="text-slate-500 dark:text-slate-400">Payment Date</span>
-            <span class="font-semibold text-slate-800 dark:text-white">{{ receipt?.paymentDate | date:'medium' }}</span>
-          </div>
-          <div class="flex justify-between py-3 border-b border-slate-100 dark:border-slate-800/50" *ngIf="receipt?.bookingId">
-            <span class="text-slate-500 dark:text-slate-400">Booking ID</span>
-            <span class="font-mono text-slate-700 dark:text-slate-300">{{ receipt?.bookingId?.substring(0, 8) }}...</span>
-          </div>
-          
-          <!-- Escrow Transaction Details -->
-          <div *ngIf="receipt?.escrowTransaction; let escrow" class="mt-6 p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl border border-emerald-100 dark:border-emerald-800/30">
-            <div class="flex items-center gap-2 mb-3">
-              <i class="fas fa-shield-alt text-emerald-600 dark:text-emerald-400"></i>
-              <span class="font-bold text-slate-800 dark:text-white">Escrow Transaction</span>
-            </div>
-            <div class="space-y-2 text-xs">
-              <div class="flex justify-between">
-                <span class="text-slate-500 dark:text-slate-400">Transaction ID:</span>
-                <span class="font-mono text-slate-700 dark:text-slate-300">{{ escrow?.transactionId ? (escrow.transactionId.substring(0, 12) + '...') : '---' }}</span>
-              </div>
-              <div class="flex justify-between">
-                <span class="text-slate-500 dark:text-slate-400">Status:</span>
-                <span class="font-semibold text-emerald-600 dark:text-emerald-400">{{ escrow?.status || '---' }}</span>
-              </div>
-              <div class="flex justify-between">
-                <span class="text-slate-500 dark:text-slate-400">Transaction Date:</span>
-                <span class="text-slate-700 dark:text-slate-300">{{ escrow?.transactionDate ? (escrow.transactionDate | date:'short') : '---' }}</span>
-              </div>
-              <div class="pt-2 border-t border-emerald-200 dark:border-emerald-800/50 mt-2">
-                <p class="text-slate-600 dark:text-slate-400 italic">{{ escrow?.description || '---' }}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="p-6 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3">
-        <button (click)="closeModal()" class="px-6 py-2.5 rounded-xl font-bold text-sm text-slate-600 hover:bg-slate-200 dark:text-slate-300 dark:hover:bg-slate-700 transition-colors">
-          Close
-        </button>
-        <button (click)="downloadReceipt(receipt)" class="px-6 py-2.5 rounded-xl font-bold text-sm bg-indigo-600 text-white hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200 dark:shadow-none flex items-center gap-2">
-          <i class="fas fa-download"></i> Download PDF
-        </button>
-      </div>
-    </div>
-  </div>
+  <!-- Receipt Details Modal -->
+  <app-receipt-details-modal
+    *ngIf="selectedReceipt()"
+    [receipt]="selectedReceipt()!"
+    [isOpen]="isModalOpen">
+  </app-receipt-details-modal>
 </div>

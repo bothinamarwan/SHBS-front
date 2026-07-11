@@ -1,0 +1,97 @@
+.pdf-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.pdf-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  border: none;
+  outline: none;
+}
+
+.pdf-action-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.pdf-action-download {
+  background-color: #10b981;
+  color: white;
+}
+
+.pdf-action-download:hover:not(:disabled) {
+  background-color: #059669;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.2);
+}
+
+.pdf-action-open {
+  background-color: #6366f1;
+  color: white;
+}
+
+.pdf-action-open:hover:not(:disabled) {
+  background-color: #4f46e5;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.2);
+}
+
+.pdf-action-print {
+  background-color: #8b5cf6;
+  color: white;
+}
+
+.pdf-action-print:hover:not(:disabled) {
+  background-color: #7c3aed;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px -1px rgba(139, 92, 246, 0.2);
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .pdf-action-download {
+    background-color: #059669;
+  }
+
+  .pdf-action-download:hover:not(:disabled) {
+    background-color: #047857;
+  }
+
+  .pdf-action-open {
+    background-color: #4f46e5;
+  }
+
+  .pdf-action-open:hover:not(:disabled) {
+    background-color: #4338ca;
+  }
+
+  .pdf-action-print {
+    background-color: #7c3aed;
+  }
+
+  .pdf-action-print:hover:not(:disabled) {
+    background-color: #6d28d9;
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .pdf-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .pdf-action-btn {
+    justify-content: center;
+  }
+}

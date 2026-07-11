@@ -1,0 +1,30 @@
+<div class="pdf-actions">
+  <button
+    *ngIf="showDownload"
+    (click)="downloadPdf()"
+    [disabled]="isDownloading()"
+    class="pdf-action-btn pdf-action-download"
+    title="Download PDF">
+    <i class="fas" [class.fa-spinner]="isDownloading()" [class.fa-download]="!isDownloading()" [class.fa-spin]="isDownloading()"></i>
+    <span>{{ isDownloading() ? 'Downloading...' : 'Download' }}</span>
+  </button>
+
+  <button
+    *ngIf="showOpenTab"
+    (click)="openInNewTab()"
+    class="pdf-action-btn pdf-action-open"
+    title="Open in New Tab">
+    <i class="fas fa-external-link-alt"></i>
+    <span>Open in New Tab</span>
+  </button>
+
+  <button
+    *ngIf="showPrint"
+    (click)="printPdf()"
+    [disabled]="isPrinting()"
+    class="pdf-action-btn pdf-action-print"
+    title="Print PDF">
+    <i class="fas" [class.fa-spinner]="isPrinting()" [class.fa-print]="!isPrinting()" [class.fa-spin]="isPrinting()"></i>
+    <span>{{ isPrinting() ? 'Printing...' : 'Print' }}</span>
+  </button>
+</div>

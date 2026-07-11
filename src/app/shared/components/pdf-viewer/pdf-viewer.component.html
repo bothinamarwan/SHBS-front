@@ -1,0 +1,35 @@
+<div class="pdf-viewer-container">
+  <!-- Loading State -->
+  <div *ngIf="isLoading()" class="pdf-loading-state">
+    <div class="flex flex-col items-center justify-center p-8">
+      <div class="w-12 h-12 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin mb-4"></div>
+      <p class="text-slate-600 dark:text-slate-400 font-medium">Loading PDF...</p>
+    </div>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error()" class="pdf-error-state">
+    <div class="flex flex-col items-center justify-center p-8 text-center">
+      <div class="w-16 h-16 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-full flex items-center justify-center mb-4">
+        <i class="fas fa-exclamation-triangle text-2xl"></i>
+      </div>
+      <p class="text-slate-800 dark:text-white font-semibold mb-2">Failed to Load PDF</p>
+      <p class="text-slate-500 dark:text-slate-400 text-sm mb-4">{{ error() }}</p>
+      <button (click)="retryLoad()" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium">
+        <i class="fas fa-redo mr-2"></i>Retry
+      </button>
+    </div>
+  </div>
+
+  <!-- PDF Viewer -->
+  <div *ngIf="!isLoading() && !error() && pdfUrl()" class="pdf-viewer-wrapper">
+    <iframe
+      [src]="pdfUrl()"
+      class="pdf-iframe"
+      type="application/pdf"
+      [attr.title]="fileName"
+      frameborder="0"
+      allowfullscreen>
+    </iframe>
+  </div>
+</div>

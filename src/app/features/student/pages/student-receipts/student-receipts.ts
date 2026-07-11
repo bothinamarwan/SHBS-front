@@ -3,17 +3,19 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ReceiptService } from '../../../../core/services/receipt.service';
 import { Receipt } from '../../../../core/models/receipt.model';
+import { ReceiptDetailsModalComponent } from '../../../../shared/components/receipt-details-modal/receipt-details-modal.component';
 
 @Component({
   selector: 'app-student-receipts',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ReceiptDetailsModalComponent],
   templateUrl: './student-receipts.html',
 })
 export class StudentReceipts implements OnInit {
   receipts = signal<Receipt[]>([]);
   isLoading = signal<boolean>(false);
   selectedReceipt = signal<Receipt | null>(null);
+  isModalOpen = signal<boolean>(false);
 
   constructor(private receiptService: ReceiptService) {}
 
@@ -37,9 +39,11 @@ export class StudentReceipts implements OnInit {
 
   viewReceipt(receipt: Receipt) {
     this.selectedReceipt.set(receipt);
+    this.isModalOpen.set(true);
   }
 
   closeModal() {
+    this.isModalOpen.set(false);
     this.selectedReceipt.set(null);
   }
 
