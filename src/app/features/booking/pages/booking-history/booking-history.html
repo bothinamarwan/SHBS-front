@@ -69,7 +69,7 @@
           <button routerLink="/student/booking/{{ booking.bookingId }}" class="flex-1 md:flex-none px-6 py-3 bg-neutral-50 text-neutral-600 rounded-2xl font-bold hover:bg-neutral-100 transition-all text-sm">
             Details
           </button>
-          <a *ngIf="booking.bookingStatus === 1" routerLink="/student/booking/pay/{{ booking.bookingId }}" class="flex-1 md:flex-none px-6 py-3 bg-indigo-600 text-white rounded-2xl font-bold hover:bg-indigo-700 shadow-lg shadow-indigo-100 transition-all text-sm text-center">
+          <a *ngIf="booking.bookingStatus == 0" routerLink="/student/booking/pay/{{ booking.bookingId }}" class="flex-1 md:flex-none px-6 py-3 bg-indigo-600 text-white rounded-2xl font-bold hover:bg-indigo-700 shadow-lg shadow-indigo-100 transition-all text-sm text-center">
             Pay Now
           </a>
           <button *ngIf="booking.bookingStatus === 1 || booking.bookingStatus === 4" class="flex-1 md:flex-none px-6 py-3 bg-indigo-50 text-indigo-600 rounded-2xl font-bold hover:bg-indigo-100 transition-all text-sm">
