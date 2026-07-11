@@ -1,5 +1,5 @@
 {
-  "buildCommand": "ng build",
+  "buildCommand": "npx ng build",
   "outputDirectory": "dist/SHBS-1/browser",
   "framework": null,
   "headers": [
