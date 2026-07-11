@@ -71,7 +71,13 @@ export class PaymentHistoryPage implements OnInit {
     this.selectedPayment.set(null);
   }
 
-  downloadReceipt(paymentId: string) {
+  downloadReceipt(payment: PaymentHistory) {
+    const paymentId = payment.paymentId || (payment as any).id;
+    if (!paymentId) {
+      alert('Payment ID not found. Cannot download receipt.');
+      return;
+    }
+
     this.paymentService.downloadReceipt(paymentId).subscribe({
       next: (blob) => {
         const url = URL.createObjectURL(blob);
