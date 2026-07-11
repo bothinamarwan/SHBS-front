@@ -13,7 +13,7 @@ export class PdfViewerComponent implements OnInit, OnDestroy {
   @Input() pdfBlob!: Blob;
   @Input() fileName: string = 'document.pdf';
 
-  pdfUrl = signal<SafeResourceUrl | null>(null);
+  pdfDataUrl = signal<SafeResourceUrl | null>(null);
   isLoading = signal<boolean>(true);
   error = signal<string | null>(null);
   private objectUrl: string | null = null;
@@ -38,10 +38,17 @@ export class PdfViewerComponent implements OnInit, OnDestroy {
         throw new Error('Invalid file type. Expected PDF.');
       }
 
-      // Create object URL
-      this.objectUrl = URL.createObjectURL(this.pdfBlob);
-      this.pdfUrl.set(this.sanitizer.bypassSecurityTrustResourceUrl(this.objectUrl));
-      this.isLoading.set(false);
+      // Convert blob to data URL for better browser compatibility
+      const reader = new FileReader();
+      reader.onload = () => {
+        const dataUrl = reader.result as string;
+        this.pdfDataUrl.set(this.sanitizer.bypassSecurityTrustResourceUrl(dataUrl));
+        this.isLoading.set(false);
+      };
+      reader.onerror = () => {
+        throw new Error('Failed to read PDF file');
+      };
+      reader.readAsDataURL(this.pdfBlob);
     } catch (err) {
       this.error.set(err instanceof Error ? err.message : 'Failed to load PDF');
       this.isLoading.set(false);

@@ -22,9 +22,9 @@
   </div>
 
   <!-- PDF Viewer -->
-  <div *ngIf="!isLoading() && !error() && pdfUrl()" class="pdf-viewer-wrapper">
+  <div *ngIf="!isLoading() && !error() && pdfDataUrl()" class="pdf-viewer-wrapper">
     <iframe
-      [src]="pdfUrl()"
+      [src]="pdfDataUrl()"
       class="pdf-iframe"
       type="application/pdf"
       [attr.title]="fileName"
