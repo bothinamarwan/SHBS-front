@@ -22,9 +22,10 @@ export class AdminReports implements OnInit {
     // Optionally load initial report for the current month
     const today = new Date();
     const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+    const futureDate = new Date(2028, 11, 31); // December 31, 2028
     
     this.dateFrom.set(firstDay.toISOString().split('T')[0]);
-    this.dateTo.set(today.toISOString().split('T')[0]);
+    this.dateTo.set(futureDate.toISOString().split('T')[0]);
     
     this.fetchReport();
   }
