@@ -1,5 +1,6 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { BookingService } from '../../../../core/services/booking.service';
 import { Booking } from '../../../../core/models/booking.model';
 import { LandlordService } from '../../../../core/services/landlord.service';
@@ -8,7 +9,7 @@ import { finalize } from 'rxjs/operators';
 @Component({
   selector: 'app-student-bookings',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterLink],
   templateUrl: './student-bookings.html',
   styleUrl: './student-bookings.css',
 })
