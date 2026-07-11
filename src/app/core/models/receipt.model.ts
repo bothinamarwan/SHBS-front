@@ -1,17 +1,37 @@
+export enum ReceiptType {
+  BookingPayment = 0,
+  Deposit = 1,
+  Commission = 2,
+  Refund = 3
+}
+
 export interface Receipt {
-  id: string;
-  receiptNumber: string;
-  userId: string;
+  receiptId: string;
   paymentId: string;
+  bookingId: string;
+  receiptNumber: string;
   amount: number;
-  date: string;
-  type: string; // e.g. "Rent", "Deposit", "Commission"
-  status: string; // e.g. "Paid", "Pending"
+  currency: string;
+  type: ReceiptType;
+  typeLabel: string;
+  issuedToUserId: string;
+  issuedToName: string;
+  issuedToRole: string;
+  transactionReference: string;
+  paymentMethod: string;
+  paymentStatus: string;
+  paymentDate?: string;
+  receiptPdfUrl: string;
+  createdAt: string;
+  
+  // Legacy field mappings for backward compatibility
+  id?: string;
+  userId?: string;
+  date?: string;
+  status?: string;
   description?: string;
-  paymentMethod?: string;
   studentName?: string;
   landlordName?: string;
-  bookingId?: string;
   housingUnitId?: string;
   escrowTransaction?: EscrowTransaction;
 }

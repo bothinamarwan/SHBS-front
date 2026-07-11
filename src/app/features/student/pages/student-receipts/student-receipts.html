@@ -34,12 +34,12 @@
                 {{ receipt?.receiptNumber || '---' }}
               </td>
               <td class="px-6 py-4 text-slate-600 dark:text-slate-400">
-                {{ receipt?.date | date:'mediumDate' }}
+                {{ receipt?.createdAt || receipt?.date | date:'mediumDate' }}
               </td>
               <td class="px-6 py-4">
                 <div class="flex flex-col gap-1">
                   <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300">
-                    {{ receipt?.type }}
+                    {{ receipt?.typeLabel || receipt?.type }}
                   </span>
                   <span *ngIf="receipt?.escrowTransaction" class="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">
                     <i class="fas fa-shield-alt mr-1"></i> Escrow Protected
@@ -47,13 +47,13 @@
                 </div>
               </td>
               <td class="px-6 py-4 font-bold text-slate-800 dark:text-slate-100">
-                ${{ receipt?.amount | number:'1.2-2' }}
+                {{ receipt?.currency || '$' }}{{ receipt?.amount | number:'1.2-2' }}
               </td>
               <td class="px-6 py-4 text-right">
                 <button (click)="viewReceipt(receipt)" class="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 mx-2 transition-colors" title="View Details">
                   <i class="fas fa-eye"></i>
                 </button>
-                <button (click)="downloadReceipt(receipt?.id, receipt?.receiptNumber)" class="text-emerald-600 hover:text-emerald-800 dark:text-emerald-400 dark:hover:text-emerald-300 mx-2 transition-colors" title="Download PDF">
+                <button (click)="downloadReceipt(receipt)" class="text-emerald-600 hover:text-emerald-800 dark:text-emerald-400 dark:hover:text-emerald-300 mx-2 transition-colors" title="Download PDF">
                   <i class="fas fa-download"></i>
                 </button>
               </td>
@@ -78,8 +78,8 @@
           <div class="inline-flex items-center justify-center w-16 h-16 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-2xl mb-4">
             <i class="fas fa-receipt text-2xl"></i>
           </div>
-          <h2 class="text-3xl font-bold text-slate-800 dark:text-white">${{ receipt?.amount ? (receipt.amount | number:'1.2-2') : '0.00' }}</h2>
-          <p class="text-sm text-slate-500 dark:text-slate-400 font-medium">{{ receipt?.status || 'Paid' }}</p>
+          <h2 class="text-3xl font-bold text-slate-800 dark:text-white">{{ receipt?.currency || '$' }}{{ receipt?.amount ? (receipt.amount | number:'1.2-2') : '0.00' }}</h2>
+          <p class="text-sm text-slate-500 dark:text-slate-400 font-medium">{{ receipt?.paymentStatus || receipt?.status || 'Paid' }}</p>
           <div *ngIf="receipt?.escrowTransaction" class="mt-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 text-xs font-semibold">
             <i class="fas fa-shield-alt"></i> Escrow Protected
           </div>
@@ -92,11 +92,11 @@
           </div>
           <div class="flex justify-between py-3 border-b border-slate-100 dark:border-slate-800/50">
             <span class="text-slate-500 dark:text-slate-400">Date</span>
-            <span class="font-semibold text-slate-800 dark:text-white">{{ receipt?.date ? (receipt.date | date:'medium') : '---' }}</span>
+            <span class="font-semibold text-slate-800 dark:text-white">{{ receipt?.createdAt || receipt?.date ? ((receipt.createdAt || receipt.date) | date:'medium') : '---' }}</span>
           </div>
           <div class="flex justify-between py-3 border-b border-slate-100 dark:border-slate-800/50">
             <span class="text-slate-500 dark:text-slate-400">Type</span>
-            <span class="font-semibold text-slate-800 dark:text-white">{{ receipt?.type || '---' }}</span>
+            <span class="font-semibold text-slate-800 dark:text-white">{{ receipt?.typeLabel || receipt?.type || '---' }}</span>
           </div>
           <div class="flex justify-between py-3 border-b border-slate-100 dark:border-slate-800/50" *ngIf="receipt?.paymentMethod">
             <span class="text-slate-500 dark:text-slate-400">Payment Method</span>
@@ -105,6 +105,26 @@
           <div class="flex justify-between py-3 border-b border-slate-100 dark:border-slate-800/50" *ngIf="receipt?.description">
             <span class="text-slate-500 dark:text-slate-400">Description</span>
             <span class="font-semibold text-slate-800 dark:text-white">{{ receipt?.description }}</span>
+          </div>
+          <div class="flex justify-between py-3 border-b border-slate-100 dark:border-slate-800/50" *ngIf="receipt?.issuedToName">
+            <span class="text-slate-500 dark:text-slate-400">Issued To</span>
+            <span class="font-semibold text-slate-800 dark:text-white">{{ receipt?.issuedToName }}</span>
+          </div>
+          <div class="flex justify-between py-3 border-b border-slate-100 dark:border-slate-800/50" *ngIf="receipt?.issuedToRole">
+            <span class="text-slate-500 dark:text-slate-400">Role</span>
+            <span class="font-semibold text-slate-800 dark:text-white">{{ receipt?.issuedToRole }}</span>
+          </div>
+          <div class="flex justify-between py-3 border-b border-slate-100 dark:border-slate-800/50" *ngIf="receipt?.transactionReference">
+            <span class="text-slate-500 dark:text-slate-400">Transaction Ref</span>
+            <span class="font-mono text-slate-700 dark:text-slate-300">{{ receipt?.transactionReference }}</span>
+          </div>
+          <div class="flex justify-between py-3 border-b border-slate-100 dark:border-slate-800/50" *ngIf="receipt?.paymentDate">
+            <span class="text-slate-500 dark:text-slate-400">Payment Date</span>
+            <span class="font-semibold text-slate-800 dark:text-white">{{ receipt?.paymentDate | date:'medium' }}</span>
+          </div>
+          <div class="flex justify-between py-3 border-b border-slate-100 dark:border-slate-800/50" *ngIf="receipt?.bookingId">
+            <span class="text-slate-500 dark:text-slate-400">Booking ID</span>
+            <span class="font-mono text-slate-700 dark:text-slate-300">{{ receipt?.bookingId?.substring(0, 8) }}...</span>
           </div>
           
           <!-- Escrow Transaction Details -->
@@ -137,7 +157,7 @@
         <button (click)="closeModal()" class="px-6 py-2.5 rounded-xl font-bold text-sm text-slate-600 hover:bg-slate-200 dark:text-slate-300 dark:hover:bg-slate-700 transition-colors">
           Close
         </button>
-        <button (click)="downloadReceipt(receipt?.id, receipt?.receiptNumber)" class="px-6 py-2.5 rounded-xl font-bold text-sm bg-indigo-600 text-white hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200 dark:shadow-none flex items-center gap-2">
+        <button (click)="downloadReceipt(receipt)" class="px-6 py-2.5 rounded-xl font-bold text-sm bg-indigo-600 text-white hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200 dark:shadow-none flex items-center gap-2">
           <i class="fas fa-download"></i> Download PDF
         </button>
       </div>

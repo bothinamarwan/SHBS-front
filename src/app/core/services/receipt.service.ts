@@ -22,7 +22,21 @@ export class ReceiptService {
   }
 
   downloadReceipt(receiptId: string): Observable<Blob> {
-    return this.http.get(`${this.baseUrl}/${receiptId}/download`, { responseType: 'blob' });
+    return this.http.get(`${this.baseUrl}/${receiptId}/download`, { 
+      responseType: 'blob',
+      observe: 'response'
+    }).pipe(
+      map(response => response.body as Blob)
+    );
+  }
+
+  downloadReceiptByUrl(pdfUrl: string): Observable<Blob> {
+    return this.http.get(pdfUrl, { 
+      responseType: 'blob',
+      observe: 'response'
+    }).pipe(
+      map(response => response.body as Blob)
+    );
   }
 
   getReceiptByPayment(paymentId: string): Observable<Receipt> {

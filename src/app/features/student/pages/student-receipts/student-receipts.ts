@@ -43,26 +43,44 @@ export class StudentReceipts implements OnInit {
     this.selectedReceipt.set(null);
   }
 
-  downloadReceipt(receiptId: string | undefined, receiptNumber: string | undefined) {
-    if (!receiptId || !receiptNumber) {
-      console.error('Missing receipt ID or number');
+  downloadReceipt(receipt: Receipt) {
+    // Try to download from receiptPdfUrl first, fallback to API endpoint
+    if (receipt.receiptPdfUrl) {
+      this.receiptService.downloadReceiptByUrl(receipt.receiptPdfUrl).subscribe({
+        next: (blob) => this.downloadBlob(blob, receipt.receiptNumber),
+        error: (err) => {
+          console.error('Error downloading from URL, trying API endpoint', err);
+          this.downloadFromApi(receipt);
+        }
+      });
+    } else {
+      this.downloadFromApi(receipt);
+    }
+  }
+
+  private downloadFromApi(receipt: Receipt) {
+    const receiptId = receipt.receiptId || receipt.id;
+    if (!receiptId) {
+      console.error('Missing receipt ID');
       return;
     }
 
     this.receiptService.downloadReceipt(receiptId).subscribe({
-      next: (blob) => {
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `Receipt_${receiptNumber}.pdf`;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        a.remove();
-      },
+      next: (blob) => this.downloadBlob(blob, receipt.receiptNumber),
       error: (err) => {
         console.error('Error downloading receipt', err);
       }
     });
+  }
+
+  private downloadBlob(blob: Blob, receiptNumber: string) {
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Receipt_${receiptNumber}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    a.remove();
   }
 }
