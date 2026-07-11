@@ -69,7 +69,7 @@
 
     <!-- Actions -->
     <div class="flex gap-3 mt-4 pt-4 border-t border-neutral-100 dark:border-slate-800">
-      <button (click)="downloadContract()" 
+      <button *ngIf="canDownloadContract(contract)" (click)="downloadContractPdf(contract.bookingId)" 
               class="flex-1 px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-2">
         <i class="fas fa-download"></i>
         Download PDF

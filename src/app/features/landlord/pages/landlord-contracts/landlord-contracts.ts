@@ -120,11 +120,29 @@ export class LandlordContracts implements OnInit {
     });
   }
 
-  downloadContract() {
-    const pdfUrl = this.selectedContract()?.originalContractPdfPath;
-    if (pdfUrl) {
-      window.open(pdfUrl, '_blank');
-    }
+  downloadContractPdf(bookingId: string) {
+    this.contractService.getPdf(bookingId).subscribe({
+      next: (blob: Blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Contract_${bookingId}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        a.remove();
+      },
+      error: (err) => {
+        console.error('Error downloading contract PDF:', err);
+        alert('Failed to download contract PDF. Please try again.');
+      }
+    });
+  }
+
+  canDownloadContract(contract: Contract): boolean {
+    // Allow download when waiting for student signature (2) or waiting for landlord signature (3)
+    return contract.status === ContractStatus.WaitingForStudentSignature || 
+           contract.status === ContractStatus.WaitingForLandlordSignature;
   }
 
   getContractStatusLabel(status: ContractStatus): string {

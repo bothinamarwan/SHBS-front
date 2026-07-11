@@ -4,6 +4,7 @@ import { RouterLink } from '@angular/router';
 import { BookingService } from '../../../../core/services/booking.service';
 import { Booking } from '../../../../core/models/booking.model';
 import { LandlordService } from '../../../../core/services/landlord.service';
+import { ContractService } from '../../../../core/services/contract.service';
 import { finalize } from 'rxjs/operators';
 
 @Component({
@@ -16,6 +17,7 @@ import { finalize } from 'rxjs/operators';
 export class StudentBookings implements OnInit {
   private bookingService = inject(BookingService);
   private landlordService = inject(LandlordService);
+  private contractService = inject(ContractService);
 
   bookings = signal<Booking[]>([]);
   isLoading = signal(true);
@@ -149,5 +151,30 @@ export class StudentBookings implements OnInit {
       month: 'short',
       day: 'numeric'
     });
+  }
+
+  downloadContractPdf(bookingId: string) {
+    this.contractService.getPdf(bookingId).subscribe({
+      next: (blob: Blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Contract_${bookingId}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        a.remove();
+      },
+      error: (err) => {
+        console.error('Error downloading contract PDF:', err);
+        alert('Failed to download contract PDF. Please try again.');
+      }
+    });
+  }
+
+  canDownloadContract(status: number | string): boolean {
+    const statusNum = typeof status === 'string' ? parseInt(status) : status;
+    // Allow download when waiting for student signature (3) or waiting for landlord signature (4)
+    return statusNum === 3 || statusNum === 4;
   }
 }
