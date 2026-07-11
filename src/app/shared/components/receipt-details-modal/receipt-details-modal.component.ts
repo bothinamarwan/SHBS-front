@@ -99,13 +99,28 @@ export class ReceiptDetailsModalComponent implements OnDestroy {
   }
 
   downloadPdf() {
-    // Open PDF in new tab using the API endpoint
+    // Fetch blob and trigger download
     const receiptId = this.receipt.receiptId;
     if (!receiptId) {
       alert('Receipt ID not found. Cannot download receipt.');
       return;
     }
 
-    window.open(`/api/Receipt/${receiptId}/download`, '_blank');
+    this.receiptService.downloadReceipt(receiptId).subscribe({
+      next: (blob) => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = this.getFileName();
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      },
+      error: (err) => {
+        console.error('Download error:', err);
+        alert('Failed to download receipt. Please try again.');
+      }
+    });
   }
 }

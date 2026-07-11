@@ -48,14 +48,20 @@ export class StudentReceipts implements OnInit {
   }
 
   downloadReceipt(receipt: Receipt) {
-    // Open PDF in new tab using the API endpoint
+    // Fetch blob and trigger download
     const receiptId = receipt.receiptId;
     if (!receiptId) {
       console.error('Missing receipt ID');
       return;
     }
 
-    window.open(`/api/Receipt/${receiptId}/download`, '_blank');
+    this.receiptService.downloadReceipt(receiptId).subscribe({
+      next: (blob) => this.downloadBlob(blob, receipt.receiptNumber),
+      error: (err) => {
+        console.error('Error downloading receipt', err);
+        alert('Failed to download receipt. Please try again.');
+      }
+    });
   }
 
   private downloadBlob(blob: Blob, receiptNumber: string) {
