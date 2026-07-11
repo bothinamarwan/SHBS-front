@@ -43,8 +43,17 @@ export class ReceiptDetailsModalComponent implements OnDestroy {
   }
 
   viewPdf() {
-    this.loadPdf();
-    this.showPdfViewer.set(true);
+    // Open PDF in new tab using the receiptPdfUrl
+    const pdfUrl = this.receipt.receiptPdfUrl;
+    if (pdfUrl && !pdfUrl.startsWith('file://')) {
+      window.open(pdfUrl, '_blank');
+    } else {
+      // Fallback to API endpoint
+      const receiptId = this.receipt.receiptId;
+      if (receiptId) {
+        window.open(`/api/Receipt/${receiptId}/download`, '_blank');
+      }
+    }
   }
 
   private loadPdf() {
