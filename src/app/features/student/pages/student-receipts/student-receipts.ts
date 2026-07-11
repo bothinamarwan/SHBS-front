@@ -48,19 +48,8 @@ export class StudentReceipts implements OnInit {
   }
 
   downloadReceipt(receipt: Receipt) {
-    // Try to download from receiptPdfUrl first, fallback to API endpoint
-    // Skip file:// URLs as browsers block them for security reasons
-    if (receipt.receiptPdfUrl && !receipt.receiptPdfUrl.startsWith('file://')) {
-      this.receiptService.downloadReceiptByUrl(receipt.receiptPdfUrl).subscribe({
-        next: (blob) => this.downloadBlob(blob, receipt.receiptNumber),
-        error: (err) => {
-          console.error('Error downloading from URL, trying API endpoint', err);
-          this.downloadFromApi(receipt);
-        }
-      });
-    } else {
-      this.downloadFromApi(receipt);
-    }
+    // Always use the API endpoint to avoid file:// URL issues
+    this.downloadFromApi(receipt);
   }
 
   private downloadFromApi(receipt: Receipt) {

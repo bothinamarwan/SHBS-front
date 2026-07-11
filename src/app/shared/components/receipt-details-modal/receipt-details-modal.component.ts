@@ -60,19 +60,8 @@ export class ReceiptDetailsModalComponent implements OnDestroy {
       return;
     }
 
-    // Try to download from receiptPdfUrl first, fallback to API endpoint
-    // Skip file:// URLs as browsers block them for security reasons
-    if (this.receipt.receiptPdfUrl && !this.receipt.receiptPdfUrl.startsWith('file://')) {
-      this.receiptService.downloadReceiptByUrl(this.receipt.receiptPdfUrl).subscribe({
-        next: (blob) => this.handlePdfSuccess(blob),
-        error: (err) => {
-          console.error('Error downloading from URL, trying API endpoint', err);
-          this.loadFromApi(receiptId);
-        }
-      });
-    } else {
-      this.loadFromApi(receiptId);
-    }
+    // Always use the API endpoint to avoid file:// URL issues
+    this.loadFromApi(receiptId);
   }
 
   private loadFromApi(receiptId: string) {
