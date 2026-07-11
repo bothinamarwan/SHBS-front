@@ -47,18 +47,30 @@ export class AdminReports implements OnInit {
     });
   }
 
-  // Helper assuming the backend returns a flat number or an object like { totalCommissions: number, reportItems: [] }
+  // Helper assuming the backend returns a flat number or an object like { totalRevenue: number, records: [] }
   getTotal(): number {
     const data = this.reportData();
     if (!data) return 0;
     if (typeof data === 'number') return data;
-    return data.totalCommissions || data.totalAmount || 0;
+    return data.totalRevenue || data.totalCommissions || data.totalAmount || 0;
   }
 
   getItems(): any[] {
     const data = this.reportData();
     if (!data) return [];
     if (Array.isArray(data)) return data;
-    return data.reportItems || data.items || data.commissions || [];
+    return data.records || data.reportItems || data.items || data.commissions || [];
+  }
+
+  getTotalBookings(): number {
+    const data = this.reportData();
+    if (!data) return 0;
+    return data.totalBookings || 0;
+  }
+
+  getAverageCommission(): number {
+    const data = this.reportData();
+    if (!data) return 0;
+    return data.averageCommission || 0;
   }
 }
