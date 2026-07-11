@@ -104,6 +104,13 @@ export interface AdminEscrowRefundRequest {
   refundReason: string;
 }
 
+export interface AdminBookingApprovalRequest {
+  contractId: string;
+  adminUserId: string;
+  adminNotes: string;
+  isApproved: boolean;
+}
+
 // Minimal models for listing tables
 export interface AdminContract {
   id?: string;

@@ -8,7 +8,8 @@ import {
   ComplaintUpdateRequest,
   AdminContractRequest,
   AdminEscrowReleaseRequest,
-  AdminEscrowRefundRequest
+  AdminEscrowRefundRequest,
+  AdminBookingApprovalRequest
 } from '../models/admin.model';
 
 @Injectable({
@@ -133,5 +134,14 @@ export class AdminService {
 
   refundEscrow(request: AdminEscrowRefundRequest): Observable<any> {
     return this.http.post(`${this.approvalUrl}/refund-escrow`, request);
+  }
+
+  // ─── Booking Approvals ─────────────────────────────────────────────────
+  approveBooking(bookingId: string, request: AdminBookingApprovalRequest): Observable<any> {
+    return this.http.post(`${this.approvalUrl}/approve-booking/${bookingId}`, request);
+  }
+
+  rejectBooking(bookingId: string, request: AdminBookingApprovalRequest): Observable<any> {
+    return this.http.post(`${this.approvalUrl}/reject-booking/${bookingId}`, request);
   }
 }

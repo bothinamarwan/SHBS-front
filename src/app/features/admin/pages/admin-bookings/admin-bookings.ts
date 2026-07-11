@@ -1,8 +1,10 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { BookingService } from '../../../../core/services/booking.service';
 import { ContractService } from '../../../../core/services/contract.service';
 import { AuthService } from '../../../../core/services/auth.service';
+import { AdminService } from '../../../../core/services/admin.service';
 import { Booking } from '../../../../core/models/booking.model';
 import { LandlordService } from '../../../../core/services/landlord.service';
 import { StudentService } from '../../../../core/services/student.service';
@@ -11,7 +13,7 @@ import { finalize } from 'rxjs/operators';
 @Component({
   selector: 'app-admin-bookings',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './admin-bookings.html'
 })
 export class AdminBookings implements OnInit {
@@ -20,6 +22,7 @@ export class AdminBookings implements OnInit {
   private studentService = inject(StudentService);
   private contractService = inject(ContractService);
   private authService = inject(AuthService);
+  private adminService = inject(AdminService);
 
   bookings = signal<Booking[]>([]);
   isLoading = signal(true);
@@ -31,15 +34,25 @@ export class AdminBookings implements OnInit {
   selectedBookingId = signal<string | null>(null);
   selectedFile = signal<File | null>(null);
 
+  // Approval modal state
+  isApprovalModalOpen = signal(false);
+  approvalAction = signal<'approve' | 'reject'>('approve');
+  approvalBooking = signal<Booking | null>(null);
+  adminNotes = signal('');
+  isSubmitting = signal(false);
+  toastMessage = signal<{ text: string; success: boolean } | null>(null);
+
   ngOnInit() {
     this.fetchBookings();
   }
 
+  get adminUserId(): string {
+    return this.authService.currentUserValue?.id || '';
+  }
+
   fetchBookings() {
     this.isLoading.set(true);
-    // Clear existing bookings to force refresh
     this.bookings.set([]);
-    // Since we don't have paging parameters in the signature yet, we'll just call getAll() and handle response format
     this.bookingService.getAll().pipe(
       finalize(() => this.isLoading.set(false))
     ).subscribe({
@@ -53,12 +66,6 @@ export class AdminBookings implements OnInit {
           this.totalRecords.set(res.length);
         }
 
-        console.log('Bookings from API:', bookings);
-        bookings.forEach(b => {
-          console.log(`Booking ${b.bookingId}: status=${b.bookingStatus}, label=${this.getStatusLabel(b.bookingStatus)}`);
-        });
-
-        // Enrich bookings with landlord and student names
         const enrichedBookings = await this.enrichBookingsWithNames(bookings);
         this.bookings.set(enrichedBookings);
       },
@@ -68,28 +75,22 @@ export class AdminBookings implements OnInit {
 
   private async enrichBookingsWithNames(bookings: Booking[]): Promise<Booking[]> {
     const enriched = await Promise.all(bookings.map(async (booking) => {
-      // Fetch landlord name if landlordId exists
       if (booking.landlordId && !booking.landlordName) {
         try {
           const landlord = await this.landlordService.getById(booking.landlordId).toPromise();
           if (landlord) {
             booking.landlordName = landlord.fullName;
           }
-        } catch (e) {
-          console.error('Failed to fetch landlord name for booking:', booking.bookingId, e);
-        }
+        } catch (e) {}
       }
 
-      // Fetch student name if studentId exists
       if (booking.studentId && !booking.studentName) {
         try {
           const student = await this.studentService.getStudentById(booking.studentId).toPromise();
           if (student) {
             booking.studentName = student.fullName;
           }
-        } catch (e) {
-          console.error('Failed to fetch student name for booking:', booking.bookingId, e);
-        }
+        } catch (e) {}
       }
 
       return booking;
@@ -98,28 +99,50 @@ export class AdminBookings implements OnInit {
     return enriched;
   }
 
-  updateStatus(booking: Booking, status: number) {
-    if (confirm(`Are you sure you want to change this booking's status?`)) {
-      this.bookingService.update({
-        bookingId: booking.bookingId,
-        startDate: booking.startDate,
-        endDate: booking.endDate,
-        bookingStatus: status
-      }).subscribe({
-        next: () => {
-          this.fetchBookings();
-        },
-        error: (err) => console.error('Error updating booking', err)
-      });
-    }
+  // --- Approval Modal ---
+  openApprovalModal(booking: Booking, action: 'approve' | 'reject') {
+    this.approvalBooking.set(booking);
+    this.approvalAction.set(action);
+    this.adminNotes.set('');
+    this.isApprovalModalOpen.set(true);
+  }
+
+  closeApprovalModal() {
+    this.isApprovalModalOpen.set(false);
+    this.approvalBooking.set(null);
+  }
+
+  submitBookingApproval() {
+    const booking = this.approvalBooking();
+    if (!booking) return;
+
+    this.isSubmitting.set(true);
+    const isApproved = this.approvalAction() === 'approve';
+
+    this.adminService.approveBooking(booking.bookingId, {
+      contractId: booking.contractId || '',
+      adminUserId: this.adminUserId,
+      adminNotes: this.adminNotes(),
+      isApproved: isApproved
+    }).subscribe({
+      next: () => {
+        this.showToast(`Booking ${isApproved ? 'approved' : 'rejected'} successfully`, true);
+        this.closeApprovalModal();
+        this.fetchBookings();
+        this.isSubmitting.set(false);
+      },
+      error: (err) => {
+        console.error('Booking approval error:', err);
+        this.showToast(`Failed to ${isApproved ? 'approve' : 'reject'} booking`, false);
+        this.isSubmitting.set(false);
+      }
+    });
   }
 
   cancelBooking(id: string) {
     if (confirm('Are you sure you want to completely cancel this booking? This action cannot be undone.')) {
       this.bookingService.cancel(id).subscribe({
-        next: () => {
-          this.fetchBookings();
-        },
+        next: () => this.fetchBookings(),
         error: (err) => console.error('Error cancelling booking', err)
       });
     }
@@ -204,7 +227,6 @@ export class AdminBookings implements OnInit {
       return;
     }
 
-    // Upload the contract directly (booking is already at Waiting for Contract status)
     this.contractService.adminUploadContract({
       bookingId: bookingId,
       contractPdf: this.selectedFile()!,
@@ -220,5 +242,10 @@ export class AdminBookings implements OnInit {
         alert('Failed to upload contract. Please try again.');
       }
     });
+  }
+
+  private showToast(text: string, success: boolean) {
+    this.toastMessage.set({ text, success });
+    setTimeout(() => this.toastMessage.set(null), 3000);
   }
 }
