@@ -27,6 +27,6 @@ export class PaymentHistoryService {
   }
 
   downloadReceipt(paymentId: string): Observable<Blob> {
-    return this.http.get(`${this.baseUrl}/receipt/${paymentId}`, { responseType: 'blob' });
+    return this.http.get(`/api/Receipt/payment/${paymentId}`, { responseType: 'blob' });
   }
 }
