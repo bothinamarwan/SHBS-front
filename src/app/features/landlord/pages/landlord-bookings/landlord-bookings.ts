@@ -1,18 +1,17 @@
 import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule } from '@angular/forms';
+import { FormsModule } from '@angular/forms';
 import { LandlordService } from '../../../../core/services/landlord.service';
 import { BookingService } from '../../../../core/services/booking.service';
 import { ContractService } from '../../../../core/services/contract.service';
 import { Booking } from '../../../../core/models/booking.model';
-import { LandlordSignatureRequest } from '../../../../core/models/contract.model';
 
 type BookingFilter = 'all' | number;
 
 @Component({
   selector: 'app-landlord-bookings',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './landlord-bookings.html'
 })
 export class LandlordBookings implements OnInit {
@@ -50,7 +49,7 @@ export class LandlordBookings implements OnInit {
   // Contract signing state
   selectedBooking = signal<(Booking & { studentName?: string; propertyTitle?: string }) | null>(null);
   isContractOpen = signal(false);
-  landlordSignature = signal('');
+  selectedFile = signal<File | null>(null);
   isSigning = signal(false);
   contractSigned = signal(false);
 
@@ -100,29 +99,76 @@ export class LandlordBookings implements OnInit {
 
   openContractModal(booking: Booking & { studentName?: string; propertyTitle?: string }) {
     this.selectedBooking.set(booking);
-    this.landlordSignature.set('');
+    this.selectedFile.set(null);
     this.contractSigned.set(false);
     this.isContractOpen.set(true);
   }
 
-  closeContract() { this.isContractOpen.set(false); }
+  closeContract() { 
+    this.isContractOpen.set(false);
+    this.selectedFile.set(null);
+  }
+
+  onFileSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files[0]) {
+      this.selectedFile.set(input.files[0]);
+    }
+  }
+
+  downloadContractPdf(bookingId: string) {
+    // First get contract by booking ID, then download PDF using contract ID
+    this.contractService.getByBookingId(bookingId).subscribe({
+      next: (contract) => {
+        if (!contract) {
+          alert('Contract not found for this booking.');
+          return;
+        }
+        this.contractService.getPdf(contract.contractId).subscribe({
+          next: (blob: Blob) => {
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Contract_${contract.contractId}.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            a.remove();
+          },
+          error: (err) => {
+            console.error('Error downloading contract PDF:', err);
+            alert('Failed to download contract PDF. Please try again.');
+          }
+        });
+      },
+      error: (err) => {
+        console.error('Error fetching contract:', err);
+        alert('Contract not found for this booking.');
+      }
+    });
+  }
 
   signContract() {
-    if (!this.landlordSignature().trim()) return;
     const contractId = this.selectedBooking()?.contractId;
     const bookingId = this.selectedBooking()?.bookingId;
+    const file = this.selectedFile();
+    
     if (!contractId || !bookingId) {
       alert('Contract ID or Booking ID not found');
+      return;
+    }
+    if (!file) {
+      alert('Please select a signed contract file.');
       return;
     }
 
     this.isSigning.set(true);
 
-    const req: LandlordSignatureRequest = {
-      signedPdfUrl: this.landlordSignature()
-    };
+    // Create FormData with the file
+    const formData = new FormData();
+    formData.append('signedFile', file);
 
-    this.contractService.landlordSign(contractId, req).subscribe({
+    this.contractService.landlordSignWithFile(contractId, formData).subscribe({
       next: (updatedContract) => {
         this.isSigning.set(false);
         this.contractSigned.set(true);

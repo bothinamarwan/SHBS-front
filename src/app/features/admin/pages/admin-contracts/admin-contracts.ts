@@ -1,27 +1,29 @@
 import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ContractService } from '../../../../core/services/contract.service';
 import { BookingService } from '../../../../core/services/booking.service';
 import { AuthService } from '../../../../core/services/auth.service';
-import { Contract, AdminApprovalRequest, AdminRejectionRequest, AdminContractUploadRequest, ContractStatus } from '../../../../core/models/contract.model';
+import { AdminApprovalService } from '../../../../core/services/admin-approval.service';
+import { Contract, AdminContractUploadRequest, ContractStatus, ContractApprovalRequest, ContractRejectionRequest, PendingContract } from '../../../../core/models/contract.model';
 
 @Component({
   selector: 'app-admin-contracts',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule],
   templateUrl: './admin-contracts.html'
 })
 export class AdminContracts implements OnInit {
   private contractService = inject(ContractService);
   private bookingService = inject(BookingService);
   private authService = inject(AuthService);
+  private adminApprovalService = inject(AdminApprovalService);
   private fb = inject(FormBuilder);
 
-  contracts = signal<Contract[]>([]);
+  pendingContracts = signal<PendingContract[]>([]);
   isLoading = signal(true);
-  selectedContract = signal<Contract | null>(null);
+  selectedContract = signal<PendingContract | null>(null);
   isModalOpen = signal(false);
   isUploadModalOpen = signal(false);
   selectedBookingId = signal<string | null>(null);
@@ -31,8 +33,8 @@ export class AdminContracts implements OnInit {
   uploadForm: FormGroup;
   selectedFile = signal<File | null>(null);
 
-  contractsWaitingForUpload = computed(() => this.contracts().filter(c => c.status === 0));
-  contractsPendingReview = computed(() => this.contracts().filter(c => c.status === 4));
+  contractsWaitingForUpload = computed(() => this.pendingContracts().filter(c => c.contractStatus === 0));
+  contractsPendingReview = computed(() => this.pendingContracts().filter(c => c.contractStatus === 1 && c.isStudentSigned && c.isLandlordSigned && !c.isAdminApproved));
 
   constructor() {
     this.approvalForm = this.fb.group({
@@ -51,9 +53,12 @@ export class AdminContracts implements OnInit {
   }
 
   loadContracts() {
-    this.contractService.getAll().subscribe({
+    this.adminApprovalService.getPendingContracts().subscribe({
       next: (contracts) => {
-        this.contracts.set(contracts);
+        console.log('Pending contracts from API:', contracts);
+        this.pendingContracts.set(contracts);
+        console.log('Contracts waiting for upload:', this.contractsWaitingForUpload());
+        console.log('Contracts pending review:', this.contractsPendingReview());
         this.isLoading.set(false);
       },
       error: (err) => {
@@ -63,11 +68,27 @@ export class AdminContracts implements OnInit {
     });
   }
 
-  openReviewModal(contract: Contract) {
+  openReviewModal(contract: PendingContract) {
     this.selectedContract.set(contract);
     this.isModalOpen.set(true);
     this.approvalForm.reset();
     this.rejectionForm.reset();
+  }
+
+  viewPdf(url: string | undefined) {
+    if (!url) return;
+
+    // Download PDF via ContractService to handle authentication
+    this.contractService.getPdfByUrl(url).subscribe({
+      next: (blob: Blob) => {
+        const blobUrl = window.URL.createObjectURL(blob);
+        window.open(blobUrl, '_blank');
+      },
+      error: (err: any) => {
+        console.error('Error downloading PDF:', err);
+        alert('Failed to open PDF. Please try again.');
+      }
+    });
   }
 
   closeModal() {
@@ -136,37 +157,30 @@ export class AdminContracts implements OnInit {
   }
 
   approveContract() {
-    if (this.approvalForm.invalid) {
-      this.approvalForm.markAllAsTouched();
-      return;
-    }
-
     const contractId = this.selectedContract()?.contractId;
     const bookingId = this.selectedContract()?.bookingId;
     if (!contractId || !bookingId) return;
 
+    const currentUser = this.authService.currentUserValue;
+    if (!currentUser || !currentUser.id) {
+      alert('Admin user ID not found. Please log in again.');
+      return;
+    }
+
     const notes = this.approvalForm.value.notes || '';
 
-    this.contractService.adminApprove(bookingId, notes).subscribe({
+    const req: ContractApprovalRequest = {
+      contractId: contractId,
+      adminUserId: currentUser.id,
+      adminNotes: notes,
+      isApproved: true
+    };
+
+    this.adminApprovalService.approveContract(req).subscribe({
       next: () => {
-        // Update booking status to APPROVED (6)
-        this.bookingService.update({
-          bookingId: bookingId,
-          startDate: '', // Will be filled by backend
-          endDate: '',   // Will be filled by backend
-          bookingStatus: 6
-        }).subscribe({
-          next: () => {
-            alert('Contract approved successfully. Amount transferred to landlord.');
-            this.closeModal();
-            this.loadContracts();
-          },
-          error: (err) => {
-            console.error('Error updating booking status:', err);
-            alert('Contract approved but failed to update booking status.');
-            this.closeModal();
-          }
-        });
+        alert('Contract approved successfully.');
+        this.closeModal();
+        this.loadContracts();
       },
       error: (err) => {
         console.error('Error approving contract:', err);
@@ -176,37 +190,47 @@ export class AdminContracts implements OnInit {
   }
 
   rejectContract() {
+    console.log('Reject button clicked');
+    console.log('Rejection form valid:', this.rejectionForm.valid);
+    console.log('Rejection form value:', this.rejectionForm.value);
+
     if (this.rejectionForm.invalid) {
       this.rejectionForm.markAllAsTouched();
+      alert('Please provide rejection notes.');
       return;
     }
 
     const contractId = this.selectedContract()?.contractId;
     const bookingId = this.selectedContract()?.bookingId;
+    console.log('Contract ID:', contractId, 'Booking ID:', bookingId);
+
     if (!contractId || !bookingId) return;
 
-    const notes = this.rejectionForm.value.notes || '';
+    const currentUser = this.authService.currentUserValue;
+    console.log('Current user:', currentUser);
 
-    this.contractService.adminReject(bookingId, notes).subscribe({
+    if (!currentUser || !currentUser.id) {
+      alert('Admin user ID not found. Please log in again.');
+      return;
+    }
+
+    const notes = this.rejectionForm.value.notes || '';
+    console.log('Rejection notes:', notes);
+
+    const req: ContractRejectionRequest = {
+      contractId: contractId,
+      adminUserId: currentUser.id,
+      adminNotes: notes,
+      isApproved: false
+    };
+
+    console.log('Reject request:', req);
+
+    this.adminApprovalService.rejectContract(req).subscribe({
       next: () => {
-        // Update booking status to REJECTED (7)
-        this.bookingService.update({
-          bookingId: bookingId,
-          startDate: '', // Will be filled by backend
-          endDate: '',   // Will be filled by backend
-          bookingStatus: 7
-        }).subscribe({
-          next: () => {
-            alert('Contract rejected. Amount transferred back to student.');
-            this.closeModal();
-            this.loadContracts();
-          },
-          error: (err) => {
-            console.error('Error updating booking status:', err);
-            alert('Contract rejected but failed to update booking status.');
-            this.closeModal();
-          }
-        });
+        alert('Contract rejected successfully.');
+        this.closeModal();
+        this.loadContracts();
       },
       error: (err) => {
         console.error('Error rejecting contract:', err);

@@ -62,7 +62,7 @@
           </div>
           <div class="detail-item" *ngIf="receipt?.paymentDate">
             <span class="detail-label">Payment Date</span>
-            <span class="detail-value">{{ receipt?.paymentDate | date:'medium' }}</span>
+            <span class="detail-value">{{ receipt.paymentDate | date:'medium' }}</span>
           </div>
           <div class="detail-item" *ngIf="receipt?.bookingId">
             <span class="detail-label">Booking ID</span>

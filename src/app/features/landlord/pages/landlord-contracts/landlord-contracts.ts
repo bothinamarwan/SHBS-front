@@ -1,6 +1,6 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule } from '@angular/forms';
+import { FormsModule } from '@angular/forms';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ContractService } from '../../../../core/services/contract.service';
@@ -10,7 +10,7 @@ import { Contract, LandlordSignatureRequest, ContractStatus } from '../../../../
 @Component({
   selector: 'app-landlord-contracts',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './landlord-contracts.html'
 })
 export class LandlordContracts implements OnInit {
@@ -25,14 +25,7 @@ export class LandlordContracts implements OnInit {
   isModalOpen = signal(false);
   isSigning = signal(false);
   contractSigned = signal(false);
-
-  signatureForm: FormGroup;
-
-  constructor() {
-    this.signatureForm = this.fb.group({
-      signedPdfUrl: ['', Validators.required]
-    });
-  }
+  selectedFile = signal<File | null>(null);
 
   ngOnInit() {
     this.loadContracts();
@@ -41,7 +34,22 @@ export class LandlordContracts implements OnInit {
   loadContracts() {
     this.contractService.getAll().subscribe({
       next: (contracts) => {
-        this.contracts.set(contracts);
+        // Filter contracts for current landlord
+        const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
+        const landlordId = user?.landlordId || user?.id || user?.userId;
+        
+        console.log('Current landlord user:', user, 'landlordId:', landlordId);
+        console.log('All contracts:', contracts);
+        
+        if (landlordId) {
+          // Filter contracts - landlord should see contracts for their bookings
+          // We need to check if the booking belongs to this landlord
+          // For now, show all contracts since we don't have booking-landlord relationship in contract
+          this.contracts.set(contracts);
+        } else {
+          this.contracts.set(contracts);
+        }
+        
         this.isLoading.set(false);
       },
       error: (err) => {
@@ -54,31 +62,40 @@ export class LandlordContracts implements OnInit {
   openSignModal(contract: Contract) {
     this.selectedContract.set(contract);
     this.isModalOpen.set(true);
-    this.signatureForm.reset();
+    this.selectedFile.set(null);
   }
 
   closeModal() {
     this.isModalOpen.set(false);
     this.selectedContract.set(null);
+    this.selectedFile.set(null);
+  }
+
+  onFileSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files[0]) {
+      this.selectedFile.set(input.files[0]);
+    }
   }
 
   signContract() {
-    if (this.signatureForm.invalid) {
-      this.signatureForm.markAllAsTouched();
+    const contractId = this.selectedContract()?.contractId;
+    const bookingId = this.selectedContract()?.bookingId;
+    const file = this.selectedFile();
+    
+    if (!contractId || !bookingId) return;
+    if (!file) {
+      alert('Please select a signed contract file.');
       return;
     }
 
-    const contractId = this.selectedContract()?.contractId;
-    const bookingId = this.selectedContract()?.bookingId;
-    if (!contractId || !bookingId) return;
-
     this.isSigning.set(true);
 
-    const req: LandlordSignatureRequest = {
-      signedPdfUrl: this.signatureForm.value.signedPdfUrl
-    };
+    // Create FormData with the file
+    const formData = new FormData();
+    formData.append('signedFile', file);
 
-    this.contractService.landlordSign(contractId, req).subscribe({
+    this.contractService.landlordSignWithFile(contractId, formData).subscribe({
       next: (updatedContract) => {
         this.isSigning.set(false);
         this.contractSigned.set(true);

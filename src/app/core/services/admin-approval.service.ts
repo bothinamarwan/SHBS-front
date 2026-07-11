@@ -6,6 +6,11 @@ import {
   ReleaseEscrowRequest,
   RefundEscrowRequest
 } from '../models/escrow.model';
+import {
+  ContractApprovalRequest,
+  ContractRejectionRequest,
+  PendingContract
+} from '../models/contract.model';
 
 @Injectable({
   providedIn: 'root'
@@ -25,5 +30,17 @@ export class AdminApprovalService {
 
   refundEscrow(request: RefundEscrowRequest): Observable<any> {
     return this.http.post(`${this.baseUrl}/refund-escrow`, request);
+  }
+
+  getPendingContracts(): Observable<PendingContract[]> {
+    return this.http.get<PendingContract[]>(`${this.baseUrl}/pending-contracts`);
+  }
+
+  approveContract(request: ContractApprovalRequest): Observable<any> {
+    return this.http.post(`${this.baseUrl}/approve-contract`, request);
+  }
+
+  rejectContract(request: ContractRejectionRequest): Observable<any> {
+    return this.http.post(`${this.baseUrl}/reject-contract`, request);
   }
 }

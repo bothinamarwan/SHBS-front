@@ -44,4 +44,17 @@ export class ComplaintService {
   delete(complaintId: string): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/${complaintId}`);
   }
+
+  // Admin methods
+  getAdminComplaints(params?: {
+    studentId?: string;
+    housingUnitId?: string;
+    status?: number;
+    createdDateFrom?: string;
+    createdDateTo?: string;
+    pageIndex?: number;
+    pageSize?: number;
+  }): Observable<{ pageSize: number; pageIndex: number; totalRecords: number; records: Complaint[] }> {
+    return this.http.get<{ pageSize: number; pageIndex: number; totalRecords: number; records: Complaint[] }>('/api/Admin/complaints', { params });
+  }
 }

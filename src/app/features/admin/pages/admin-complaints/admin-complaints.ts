@@ -5,6 +5,7 @@ import { HousingService } from '../../../../core/services/housing.service';
 import { FormsModule } from '@angular/forms';
 import { Complaint, ComplaintStatus, UpdateComplaintRequest } from '../../../../core/models/complaint.model';
 import { HousingUnit } from '../../../../core/models/housing.model';
+import { HttpParams } from '@angular/common/http';
 
 @Component({
   selector: 'app-admin-complaints',
@@ -19,13 +20,17 @@ export class AdminComplaints implements OnInit {
   complaints   = signal<Complaint[]>([]);
   housings     = signal<HousingUnit[]>([]);
   totalCount   = signal<number>(0);
-  pageNumber   = signal<number>(1);
+  pageIndex    = signal<number>(0);
   pageSize     = signal<number>(10);
   totalPages   = signal<number>(1);
   isLoading    = signal<boolean>(true);
 
-  // Status filter
+  // Filters
   statusFilter = signal<ComplaintStatus | undefined>(undefined);
+  studentIdFilter = signal<string>('');
+  housingUnitIdFilter = signal<string>('');
+  createdDateFromFilter = signal<string>('');
+  createdDateToFilter = signal<string>('');
 
   // Edit modal
   editModal    = signal<Complaint | null>(null);
@@ -59,27 +64,33 @@ export class AdminComplaints implements OnInit {
   onStatusFilterChange(event: any) {
     const val = event.target.value;
     this.statusFilter.set(val === '' ? undefined : Number(val) as ComplaintStatus);
-    this.pageNumber.set(1);
+    this.pageIndex.set(0);
     this.fetchComplaints();
   }
 
   fetchComplaints() {
     this.isLoading.set(true);
-    this.complaintService.getAll().subscribe({
+
+    const params: any = {};
+    if (this.statusFilter() !== undefined) params.status = this.statusFilter();
+    if (this.studentIdFilter()) params.studentId = this.studentIdFilter();
+    if (this.housingUnitIdFilter()) params.housingUnitId = this.housingUnitIdFilter();
+    if (this.createdDateFromFilter()) params.createdDateFrom = this.createdDateFromFilter();
+    if (this.createdDateToFilter()) params.createdDateTo = this.createdDateToFilter();
+    params.pageIndex = this.pageIndex();
+    params.pageSize = this.pageSize();
+
+    this.complaintService.getAdminComplaints(params).subscribe({
       next: (res) => {
-        let items = res || [];
-        
-        // Apply status filter
-        if (this.statusFilter() !== undefined) {
-          items = items.filter(c => c.status === this.statusFilter());
-        }
-        
-        this.complaints.set(items);
-        this.totalCount.set(items.length);
-        this.totalPages.set(Math.ceil(items.length / this.pageSize()) || 1);
+        this.complaints.set(res.records || []);
+        this.totalCount.set(res.totalRecords || 0);
+        this.totalPages.set(Math.ceil(this.totalCount() / this.pageSize()) || 1);
         this.isLoading.set(false);
       },
-      error: () => this.isLoading.set(false)
+      error: (err) => {
+        console.error('Failed to fetch complaints:', err);
+        this.isLoading.set(false);
+      }
     });
   }
 
@@ -146,10 +157,10 @@ export class AdminComplaints implements OnInit {
   }
 
   prevPage() {
-    if (this.pageNumber() > 1) { this.pageNumber.update(p => p - 1); this.fetchComplaints(); }
+    if (this.pageIndex() > 0) { this.pageIndex.update(p => p - 1); this.fetchComplaints(); }
   }
   nextPage() {
-    if (this.pageNumber() < this.totalPages()) { this.pageNumber.update(p => p + 1); this.fetchComplaints(); }
+    if (this.pageIndex() < this.totalPages() - 1) { this.pageIndex.update(p => p + 1); this.fetchComplaints(); }
   }
 
   getStatusBadgeClass(status: ComplaintStatus): string {

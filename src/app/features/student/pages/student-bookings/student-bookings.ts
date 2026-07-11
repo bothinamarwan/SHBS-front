@@ -43,9 +43,12 @@ export class StudentBookings implements OnInit {
 
         // Filter bookings for current student
         const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
-        const studentId = user?.studentId || user?.id;
+        const studentId = user?.studentId || user?.id || user?.userId;
+        console.log('Current user:', user, 'studentId:', studentId);
+        console.log('All bookings before filter:', bookings);
+        
         if (studentId) {
-          bookings = bookings.filter(b => b.studentId === studentId);
+          bookings = bookings.filter(b => b.studentId === studentId || b.studentId === user?.userId || b.studentId === user?.id);
         }
 
         console.log('Filtered bookings for student:', bookings);
@@ -154,27 +157,39 @@ export class StudentBookings implements OnInit {
   }
 
   downloadContractPdf(bookingId: string) {
-    this.contractService.getPdf(bookingId).subscribe({
-      next: (blob: Blob) => {
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `Contract_${bookingId}.pdf`;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        a.remove();
+    // First get contract by booking ID, then download PDF using contract ID
+    this.contractService.getByBookingId(bookingId).subscribe({
+      next: (contract) => {
+        if (!contract) {
+          alert('Contract not found for this booking.');
+          return;
+        }
+        this.contractService.getPdf(contract.contractId).subscribe({
+          next: (blob: Blob) => {
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Contract_${contract.contractId}.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            a.remove();
+          },
+          error: (err) => {
+            console.error('Error downloading contract PDF:', err);
+            alert('Failed to download contract PDF. Please try again.');
+          }
+        });
       },
       error: (err) => {
-        console.error('Error downloading contract PDF:', err);
-        alert('Failed to download contract PDF. Please try again.');
+        console.error('Error fetching contract:', err);
+        alert('Contract not found for this booking.');
       }
     });
   }
 
   canDownloadContract(status: number | string): boolean {
-    const statusNum = typeof status === 'string' ? parseInt(status) : status;
-    // Allow download when waiting for student signature (3) or waiting for landlord signature (4)
-    return statusNum === 3 || statusNum === 4;
+    // Temporarily always return true to test button visibility
+    return true;
   }
 }

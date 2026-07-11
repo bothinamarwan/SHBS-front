@@ -85,11 +85,18 @@
 
     <!-- Quick Actions Overlay -->
     <div class="p-4 bg-neutral-50 dark:bg-slate-800/50 border-t border-neutral-100 dark:border-slate-800 flex justify-end gap-2 relative z-10">
+      <!-- Download Contract button for landlord when waiting for landlord signature -->
+      <button *ngIf="booking.bookingStatus === 4"
+        (click)="downloadContractPdf(booking.bookingId)"
+        class="text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg transition-colors">
+        <i class="fas fa-file-pdf mr-1"></i> Download Contract
+      </button>
+
       <!-- Sign Contract button for landlord when waiting for landlord signature -->
-      <button *ngIf="booking.bookingStatus === 8"
+      <button *ngIf="booking.bookingStatus === 4"
         (click)="openContractModal(booking)"
-        class="text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg transition-colors ml-auto">
-        <i class="fas fa-file-contract mr-1"></i> Sign Lease Contract
+        class="text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg transition-colors">
+        <i class="fas fa-file-contract mr-1"></i> Sign Contract
       </button>
 
       <!-- Cancel button for cancellable statuses -->
@@ -195,70 +202,29 @@
 
     <!-- Contract Body -->
     <div *ngIf="!contractSigned() && selectedBooking() as b" class="p-6 space-y-5">
-
-      <!-- Contract Document -->
-      <div class="bg-neutral-50 dark:bg-slate-800/50 rounded-xl p-5 border border-neutral-100 dark:border-slate-700 text-sm leading-relaxed space-y-3">
-        <div class="text-center mb-4">
-          <p class="font-bold text-lg text-neutral-900 dark:text-slate-100">RESIDENTIAL LEASE AGREEMENT</p>
-          <p class="text-xs text-neutral-400 mt-1">Date: {{ getTodayDate() }}</p>
-        </div>
-        <p class="text-neutral-600 dark:text-slate-300">
-          This Residential Lease Agreement ("Agreement") is entered into as of <strong>{{ getTodayDate() }}</strong>,
-          between the <strong>Landlord</strong> (property owner) and the <strong>Tenant</strong>:
-          <strong>{{ b.studentName }}</strong>.
-        </p>
-        <div class="grid grid-cols-2 gap-3 bg-white dark:bg-slate-900 rounded-lg p-3 border border-neutral-100 dark:border-slate-800 text-xs">
-          <div>
-            <p class="text-neutral-400 font-medium">Property</p>
-            <p class="font-bold text-neutral-800 dark:text-slate-100 mt-0.5">{{ b.housingTitle }}</p>
-          </div>
-          <div>
-            <p class="text-neutral-400 font-medium">Room</p>
-            <p class="font-bold text-neutral-800 dark:text-slate-100 mt-0.5">{{ b.roomName }}</p>
-          </div>
-          <div>
-              <p class="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">Start Date</p>
-              <p class="text-sm font-bold text-neutral-800 dark:text-slate-100 mt-0.5">{{ b.startDate | date }}</p>
-            </div>
-            <div>
-              <p class="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">End Date</p>
-              <p class="text-sm font-bold text-neutral-800 dark:text-slate-100 mt-0.5">{{ b.endDate | date }}</p>
-            </div>
-          <div class="col-span-2">
-            <p class="text-neutral-400 font-medium">Total Rent</p>
-            <p class="font-bold text-indigo-600 dark:text-indigo-400 mt-0.5 text-base">{{ formatCurrency(b.totalPrice) }}</p>
-          </div>
-        </div>
-        <p class="text-neutral-500 dark:text-slate-400 text-xs leading-relaxed">
-          <strong>Terms:</strong> The Tenant agrees to pay the rent monthly in advance. The Tenant shall maintain the property
-          in good condition and comply with all house rules. Early termination requires 30 days written notice.
-          The Landlord shall ensure the property is habitable and all facilities are in working order throughout the lease term.
+      <div class="bg-indigo-50 dark:bg-indigo-900/20 rounded-xl p-4">
+        <p class="text-sm text-indigo-700 dark:text-indigo-300">
+          <i class="fas fa-info-circle mr-2"></i>
+          Download the contract, sign it, and upload the signed PDF file below.
         </p>
       </div>
 
-      <!-- Signature field -->
       <div>
-        <label class="lc-label">Landlord Digital Signature *</label>
-        <p class="text-xs text-neutral-400 dark:text-slate-500 mb-2">Type your full name to legally sign this agreement</p>
-        <input [value]="landlordSignature()"
-          (input)="landlordSignature.set($any($event.target).value)"
-          class="lc-input font-signature text-xl"
-          style="font-family: 'Brush Script MT', cursive; font-size: 1.4rem; letter-spacing: 0.05em;"
-          placeholder="Sign here..." />
-        <p *ngIf="!landlordSignature().trim()" class="text-xs text-neutral-400 mt-1">
-          Your typed name serves as your legally binding digital signature.
-        </p>
+        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Signed Contract File</label>
+        <input type="file" accept=".pdf" (change)="onFileSelected($event)"
+               class="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+        <p class="text-xs text-slate-500 mt-1">Select the signed contract PDF file.</p>
       </div>
 
       <!-- Footer -->
       <div class="flex gap-3 pt-2 border-t border-neutral-100 dark:border-slate-800">
         <button (click)="closeContract()" class="btn-ghost flex-1 justify-center">Cancel</button>
         <button (click)="signContract()"
-          [disabled]="!landlordSignature().trim() || isSigning()"
+          [disabled]="isSigning()"
           class="btn-primary flex-1 justify-center disabled:opacity-50 disabled:cursor-not-allowed">
           <i *ngIf="isSigning()" class="fas fa-spinner fa-spin text-xs"></i>
           <i *ngIf="!isSigning()" class="fas fa-pen-nib text-xs"></i>
-          {{ isSigning() ? 'Signing...' : 'Sign & Execute Contract' }}
+          {{ isSigning() ? 'Signing...' : 'Submit Signed Contract' }}
         </button>
       </div>
     </div>

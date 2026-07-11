@@ -19,8 +19,16 @@ export class ContractService {
     return this.http.post<Contract>(`${this.baseUrl}/${id}/signatures/student`, req);
   }
 
+  studentSignWithFile(id: string, formData: FormData): Observable<Contract> {
+    return this.http.post<Contract>(`${this.baseUrl}/${id}/signatures/student`, formData);
+  }
+
   landlordSign(id: string, req: LandlordSignatureRequest): Observable<Contract> {
     return this.http.post<Contract>(`${this.baseUrl}/${id}/signatures/owner`, req);
+  }
+
+  landlordSignWithFile(id: string, formData: FormData): Observable<Contract> {
+    return this.http.post<Contract>(`${this.baseUrl}/${id}/signatures/owner`, formData);
   }
 
   adminApprove(id: string, req: string): Observable<Contract> {
@@ -41,6 +49,10 @@ export class ContractService {
 
   getPdf(id: string): Observable<Blob> {
     return this.http.get(`${this.baseUrl}/${id}/pdf`, { responseType: 'blob' });
+  }
+
+  getPdfByUrl(url: string): Observable<Blob> {
+    return this.http.get(url, { responseType: 'blob' });
   }
 
   adminUploadContract(req: AdminContractUploadRequest): Observable<Contract> {

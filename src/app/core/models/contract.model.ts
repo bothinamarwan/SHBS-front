@@ -50,3 +50,38 @@ export interface AdminContractUploadRequest {
   contractPdf: File;
   adminUserId: string;
 }
+
+export interface ContractApprovalRequest {
+  contractId: string;
+  adminUserId: string;
+  adminNotes?: string;
+  isApproved: boolean;
+}
+
+export interface ContractRejectionRequest {
+  contractId: string;
+  adminUserId: string;
+  adminNotes: string;
+  isApproved: boolean;
+}
+
+export interface PendingContract {
+  contractId: string;
+  bookingId: string;
+  contractNumber: string;
+  originalContractPdfPath: string;
+  studentSignedContractPath?: string;
+  landlordSignedContractPath?: string;
+  isStudentSigned: boolean;
+  isLandlordSigned: boolean;
+  isAdminApproved: boolean;
+  studentSignedAt?: string;
+  landlordSignedAt?: string;
+  adminApprovedAt?: string;
+  adminNotes?: string;
+  contractStatus: number;
+  createdAt: string;
+  studentSignedPdfUrl?: string;
+  landlordSignedPdfUrl?: string;
+  originalContractPdfUrl?: string;
+}

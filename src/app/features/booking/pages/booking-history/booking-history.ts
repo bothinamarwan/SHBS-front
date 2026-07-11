@@ -1,23 +1,33 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { StudentService } from '../../../../core/services/student.service';
+import { ContractService } from '../../../../core/services/contract.service';
 import { Booking } from '../../../../core/models/booking.model';
+import { StudentSignatureRequest } from '../../../../core/models/contract.model';
 
 @Component({
   selector: 'app-booking-history',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './booking-history.html'
 })
 export class BookingHistory implements OnInit {
   private studentService = inject(StudentService);
+  private contractService = inject(ContractService);
   private route = inject(ActivatedRoute);
 
   bookings = signal<Booking[]>([]);
   isLoading = signal(true);
   showSuccess = signal(false);
   latestBookingId = signal<string | null>(null);
+  
+  // Signature upload modal
+  isSignatureModalOpen = signal(false);
+  selectedBooking = signal<Booking | null>(null);
+  isUploading = signal(false);
+  selectedFile = signal<File | null>(null);
 
   ngOnInit() {
     this.route.queryParams.subscribe(params => {
@@ -70,5 +80,103 @@ export class BookingHistory implements OnInit {
       8: 'Cancelled'
     };
     return map[status] || 'Unknown';
+  }
+
+  downloadContractPdf(bookingId: string) {
+    // First get contract by booking ID, then download PDF using contract ID
+    this.contractService.getByBookingId(bookingId).subscribe({
+      next: (contract) => {
+        if (!contract) {
+          alert('Contract not found for this booking.');
+          return;
+        }
+        this.contractService.getPdf(contract.contractId).subscribe({
+          next: (blob: Blob) => {
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Contract_${contract.contractId}.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            a.remove();
+          },
+          error: (err) => {
+            console.error('Error downloading contract PDF:', err);
+            alert('Failed to download contract PDF. Please try again.');
+          }
+        });
+      },
+      error: (err) => {
+        console.error('Error fetching contract:', err);
+        alert('Contract not found for this booking.');
+      }
+    });
+  }
+
+  openSignatureModal(booking: Booking) {
+    this.selectedBooking.set(booking);
+    this.isSignatureModalOpen.set(true);
+    this.selectedFile.set(null);
+  }
+
+  closeSignatureModal() {
+    this.isSignatureModalOpen.set(false);
+    this.selectedBooking.set(null);
+    this.selectedFile.set(null);
+  }
+
+  onFileSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files[0]) {
+      this.selectedFile.set(input.files[0]);
+    }
+  }
+
+  submitSignedContract() {
+    const booking = this.selectedBooking();
+    const file = this.selectedFile();
+    
+    if (!booking) return;
+    if (!file) {
+      alert('Please select a signed contract file.');
+      return;
+    }
+
+    this.isUploading.set(true);
+
+    // First get contract by booking ID
+    this.contractService.getByBookingId(booking.bookingId).subscribe({
+      next: (contract) => {
+        if (!contract) {
+          alert('Contract not found for this booking.');
+          this.isUploading.set(false);
+          return;
+        }
+
+        // Create FormData with the file
+        const formData = new FormData();
+        formData.append('signedFile', file);
+
+        this.contractService.studentSignWithFile(contract.contractId, formData).subscribe({
+          next: (updatedContract) => {
+            this.isUploading.set(false);
+            alert('Contract signed successfully!');
+            this.closeSignatureModal();
+            this.loadBookings();
+          },
+          error: (err) => {
+            this.isUploading.set(false);
+            console.error('Error signing contract:', err);
+            alert('Failed to submit signed contract. Please try again.');
+          }
+        });
+      },
+      error: (err) => {
+        this.isUploading.set(false);
+        console.error('Error fetching contract:', err);
+        alert('Contract not found for this booking.');
+      }
+    });
   }
 }

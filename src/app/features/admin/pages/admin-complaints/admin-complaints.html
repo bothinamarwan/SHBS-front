@@ -85,11 +85,13 @@
       <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Manage and resolve user complaints.</p>
     </div>
 
-    <!-- Status Filter + Count -->
-    <div class="flex items-center gap-3">
+    <!-- Filters -->
+    <div class="flex flex-wrap items-center gap-3">
       <span class="text-sm text-slate-500 dark:text-slate-400">
         <span class="font-bold text-slate-800 dark:text-slate-100">{{ totalCount() }}</span> complaints
       </span>
+
+      <!-- Status Filter -->
       <div class="relative min-w-[160px]">
         <select class="lc-select w-full" (change)="onStatusFilterChange($event)">
           <option value="">All Statuses</option>
@@ -98,6 +100,40 @@
           <option [value]="ComplaintStatus.Resolved">Resolved</option>
         </select>
       </div>
+
+      <!-- Student ID Filter -->
+      <div class="relative min-w-[200px]">
+        <input [(ngModel)]="studentIdFilter" (keyup.enter)="fetchComplaints()" type="text" placeholder="Student ID..."
+               class="lc-input w-full" />
+      </div>
+
+      <!-- Housing Unit Filter -->
+      <div class="relative min-w-[200px]">
+        <select [(ngModel)]="housingUnitIdFilter" (change)="fetchComplaints()" class="lc-select w-full">
+          <option value="">All Properties</option>
+          <option *ngFor="let housing of housings()" [value]="housing.housingUnitId">
+            {{ housing.title }}
+          </option>
+        </select>
+      </div>
+
+      <!-- Date From Filter -->
+      <div class="relative min-w-[160px]">
+        <input [(ngModel)]="createdDateFromFilter" (change)="fetchComplaints()" type="date"
+               class="lc-input w-full" />
+      </div>
+
+      <!-- Date To Filter -->
+      <div class="relative min-w-[160px]">
+        <input [(ngModel)]="createdDateToFilter" (change)="fetchComplaints()" type="date"
+               class="lc-input w-full" />
+      </div>
+
+      <!-- Clear Filters -->
+      <button (click)="studentIdFilter.set(''); housingUnitIdFilter.set(''); createdDateFromFilter.set(''); createdDateToFilter.set(''); statusFilter.set(undefined); fetchComplaints();"
+              class="text-xs font-semibold px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 transition-colors">
+        Clear
+      </button>
     </div>
   </div>
 
@@ -196,16 +232,16 @@
     <!-- Pagination -->
     <div class="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/20">
       <p class="text-sm text-slate-500">
-        Page <span class="font-semibold text-slate-800 dark:text-slate-200">{{ pageNumber() }}</span> of
+        Page <span class="font-semibold text-slate-800 dark:text-slate-200">{{ pageIndex() + 1 }}</span> of
         <span class="font-semibold text-slate-800 dark:text-slate-200">{{ totalPages() }}</span>
         <span class="ml-1 text-xs">({{ totalCount() }} total)</span>
       </p>
       <div class="flex items-center gap-2">
-        <button (click)="prevPage()" [disabled]="pageNumber() === 1"
+        <button (click)="prevPage()" [disabled]="pageIndex() === 0"
                 class="w-8 h-8 rounded-lg border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-500 hover:bg-white dark:hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
           <i class="fas fa-chevron-left text-xs"></i>
         </button>
-        <button (click)="nextPage()" [disabled]="pageNumber() === totalPages()"
+        <button (click)="nextPage()" [disabled]="pageIndex() >= totalPages() - 1"
                 class="w-8 h-8 rounded-lg border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-500 hover:bg-white dark:hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
           <i class="fas fa-chevron-right text-xs"></i>
         </button>
