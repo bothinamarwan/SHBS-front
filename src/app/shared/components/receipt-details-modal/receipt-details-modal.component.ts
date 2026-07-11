@@ -2,13 +2,11 @@ import { Component, Input, signal, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Receipt } from '../../../core/models/receipt.model';
 import { ReceiptService } from '../../../core/services/receipt.service';
-import { PdfViewerComponent } from '../pdf-viewer/pdf-viewer.component';
-import { PdfActionsComponent } from '../pdf-actions/pdf-actions.component';
 
 @Component({
   selector: 'app-receipt-details-modal',
   standalone: true,
-  imports: [CommonModule, PdfViewerComponent, PdfActionsComponent],
+  imports: [CommonModule],
   templateUrl: './receipt-details-modal.component.html',
   styleUrls: ['./receipt-details-modal.component.css']
 })
@@ -16,10 +14,6 @@ export class ReceiptDetailsModalComponent implements OnDestroy {
   @Input() receipt!: Receipt;
   @Input() isOpen = signal<boolean>(false);
 
-  isLoadingPdf = signal<boolean>(false);
-  pdfBlob = signal<Blob | null>(null);
-  pdfError = signal<string | null>(null);
-  showPdfViewer = signal<boolean>(false);
   private objectUrl: string | null = null;
 
   constructor(private receiptService: ReceiptService) {}
@@ -36,57 +30,27 @@ export class ReceiptDetailsModalComponent implements OnDestroy {
   }
 
   close() {
-    this.showPdfViewer.set(false);
-    this.pdfBlob.set(null);
-    this.pdfError.set(null);
     this.isOpen.set(false);
   }
 
   viewPdf() {
-    // Open PDF in new tab using the receiptPdfUrl
-    const pdfUrl = this.receipt.receiptPdfUrl;
-    if (pdfUrl && !pdfUrl.startsWith('file://')) {
-      window.open(pdfUrl, '_blank');
-    } else {
-      // Fallback to API endpoint
-      const receiptId = this.receipt.receiptId;
-      if (receiptId) {
-        window.open(`/api/Receipt/${receiptId}/download`, '_blank');
-      }
-    }
-  }
-
-  private loadPdf() {
-    if (!this.receipt) return;
-
-    this.isLoadingPdf.set(true);
-    this.pdfError.set(null);
-
     const receiptId = this.receipt.receiptId;
     if (!receiptId) {
-      this.pdfError.set('Receipt ID not found');
-      this.isLoadingPdf.set(false);
+      alert('Receipt ID not found.');
       return;
     }
 
-    // Always use the API endpoint to avoid file:// URL issues
-    this.loadFromApi(receiptId);
-  }
-
-  private loadFromApi(receiptId: string) {
     this.receiptService.downloadReceipt(receiptId).subscribe({
-      next: (blob) => this.handlePdfSuccess(blob),
+      next: (blob) => {
+        const url = URL.createObjectURL(blob);
+        window.open(url, '_blank');
+        setTimeout(() => URL.revokeObjectURL(url), 10000);
+      },
       error: (err) => {
-        console.error('Error downloading receipt', err);
-        this.pdfError.set('Failed to load PDF. Please try again.');
-        this.isLoadingPdf.set(false);
+        console.error('Error opening receipt PDF', err);
+        alert('Failed to open receipt PDF. Please try again.');
       }
     });
-  }
-
-  private handlePdfSuccess(blob: Blob) {
-    this.pdfBlob.set(blob);
-    this.isLoadingPdf.set(false);
   }
 
   getFileName(): string {
@@ -94,12 +58,7 @@ export class ReceiptDetailsModalComponent implements OnDestroy {
     return `Receipt-${receiptNumber}.pdf`;
   }
 
-  backToDetails() {
-    this.showPdfViewer.set(false);
-  }
-
   downloadPdf() {
-    // Fetch blob and trigger download
     const receiptId = this.receipt.receiptId;
     if (!receiptId) {
       alert('Receipt ID not found. Cannot download receipt.');

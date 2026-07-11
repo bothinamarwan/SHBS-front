@@ -1,6 +1,5 @@
 import { Component, Input, OnDestroy, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-pdf-viewer',
@@ -13,12 +12,9 @@ export class PdfViewerComponent implements OnInit, OnDestroy {
   @Input() pdfBlob!: Blob;
   @Input() fileName: string = 'document.pdf';
 
-  pdfDataUrl = signal<SafeResourceUrl | null>(null);
+  blobUrl = signal<string | null>(null);
   isLoading = signal<boolean>(true);
   error = signal<string | null>(null);
-  private objectUrl: string | null = null;
-
-  constructor(private sanitizer: DomSanitizer) {}
 
   ngOnInit() {
     this.loadPdf();
@@ -29,7 +25,6 @@ export class PdfViewerComponent implements OnInit, OnDestroy {
       this.isLoading.set(true);
       this.error.set(null);
 
-      // Validate blob type
       if (!this.pdfBlob || this.pdfBlob.size === 0) {
         throw new Error('PDF blob is empty or invalid');
       }
@@ -38,21 +33,20 @@ export class PdfViewerComponent implements OnInit, OnDestroy {
         throw new Error('Invalid file type. Expected PDF.');
       }
 
-      // Convert blob to data URL for better browser compatibility
-      const reader = new FileReader();
-      reader.onload = () => {
-        const dataUrl = reader.result as string;
-        this.pdfDataUrl.set(this.sanitizer.bypassSecurityTrustResourceUrl(dataUrl));
-        this.isLoading.set(false);
-      };
-      reader.onerror = () => {
-        throw new Error('Failed to read PDF file');
-      };
-      reader.readAsDataURL(this.pdfBlob);
+      const url = URL.createObjectURL(this.pdfBlob);
+      this.blobUrl.set(url);
+      this.isLoading.set(false);
     } catch (err) {
       this.error.set(err instanceof Error ? err.message : 'Failed to load PDF');
       this.isLoading.set(false);
       console.error('PDF loading error:', err);
+    }
+  }
+
+  openInNewTab() {
+    const url = this.blobUrl();
+    if (url) {
+      window.open(url, '_blank');
     }
   }
 
@@ -61,9 +55,10 @@ export class PdfViewerComponent implements OnInit, OnDestroy {
   }
 
   private cleanup() {
-    if (this.objectUrl) {
-      URL.revokeObjectURL(this.objectUrl);
-      this.objectUrl = null;
+    const url = this.blobUrl();
+    if (url) {
+      URL.revokeObjectURL(url);
+      this.blobUrl.set(null);
     }
   }
 
