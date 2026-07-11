@@ -92,6 +92,7 @@ export class StudentBookings implements OnInit {
 
   getStatusLabel(status: number | string): string {
     const statusNum = typeof status === 'string' ? parseInt(status) : status;
+    console.log('getStatusLabel - input status:', status, 'parsed statusNum:', statusNum);
     const map: Record<number, string> = {
       0: 'Pending Payment',
       1: 'Waiting for Contract',
@@ -103,7 +104,9 @@ export class StudentBookings implements OnInit {
       7: 'Rejected',
       8: 'Cancelled'
     };
-    return map[statusNum] || 'Unknown';
+    const result = map[statusNum] || 'Unknown';
+    console.log('getStatusLabel - result:', result);
+    return result;
   }
 
   getStatusClass(status: number | string): string {
