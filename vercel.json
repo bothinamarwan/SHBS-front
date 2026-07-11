@@ -1,7 +1,8 @@
 {
-  "buildCommand": "npx ng build",
+  "buildCommand": "npm run build",
   "outputDirectory": "dist/SHBS-1/browser",
   "framework": null,
+  "installCommand": "npm install",
   "headers": [
     {
       "source": "/(.*)",
