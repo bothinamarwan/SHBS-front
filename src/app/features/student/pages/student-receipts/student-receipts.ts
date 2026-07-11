@@ -48,23 +48,14 @@ export class StudentReceipts implements OnInit {
   }
 
   downloadReceipt(receipt: Receipt) {
-    // Always use the API endpoint to avoid file:// URL issues
-    this.downloadFromApi(receipt);
-  }
-
-  private downloadFromApi(receipt: Receipt) {
+    // Open PDF in new tab using the API endpoint
     const receiptId = receipt.receiptId;
     if (!receiptId) {
       console.error('Missing receipt ID');
       return;
     }
 
-    this.receiptService.downloadReceipt(receiptId).subscribe({
-      next: (blob) => this.downloadBlob(blob, receipt.receiptNumber),
-      error: (err) => {
-        console.error('Error downloading receipt', err);
-      }
-    });
+    window.open(`/api/Receipt/${receiptId}/download`, '_blank');
   }
 
   private downloadBlob(blob: Blob, receiptNumber: string) {

@@ -99,20 +99,13 @@ export class ReceiptDetailsModalComponent implements OnDestroy {
   }
 
   downloadPdf() {
-    if (!this.pdfBlob()) return;
-
-    try {
-      const blob = this.pdfBlob()!;
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = this.getFileName();
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    } catch (err) {
-      console.error('Download error:', err);
+    // Open PDF in new tab using the API endpoint
+    const receiptId = this.receipt.receiptId;
+    if (!receiptId) {
+      alert('Receipt ID not found. Cannot download receipt.');
+      return;
     }
+
+    window.open(`/api/Receipt/${receiptId}/download`, '_blank');
   }
 }

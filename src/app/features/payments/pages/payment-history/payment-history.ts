@@ -88,22 +88,8 @@ export class PaymentHistoryPage implements OnInit {
       return;
     }
 
-    this.paymentService.downloadReceipt(paymentId).subscribe({
-      next: (blob) => {
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `receipt-${paymentId}.pdf`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-      },
-      error: (err) => {
-        console.error('Download receipt error:', err);
-        alert('Failed to download receipt. Please try again.');
-      }
-    });
+    // Open PDF in new tab using the API endpoint
+    window.open(`/api/Receipt/payment/${paymentId}`, '_blank');
   }
 
   getStatusColor(status: PaymentStatus): string {
