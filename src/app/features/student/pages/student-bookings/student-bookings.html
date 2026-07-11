@@ -84,7 +84,7 @@
                   <i class="fas" [ngClass]="getStatusIcon(b.bookingStatus)"></i>
                   {{ getStatusLabel(b.bookingStatus) }} ({{ b.bookingStatus }})
                 </span>
-                <a *ngIf="b.bookingStatus === 0" routerLink="/student/booking/pay/{{ b.bookingId }}" class="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-indigo-600 text-white rounded-lg text-xs font-bold hover:bg-indigo-700 transition-all">
+                <a *ngIf="b.bookingStatus === 1" routerLink="/student/booking/pay/{{ b.bookingId }}" class="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-indigo-600 text-white rounded-lg text-xs font-bold hover:bg-indigo-700 transition-all">
                   <i class="fas fa-credit-card"></i>
                   Pay Now
                 </a>
