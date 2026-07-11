@@ -42,3 +42,32 @@ export interface EscrowResponse {
   releasedAt?: string;
   releaseTransactionId?: string;
 }
+
+export interface CommissionRecord {
+  commissionRecordId: string;
+  bookingId: string;
+  rate: number;
+  amount: number;
+  createdAt: string;
+}
+
+export interface PendingEscrowReleasesResponse {
+  totalRevenue: number;
+  totalBookings: number;
+  averageCommission: number;
+  fromDate: string;
+  toDate: string;
+  records: CommissionRecord[];
+}
+
+export interface ReleaseEscrowRequest {
+  escrowId: string;
+  adminUserId: string;
+  releaseNotes: string;
+}
+
+export interface RefundEscrowRequest {
+  escrowId: string;
+  adminUserId: string;
+  refundReason: string;
+}

@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { AdminService } from '../../../../core/services/admin.service';
 import { AdminContract, AdminEscrow } from '../../../../core/models/admin.model';
 import { AuthService } from '../../../../core/services/auth.service';
+import { PendingEscrowReleasesResponse, CommissionRecord } from '../../../../core/models/escrow.model';
 
 @Component({
   selector: 'app-admin-approvals',
@@ -19,6 +20,10 @@ export class AdminApprovals implements OnInit {
 
   contracts = signal<AdminContract[]>([]);
   escrows = signal<AdminEscrow[]>([]);
+  
+  // Pending escrow releases summary
+  escrowSummary = signal<PendingEscrowReleasesResponse | null>(null);
+  commissionRecords = signal<CommissionRecord[]>([]);
   
   isLoading = signal<boolean>(true);
   toastMessage = signal<{ text: string; success: boolean } | null>(null);
@@ -64,7 +69,10 @@ export class AdminApprovals implements OnInit {
     } else {
       this.adminService.getPendingEscrowReleases().subscribe({
         next: (res: any) => {
-          this.escrows.set(res?.items || res || []);
+          // Handle the new API response format with summary stats
+          this.escrowSummary.set(res);
+          this.commissionRecords.set(res?.records || []);
+          this.escrows.set(res?.records || res?.items || res || []);
           this.isLoading.set(false);
         },
         error: () => this.isLoading.set(false)
