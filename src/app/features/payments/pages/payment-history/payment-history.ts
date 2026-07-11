@@ -61,10 +61,17 @@ export class PaymentHistoryPage implements OnInit {
   }
 
   viewDetails(paymentId: string) {
-    this.paymentService.getPaymentById(paymentId).subscribe({
-      next: (data) => this.selectedPayment.set(data),
-      error: () => {}
-    });
+    // Find the payment in the current list first
+    const payment = this.payments().find(p => p.paymentId === paymentId || (p as any).id === paymentId);
+    if (payment) {
+      this.selectedPayment.set(payment);
+    } else {
+      // Fallback to API call
+      this.paymentService.getPaymentById(paymentId).subscribe({
+        next: (data) => this.selectedPayment.set(data),
+        error: () => {}
+      });
+    }
   }
 
   closeModal() {
@@ -72,7 +79,10 @@ export class PaymentHistoryPage implements OnInit {
   }
 
   downloadReceipt(payment: PaymentHistory) {
-    const paymentId = payment.paymentId || (payment as any).id;
+    const paymentId = payment.paymentId || (payment as any).paymentId || (payment as any).id;
+    console.log('Download receipt called with payment:', payment);
+    console.log('Extracted paymentId:', paymentId);
+
     if (!paymentId) {
       alert('Payment ID not found. Cannot download receipt.');
       return;
@@ -89,7 +99,8 @@ export class PaymentHistoryPage implements OnInit {
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
       },
-      error: () => {
+      error: (err) => {
+        console.error('Download receipt error:', err);
         alert('Failed to download receipt. Please try again.');
       }
     });
