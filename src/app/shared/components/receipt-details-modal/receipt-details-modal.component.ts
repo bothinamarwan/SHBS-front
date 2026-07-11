@@ -53,7 +53,7 @@ export class ReceiptDetailsModalComponent implements OnDestroy {
     this.isLoadingPdf.set(true);
     this.pdfError.set(null);
 
-    const receiptId = this.receipt.receiptId || this.receipt.id;
+    const receiptId = this.receipt.receiptId;
     if (!receiptId) {
       this.pdfError.set('Receipt ID not found');
       this.isLoadingPdf.set(false);
@@ -61,7 +61,8 @@ export class ReceiptDetailsModalComponent implements OnDestroy {
     }
 
     // Try to download from receiptPdfUrl first, fallback to API endpoint
-    if (this.receipt.receiptPdfUrl) {
+    // Skip file:// URLs as browsers block them for security reasons
+    if (this.receipt.receiptPdfUrl && !this.receipt.receiptPdfUrl.startsWith('file://')) {
       this.receiptService.downloadReceiptByUrl(this.receipt.receiptPdfUrl).subscribe({
         next: (blob) => this.handlePdfSuccess(blob),
         error: (err) => {

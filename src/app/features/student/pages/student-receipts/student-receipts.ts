@@ -49,7 +49,8 @@ export class StudentReceipts implements OnInit {
 
   downloadReceipt(receipt: Receipt) {
     // Try to download from receiptPdfUrl first, fallback to API endpoint
-    if (receipt.receiptPdfUrl) {
+    // Skip file:// URLs as browsers block them for security reasons
+    if (receipt.receiptPdfUrl && !receipt.receiptPdfUrl.startsWith('file://')) {
       this.receiptService.downloadReceiptByUrl(receipt.receiptPdfUrl).subscribe({
         next: (blob) => this.downloadBlob(blob, receipt.receiptNumber),
         error: (err) => {
@@ -63,7 +64,7 @@ export class StudentReceipts implements OnInit {
   }
 
   private downloadFromApi(receipt: Receipt) {
-    const receiptId = receipt.receiptId || receipt.id;
+    const receiptId = receipt.receiptId;
     if (!receiptId) {
       console.error('Missing receipt ID');
       return;
